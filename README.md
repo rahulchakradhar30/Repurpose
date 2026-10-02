@@ -1,163 +1,200 @@
-# Repurpose — Evidence-Based Drug Repurposing Explorer
+# Repurpose — Evidence-Based Drug Repurposing Research Explorer
 
-> **Mandatory Research Disclaimer:**  
-> **For education and research only.** This tool does not provide medical advice, diagnosis, or treatment recommendations. Never use this application for clinical decision-making. Verify all findings with primary literature and qualified healthcare professionals.
-
-Open-source educational tool prepared by **P. Rahul Chakradhar** · Contact: [rahulchakradhar30@outlook.com](mailto:rahulchakradhar30@outlook.com)
+> **Mandatory Biomedical Research Notice:**  
+> **For scientific exploration and educational reference only.** Repurpose is an academic computational research platform. It does not provide medical advice, diagnosis, prescribing guidelines, or therapeutic recommendations. Drug repurposing hypotheses must undergo rigorous preclinical validation and formal randomized clinical trials before any clinical translation.
 
 ---
 
-## 1. Overview & Philosophy
+## 1. What is Repurpose?
 
-**Repurpose** is a production-grade, installable web application tailored for pharmacy students, medicinal chemists, and biomedical researchers to explore evidence-based drug repurposing opportunities.
+**Repurpose** is an open-source, evidence-grounded computational research platform engineered to help pharmacy students, pharmacologists, medicinal chemists, and translational researchers systematically explore and evaluate drug repositioning opportunities.
 
-Unlike generative chatbots that fabricate studies or hallucinate medical claims, **Repurpose enforces strict deterministic biomedical retrieval**:
-- **Zero Mock / Fabricated Data:** Live queries to RxNorm, openFDA, PubChem, ClinicalTrials.gov API v2, and NCBI PubMed.
-- **Source-Level Failure Isolation:** If a source cannot return data, a transparent *"No verified evidence available from this source"* state is displayed.
-- **Separation of Approved vs. Investigational Indications:** Clearly separates FDA-approved labeled indications from investigational, off-label, or preclinical exploration.
-- **Transparent 100-Point Evidence Score:** Deterministic breakdown with visible contributing factors and uncertainty flags.
-- **Read-Only & Privacy-First:** No accounts, no logins, no personal tracking, and no client-side database writes. Researchers can share exact research states via native URL copy buttons.
-- **Strict Guardrails for AI:** Groq / LLM summaries are strictly constrained to retrieved evidence and rejected if they contain prescriptive language or dosages.
+In modern biomedical research, discovering new therapeutic indications for existing, approved pharmacotherapies offers substantial advantages over de novo drug discovery—including characterized human pharmacokinetics, established safety profiles, and compressed development timelines. However, translational researchers and students often face fragmented public databases: chemical structures reside in PubChem, regulatory labeling in FDA DailyMed, clinical investigations in ClinicalTrials.gov, and published outcomes in PubMed.
+
+Repurpose eliminates this fragmentation by acting as a **unified, real-time biomedical intelligence pipeline**. It aggregates, normalizes, and grades clinical and mechanistic evidence across authoritative public domain registries, transforming disparate raw records into structured, verifiable repurposing dossiers.
+
+### Core Architectural Philosophy: Zero-Fabrication
+
+Unlike generic AI assistants that hallucinate non-existent clinical trials, invent biomedical citations, or make unverified efficacy claims, **Repurpose enforces a strict deterministic, zero-fabrication architecture**:
+1. **Direct Public Domain Grounding:** Every chemical target, active clinical trial, FDA label section, and PubMed citation displayed in the application is retrieved directly from official government APIs (NIH, FDA, NCBI).
+2. **Transparent Evidence Provenance:** Every candidate condition visibly links back to original public records with verified identifiers (RxCUI, PubChem CID, ClinicalTrials.gov NCT IDs, and PubMed PMIDs).
+3. **Objective Research Reporting:** No candidate is ever described as "effective," "proven," "recommended," or "clinically useful." Evidence is reported purely by clinical maturity, trial phase progression, and peer-reviewed publication signals.
+4. **Source-Level Failure Isolation:** If a biomedical registry is temporarily unavailable or returns no matching records, Repurpose displays a transparent coverage notice rather than fabricating synthetic data.
+5. **Read-Only & Privacy-Preserving:** The platform requires no user registration, stores no personal cookies, collects no health information, and maintains no private databases. Exact research queries are preserved through deterministic URL states that can be copied and shared.
 
 ---
 
-## 2. Production SEO Architecture
+## 2. What is the Platform About?
 
-Repurpose implements production-grade technical and content SEO designed to make evidence-based research discoverable without manipulative tactics, keyword stuffing, or thin auto-generated pages.
+Repurpose is focused on **systematic drug repurposing intelligence**. When an investigator queries a pharmaceutical compound (e.g., *Azithromycin*, *Metformin*, *Thalidomide*), the platform answers three foundational biomedical research questions:
 
-### Canonical Domain Configuration
-The canonical site URL is read from the `NEXT_PUBLIC_SITE_URL` environment variable.
-- Example: `NEXT_PUBLIC_SITE_URL=https://repurpose-research.org` (or your production Vercel domain `https://repurpose.vercel.app`)
-- **Important:** Do not include a trailing slash. All canonical links, Open Graph tags, and sitemaps use this base URL.
+1. **What is the drug's verified baseline?**
+   - Normalized chemical identity and active generic ingredient.
+   - Verified distinct proprietary brand names (filtering out generic names and salt formulations).
+   - Characterized pharmacological drug class and biological mechanism of action.
+   - Official FDA/DailyMed regulatory approved indications, boxed warnings, and contraindications.
+2. **What non-approved conditions are being investigated?**
+   - Candidate disease indications currently or previously under interventional evaluation in registered clinical trials.
+   - Identification of exploratory and off-label therapeutic hypotheses.
+3. **What is the maturity and integrity of the supporting evidence?**
+   - Separation of registered trial activity from published peer-reviewed outcomes.
+   - Detection of discontinued, withdrawn, or terminated trials.
+   - Evaluation of biological plausibility, independent multi-center replication, and safety conflict risks.
+   - A deterministic, 100-point **Evidence Score** accompanied by transparent uncertainty flags and scoring notes.
 
-### Search Engine Assets
-- **`robots.txt`**: Accessible at `/robots.txt`
-  - Allows search engines to crawl public educational pages (`/what-is-drug-repurposing`, `/methodology`, `/sources`, `/about`), static assets, and published drug dossiers (`/drug/*`).
-  - Disallows internal API routes (`/api/*`), Next.js runtime chunks (`/_next/*`), and dynamic query parameters (`/*?*`) to prevent indexing unverified search parameters.
-  - Dynamically declares canonical `Sitemap: <canonical-domain>/sitemap.xml`.
-- **`sitemap.xml`**: Dynamically generated at `/sitemap.xml`
-  - Emits valid XML adhering to Sitemaps.org standards.
-  - Contains only canonical, indexable public URLs.
-  - Never includes search query parameters, unverified searches, or thin pages.
+---
 
-### Indexable Public Content Hub
-| Route | Purpose & Content | Structured Data |
+## 3. How the Information is Gathered
+
+Repurpose does not rely on static web scraping, commercial proprietary databases, or synthetic language model memory. Instead, it queries authoritative, publicly accessible biomedical repositories via official REST APIs in parallel:
+
+```
+                                  [ User Query ]
+                                         │
+                                         ▼
+                       ┌───────────────────────────────────┐
+                       │   Parallel Biomedical Ingestion   │
+                       └───────────────────────────────────┘
+                         │           │           │        │
+           ┌─────────────┘           │           │        └─────────────┐
+           ▼                         ▼           ▼                      ▼
+    ┌─────────────┐           ┌─────────────┐ ┌─────────────┐    ┌──────────────┐
+    │   RxNorm    │           │   openFDA   │ │   PubChem   │    │ClinicalTrials│
+    │  (NLM API)  │           │  (DailyMed) │ │ (NCBI PUG)  │    │  (.gov v2)   │
+    └─────────────┘           └─────────────┘ └─────────────┘    └──────────────┘
+           │                         │           │                      │
+           ▼                         ▼           ▼                      ▼
+     Normalized Name          Official Label    Chemical Target       Interventional
+     & Concept RxCUI           & Warnings        & Pharmacology        Study Records
+           │                         │           │                      │
+           └─────────────────────────┼───────────┴──────────────────────┘
+                                     │
+                                     ▼
+                      ┌─────────────────────────────┐
+                      │ Disease Normalization Engine│
+                      └─────────────────────────────┘
+                                     │
+                                     ▼
+                      ┌─────────────────────────────┐
+                      │    NCBI PubMed E-Utilities  │
+                      │  (Peer-Reviewed Literature) │
+                      └─────────────────────────────┘
+                                     │
+                                     ▼
+                      ┌─────────────────────────────┐
+                      │ 5-Pillar Deterministic Score│
+                      └─────────────────────────────┘
+                                     │
+                                     ▼
+                      ┌─────────────────────────────┐
+                      │ Real-Time Research Dossier  │
+                      └─────────────────────────────┘
+```
+
+### Authoritative Registries Queried
+
+| Biomedical Registry | Managing Agency | Data Extracted & Role |
 | :--- | :--- | :--- |
-| `/` | Application overview, search entry point, featured verified drug dossiers. | `WebSite`, `SoftwareApplication`, `Person` |
-| `/what-is-drug-repurposing` | Original guide on off-target pharmacology, regulatory phases, and clinical trials. | `Article`, `BreadcrumbList` |
-| `/methodology` | Deterministic 5-pillar scoring algorithm, uncertainty handling, AI safety guardrails. | `Article`, `BreadcrumbList` |
-| `/sources` | Documentation of open registries: RxNorm, openFDA, PubChem, ClinicalTrials.gov, PubMed. | `Article`, `BreadcrumbList` |
-| `/about` | Project mission, zero-tracking privacy policy, medical disclaimer, creator credit. | `AboutPage`, `BreadcrumbList` |
-| `/drug/[slug]` | Verified biomedical dossiers with clinical trials, citations, and source audit trails. | `MedicalWebPage`, `BreadcrumbList` |
+| **RxNorm** | U.S. National Library of Medicine (NLM) | Normalizes raw user queries into standardized generic chemical concepts and Concept Unique Identifiers (RxCUIs). Resolves synonyms, spelling variations, and international names. |
+| **openFDA / DailyMed** | U.S. Food and Drug Administration (FDA) | Extracts manufacturer Structured Product Labeling (SPL), baseline approved therapeutic indications, boxed warnings, and physiological contraindications. |
+| **PubChem** | National Center for Biotechnology Information (NCBI) | Retrieves Compound Identifiers (CIDs), IUPAC names, molecular descriptions, and biochemical target engagement mechanisms. |
+| **ClinicalTrials.gov (API v2)** | U.S. National Institutes of Health (NIH) | Discovers all active, recruiting, completed, and terminated human interventional studies. Extracts trial phase (Phase 1–4), enrollment numbers, study status, sponsors, and brief protocol summaries. |
+| **PubMed (E-Utilities)** | National Center for Biotechnology Information (NCBI) | Performs structured literature searches pairing the normalized drug concept with each candidate disease condition to retrieve peer-reviewed publication citations, journals, publication dates, and DOIs. |
 
 ---
 
-## 3. Drug Page Publishing Rules & Anti-Thin-Page Policy
+## 4. The Working Structure & Processing Pipeline
 
-To ensure high domain authority and prevent search engines from indexing low-quality automated pages, Repurpose adheres to strict publishing thresholds via `isDrugPublishable()`:
+Repurpose processes every research query through an eight-stage deterministic pipeline:
 
-1. **No Indexing of User Searches:** A `/drug/[slug]` page is **never** created or indexed simply because an anonymous user entered a query into the search bar. Dynamic searches run on client-side state or parameter URLs (`/?drug=...`) which are explicitly disallowed in `robots.txt`.
-2. **Strict Verification Threshold:** A drug dossier `/drug/[slug]` is only rendered and published in `sitemap.xml` if it meets all of the following:
-   - Verified generic chemical name (normalized via RxNorm).
-   - Minimum of 2 independent biomedical source links (e.g. RxNorm + openFDA + ClinicalTrials.gov).
-   - Valid last-verified timestamp.
-   - At least one documented repurposing candidate backed by registered clinical trials or peer-reviewed PubMed citations.
-   - Comprehensive educational overview of pharmacological mechanism.
-   - Explicit `isIndexable: true` verification flag.
-3. **Graceful Fallback for Unverified Slugs:** Any non-publishable or unknown slug returns an HTTP 404 (`notFound()`) with `noindex, follow` directives, ensuring search engines never index incomplete records.
+### Stage 1: Identity Resolution & Disambiguation
+The search term is normalized using the RxNorm REST API. This step resolves generic drug identity, links the compound to its primary RxCUI, and extracts verified trade names. This ensures searches for brand names (e.g., *"Glucophage"*) correctly resolve to their active generic molecule (*"Metformin"*).
 
----
+### Stage 2: Regulatory Baseline Mapping
+The normalized generic concept is queried against openFDA's Structured Product Labeling API. The platform parses:
+- **Baseline Approved Indications:** Conditions for which the drug is already legally indicated.
+- **Boxed Warnings & Precautions:** Critical safety signals, organ toxicity risks, and monitored adverse effects.
+- **Contraindications:** Pathologies or patient demographics where the drug is medically prohibited.
 
-## 4. Medical-Content Safety Policy
+### Stage 3: Chemical Pharmacology & Mechanism Characterization
+The platform interfaces with NCBI PubChem to retrieve chemical pharmacology summaries and molecular pathways. If openFDA provides broad administrative tags (e.g., *"Small molecule therapeutic agent"*), Repurpose resolves the drug to a curated pharmacological class (e.g., *"Macrolide antibiotic"* for azithromycin, *"Biguanide oral antihyperglycemic"* for metformin).
 
-Repurpose is an educational research platform, not medical advice. The following rules govern all content:
-- **No Fabricated Claims:** Zero synthetic studies, fake citations, fake authors, or simulated trial statistics.
-- **Evidence Labeling:** Evidence is explicitly labeled by status (`Investigational`, `Off-label`, `Preclinical`, `Insufficient`, `Conflicting`).
-- **No Direct Prescribing or Efficacy Assurances:** High evidence scores reflect research maturity, never safety or therapeutic efficacy for a patient.
-- **Prominent Disclaimers:** Visible research notices appear on every page, modal, and export file.
-- **Transparent Attribution:** Creator attribution states *"Open-source tool prepared by P. Rahul Chakradhar"*. No unverified medical credentials (MD/PharmD) are claimed.
+### Stage 4: Interventional Trial Mining
+The compound is queried against the ClinicalTrials.gov API v2 to uncover registered human studies. The platform parses study protocols, extracting:
+- Phase classification (`EARLY_PHASE1`, `PHASE1`, `PHASE2`, `PHASE3`, `PHASE4`).
+- Recruitment status (`COMPLETED`, `RECRUITING`, `ACTIVE_NOT_RECRUITING`, `TERMINATED`, `WITHDRAWN`).
+- Lead sponsor and academic/institutional collaborators.
+- Conditions targeted by the intervention.
 
----
+### Stage 5: Medical Condition Normalization & Deduplication
+Raw condition strings reported by clinical trial investigators often contain spelling variations, grammatical differences, and synonyms. Repurpose passes all conditions through a specialized **Normalization Engine** (`src/lib/normalization.ts`):
+- **Alias Merging:** Normalizes variants such as `"Covid-19"`, `"covid19"`, `"SARS-CoV-2"`, and `"coronavirus disease 2019"` into standard canonical `"COVID-19"`.
+- **Taxonomic Casing:** Formats conditions in medical title/sentence casing while strictly preserving acronyms in uppercase (e.g., `"COVID-19"`, `"HIV infection"`, `"Chronic obstructive pulmonary disease with exacerbation"`).
+- **Duplicate Merging:** Groups trials investigating identical diseases under a unified candidate record, avoiding fragmented candidate cards.
+- **Trial & Citation Deduplication:** Merges redundant trial records by unique NCT identifier and deduplicates literature citations by PMID and title hash.
+- **Brand Name Disambiguation:** Filters out repetitions of generic names and generic dosage forms (e.g., *"Azithromycin"*, *"Azithromycin Dihydrate"*, *"Oral Suspension"*), preserving only verified proprietary brand identifiers (e.g., *"Zithromax"*, *"Zmax"*).
 
-## 5. Google Search Console & Post-Deployment Manual Checklist
+### Stage 6: Peer-Reviewed Literature Ingestion
+For top candidate conditions that represent potential repurposing targets (conditions not included in the drug's FDA-approved label), Repurpose queries NCBI PubMed E-Utilities. It retrieves indexed, peer-reviewed clinical and translational publications documenting the drug-disease pair.
 
-After deploying Repurpose to production on Vercel or your custom domain, complete these manual steps:
+### Stage 7: Deterministic 5-Pillar Evidence Scoring
+Rather than relying on arbitrary heuristics or black-box predictions, Repurpose calculates an evidence score between 0 and 100 based on five deterministic pillars:
 
-### 1. Set Production Environment Variables in Vercel
-1. Go to your **Vercel Dashboard** -> select your project -> **Settings** -> **Environment Variables**.
-2. Add or update:
-   - `NEXT_PUBLIC_SITE_URL`: Set to your production canonical domain (e.g. `https://repurpose-research.org` or `https://repurpose.vercel.app`).
-   - `GROQ_API_KEY`: Set your server-side Groq API key for evidence-constrained AI summaries.
-3. Trigger a redeploy (or promote the latest deployment) so the environment variable is baked into the build.
+$$\text{Total Evidence Score} = S_{\text{trials}} + S_{\text{literature}} + S_{\text{mechanism}} + S_{\text{reproducibility}} + S_{\text{safety}}$$
 
-### 2. Verify Google Search Console (GSC) Ownership
-1. Open [Google Search Console](https://search.google.com/search-console).
-2. Click **Add Property** and enter your production URL (either as a Domain property or URL Prefix).
-3. Verify ownership via DNS TXT record (recommended) or HTML tag.
+1. **Clinical Trial Evidence (0–40 points):** Evaluates trial phase maturity (Phase 4 completed awards highest points), recruitment completion, active multi-center volume, and penalizes prematurely terminated or withdrawn trials.
+2. **Human / Observational Literature (0–20 points):** Measures the volume and presence of peer-reviewed clinical citations indexed in NCBI PubMed.
+3. **Mechanistic & Target Plausibility (0–20 points):** Evaluates characterized biological targets, receptor binding rationale, and published pathway interactions.
+4. **Reproducibility & Publication Quality (0–10 points):** Assesses study replication across independent sponsors and academic institutions.
+5. **Safety & Contraindication Compatibility (0–10 points):** Assesses whether the candidate condition conflicts with FDA boxed warnings or official contraindications (heavy penalties apply if a contraindication overlap is detected).
 
-### 3. Submit the Dynamic Sitemap
-1. In the left navigation of Google Search Console, click **Sitemaps**.
-2. Under "Add a new sitemap", enter:
-   ```
-   sitemap.xml
-   ```
-3. Click **Submit**. Verify that GSC successfully reads all canonical URLs.
+#### Critical Scoring Safeguards:
+- **Separation of Trial Existence from Outcome:** If Phase 2 or Phase 3 trials are registered but no published PubMed outcomes exist, the candidate is explicitly labeled:
+  > *"Clinical trial activity identified; published outcome evidence unavailable."*
+- **Citation Gating:** A candidate **cannot** receive a "High" score ($\ge 70$) when zero citations and no verified human outcome publications exist, unless an independently verified, completed Phase 3/4 trial justifies it.
+- **Insufficient Evidence Cap:** If a candidate has zero registered trials and zero PubMed citations, the score is capped at a maximum of 20 and designated as *"Insufficient evidence"*.
 
-### 4. Perform URL Inspection on Primary Pages
-1. Use the **URL Inspection Tool** in GSC to test the following live URLs:
-   - `https://your-domain.com/`
-   - `https://your-domain.com/what-is-drug-repurposing`
-   - `https://your-domain.com/methodology`
-   - `https://your-domain.com/sources`
-   - `https://your-domain.com/about`
-   - `https://your-domain.com/drug/metformin`
-2. Click **Test Live URL**.
-3. Confirm that:
-   - Status is "URL is available to Google".
-   - Canonical URL matches your production URL.
-   - Structured data (Rich Results) detects `WebSite`, `SoftwareApplication`, and `MedicalWebPage` without errors.
-4. Click **Request Indexing** on the primary educational pages.
+### Stage 8: Constrained AI-Assisted Synthesis (Optional)
+When requested by the researcher, an AI synthesis can summarize the retrieved evidence. This synthesis operates under strict programmatic constraints:
+- Input is limited exclusively to the verified records retrieved in Stages 1–6.
+- Output is validated against a strict schema.
+- If the AI output contains prescriptive language (e.g., *"take orally"*, *"prescribe"*, *"dosage"*, *"recommended therapy"*), it is **programmatically rejected** and discarded.
 
 ---
 
-## 6. Local Development & Testing
+## 5. User Workflow & Features
 
-### Installation
-```bash
-git clone https://github.com/rahulchakradhar30/Repurpose.git
-cd Repurpose
-npm install --legacy-peer-deps
-```
-
-### Environment Setup
-```bash
-cp .env.example .env.local
-```
-
-### Run Full Test Suite
-```bash
-npm test
-```
-The test suite includes 30 unit and integration tests covering:
-- Robots.txt crawl rules and disallow paths
-- Dynamic sitemap generation and canonical URL normalization
-- Drug publishing thresholds and anti-thin-page validation
-- JSON-LD structured data schemas (WebSite, SoftwareApplication, MedicalWebPage, BreadcrumbList, Article)
-- Evidence scoring algorithms and uncertainty penalties
-- AI output schema and safety guardrails
-
-### Production Build Validation
-```bash
-npm run build
-npm run start
-```
-Starts the production Next.js server on [http://localhost:3000](http://localhost:3000).
+- **Real-Time Interactive Search:** Instant exploration of any therapeutic compound with debounced query suggestions and live progress feedback.
+- **Regulated Overview:** Direct comparison of approved indications vs. off-label/investigational candidates.
+- **Multi-Pillar Evidence Modal:** In-depth breakdown of every evaluated candidate, displaying trial completion dates, lead sponsors, brief protocol summaries, and literature DOIs.
+- **Evidence Notes & Direct Provenance:** Clickable links to NLM RxNav, openFDA DailyMed labels, NCBI PubChem, ClinicalTrials.gov studies, and PubMed.
+- **Academic Export:** One-click generation and export of standard reference formats:
+  - **RIS format** (`.ris`): For direct import into reference managers (Zotero, Mendeley, EndNote).
+  - **CSV format** (`.csv`): Structured tabular data for spreadsheet analysis and laboratory documentation.
+- **Direct Link Sharing:** Researchers can share exact drug and candidate states without storing data on third-party servers.
 
 ---
 
-## 7. Contact & License
+## 6. Technical Stack
 
-Open-source project developed for computational pharmacology education and research support.  
-**Prepared by:** P. Rahul Chakradhar  
-**Contact:** [rahulchakradhar30@outlook.com](mailto:rahulchakradhar30@outlook.com)  
-**License:** MIT
+Repurpose is built using modern, type-safe web technologies:
+
+- **Framework:** [Next.js](https://nextjs.org/) (App Router, Server Components & Static Site Generation)
+- **Language:** [TypeScript](https://www.typescriptlang.org/) (Strict type safety across biomedical models)
+- **Styling:** [Tailwind CSS](https://tailwindcss.com/) (Responsive, accessible, high-density scientific UI)
+- **Icons:** [Lucide React](https://lucide.react.dev/)
+- **Test Runner:** [Vitest](https://vitest.dev/) (Comprehensive test suite covering normalization, scoring safeguards, and SEO rules)
+- **APIs:** RxNorm REST, openFDA Drug Label API, NCBI PubChem PUG REST, ClinicalTrials.gov API v2, NCBI Entrez E-Utilities.
+
+---
+
+## 7. Project Founder & Creator Attribution
+
+**Repurpose** was conceived, architected, and developed by **P. Rahul Chakradhar** as an open-source educational contribution to biomedical informatics and pharmaceutical research.
+
+- **Founder & Lead Developer:** P. Rahul Chakradhar
+- **Contact:** [rahulchakradhar30@outlook.com](mailto:rahulchakradhar30@outlook.com)
+- **Repository:** [https://github.com/rahulchakradhar30/Repurpose](https://github.com/rahulchakradhar30/Repurpose)
+- **License:** Open Source for Educational and Scientific Research
+
+> *"This platform was created to democratize evidence-grounded drug repurposing research—giving pharmacy students, bioinformatics researchers, and future scientists a transparent, zero-hallucination reference tool to examine the frontier of clinical pharmacology."*
