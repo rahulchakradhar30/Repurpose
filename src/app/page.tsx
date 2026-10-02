@@ -13,38 +13,8 @@ import {
   DrugResearchSnapshot, 
   RepurposingCandidate 
 } from '@/types';
-import { AlertCircle, Loader2, ArrowRight, BookOpen, FlaskConical } from 'lucide-react';
+import { AlertCircle, Loader2, BookOpen } from 'lucide-react';
 import { generateHomeJsonLd } from '@/lib/seo';
-
-const FEATURED_DRUG_GUIDES = [
-  {
-    slug: 'metformin',
-    name: 'Metformin',
-    class: 'Biguanide / AMPK Activator',
-    approvedFor: 'Type 2 Diabetes Mellitus',
-    repurposingTarget: 'Polycystic Ovary Syndrome (PCOS) & Oncology Chemoprevention',
-    highestPhase: 'Phase 3 Trials',
-    sourcesCount: 4,
-  },
-  {
-    slug: 'thalidomide',
-    name: 'Thalidomide',
-    class: 'Immunomodulatory Drug (IMiD)',
-    approvedFor: 'Erythema Nodosum Leprosum & Multiple Myeloma',
-    repurposingTarget: 'Metastatic Prostate Cancer & Angiogenesis Inhibition',
-    highestPhase: 'Phase 2 Trials',
-    sourcesCount: 4,
-  },
-  {
-    slug: 'imatinib',
-    name: 'Imatinib',
-    class: 'Tyrosine Kinase Inhibitor (TKI)',
-    approvedFor: 'Philadelphia+ CML & KIT+ GIST',
-    repurposingTarget: 'Systemic Sclerosis & Fibrotic Disorders',
-    highestPhase: 'Phase 2 Trials',
-    sourcesCount: 4,
-  },
-];
 
 function HomeContent() {
   const [researchSnapshot, setResearchSnapshot] = useState<DrugResearchSnapshot | null>(null);
@@ -184,72 +154,10 @@ function HomeContent() {
                 </div>
               )}
 
-              {/* Featured Verified Drug Guides (Indexable, Crawlable HTML links) */}
+              {/* Educational Knowledge Hub Internal Links */}
               {!researchSnapshot && !isLoading && (
-                <div className="space-y-8 pt-4">
-                  <section aria-labelledby="featured-dossiers-heading" className="max-w-4xl mx-auto">
-                    <div className="flex flex-col sm:flex-row sm:items-end justify-between mb-4 gap-2">
-                      <div>
-                        <div className="inline-flex items-center gap-1.5 text-xs font-semibold text-teal-800 uppercase tracking-wider mb-1">
-                          <FlaskConical className="w-3.5 h-3.5" />
-                          Curated Biomedical Dossiers
-                        </div>
-                        <h2 id="featured-dossiers-heading" className="text-xl sm:text-2xl font-bold text-slate-900">
-                          Verified Drug Repurposing Dossiers
-                        </h2>
-                      </div>
-                      <p className="text-xs text-slate-500 max-w-xs sm:text-right">
-                        Sourced directly from ClinicalTrials.gov, openFDA, and PubMed.
-                      </p>
-                    </div>
-
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                      {FEATURED_DRUG_GUIDES.map((item) => (
-                        <Link
-                          key={item.slug}
-                          href={`/drug/${item.slug}`}
-                          className="p-5 rounded-xl bg-white border border-slate-200 hover:border-teal-600 hover:shadow-md transition-all flex flex-col justify-between group"
-                        >
-                          <div>
-                            <div className="flex items-center justify-between mb-2">
-                              <span className="text-xs font-mono px-2 py-0.5 rounded bg-teal-50 text-teal-800 border border-teal-200">
-                                {item.highestPhase}
-                              </span>
-                              <span className="text-[11px] text-slate-400 font-mono">
-                                {item.sourcesCount} sources
-                              </span>
-                            </div>
-
-                            <h3 className="text-lg font-bold text-slate-900 group-hover:text-teal-800 transition-colors">
-                              {item.name}
-                            </h3>
-                            <p className="text-xs text-slate-500 font-mono mb-3">
-                              {item.class}
-                            </p>
-
-                            <div className="space-y-2 text-xs text-slate-600 mb-4">
-                              <div>
-                                <span className="font-semibold text-slate-700">Approved: </span>
-                                {item.approvedFor}
-                              </div>
-                              <div>
-                                <span className="font-semibold text-teal-800">Repurposing Focus: </span>
-                                {item.repurposingTarget}
-                              </div>
-                            </div>
-                          </div>
-
-                          <div className="pt-3 border-t border-slate-100 flex items-center justify-between text-xs font-medium text-teal-800 group-hover:text-teal-900">
-                            <span>Explore Evidence Dossier</span>
-                            <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-0.5 transition-transform" />
-                          </div>
-                        </Link>
-                      ))}
-                    </div>
-                  </section>
-
-                  {/* Educational Knowledge Hub Internal Links */}
-                  <section aria-labelledby="educational-hub-heading" className="max-w-4xl mx-auto pt-6 border-t border-slate-200">
+                <div className="space-y-8 pt-2">
+                  <section aria-labelledby="educational-hub-heading" className="max-w-4xl mx-auto pt-4">
                     <h2 id="educational-hub-heading" className="text-base font-bold text-slate-900 mb-3 flex items-center gap-2">
                       <BookOpen className="w-4 h-4 text-teal-700" />
                       Educational Resources & Verification Methodology
