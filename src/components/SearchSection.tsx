@@ -1,29 +1,33 @@
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
-import { Search, Clock, ArrowRight, Loader2, X } from 'lucide-react';
-import { UserSearchHistory } from '@/types';
+import { Search, ArrowRight, Loader2, X } from 'lucide-react';
 
 interface SearchSectionProps {
   onSearch: (drugName: string) => void;
   isLoading: boolean;
-  recentSearches: UserSearchHistory[];
-  onSelectRecent: (term: string) => void;
+  initialQuery?: string;
 }
 
 export function SearchSection({
   onSearch,
   isLoading,
-  recentSearches,
-  onSelectRecent,
+  initialQuery = '',
 }: SearchSectionProps) {
-  const [query, setQuery] = useState('');
+  const [query, setQuery] = useState(initialQuery);
   const [suggestions, setSuggestions] = useState<Array<{ name: string; rxcui: string }>>([]);
   const [isAutocompleteLoading, setIsAutocompleteLoading] = useState(false);
   const [isOpen, setIsOpen] = useState(false);
   const [selectedIndex, setSelectedIndex] = useState(-1);
   const dropdownRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
+
+  // Sync initialQuery if changed externally (e.g. from URL deep link)
+  useEffect(() => {
+    if (initialQuery) {
+      setQuery(initialQuery);
+    }
+  }, [initialQuery]);
 
   // Live autocomplete query to /api/drugs/search (RxNorm)
   useEffect(() => {
@@ -157,7 +161,7 @@ export function SearchSection({
                 setSuggestions([]);
                 inputRef.current?.focus();
               }}
-              className="absolute right-16 p-1 text-slate-400 hover:text-slate-600 rounded"
+              className="absolute right-16 p-1 text-slate-400 hover:text-slate-600 rounded cursor-pointer"
               aria-label="Clear input"
             >
               <X className="w-4 h-4" />
@@ -166,7 +170,7 @@ export function SearchSection({
           <button
             type="submit"
             disabled={isLoading || !query.trim()}
-            className="absolute right-1.5 px-3.5 py-2 bg-slate-900 hover:bg-slate-800 disabled:bg-slate-300 text-white text-xs sm:text-sm font-medium rounded-md transition-colors flex items-center gap-1"
+            className="absolute right-1.5 px-3.5 py-2 bg-slate-900 hover:bg-slate-800 disabled:bg-slate-300 text-white text-xs sm:text-sm font-medium rounded-md transition-colors flex items-center gap-1 cursor-pointer"
           >
             <span>Search</span>
             <ArrowRight className="w-3.5 h-3.5" />
@@ -190,7 +194,7 @@ export function SearchSection({
                 role="option"
                 aria-selected={selectedIndex === idx}
                 onClick={() => handleSelectSuggestion(item.name)}
-                className={`w-full text-left px-3.5 py-2.5 text-sm flex items-center justify-between transition-colors ${
+                className={`w-full text-left px-3.5 py-2.5 text-sm flex items-center justify-between transition-colors cursor-pointer ${
                   selectedIndex === idx
                     ? 'bg-teal-50 text-teal-900 font-medium'
                     : 'text-slate-800 hover:bg-slate-50'
@@ -205,25 +209,6 @@ export function SearchSection({
           </div>
         )}
       </div>
-
-      {/* User Recent Searches (No promotional cards or fake data) */}
-      {recentSearches.length > 0 && (
-        <div className="mt-4 pt-3 border-t border-slate-200 flex flex-wrap items-center gap-1.5 text-xs text-slate-600">
-          <div className="flex items-center gap-1 text-slate-400 mr-1">
-            <Clock className="w-3.5 h-3.5" />
-            <span>Recent:</span>
-          </div>
-          {recentSearches.slice(0, 5).map((search) => (
-            <button
-              key={search.id}
-              onClick={() => onSelectRecent(search.query)}
-              className="px-2.5 py-1 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded text-xs transition-colors"
-            >
-              {search.query}
-            </button>
-          ))}
-        </div>
-      )}
     </section>
   );
 }

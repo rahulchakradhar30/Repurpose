@@ -10,15 +10,13 @@ import {
   X, 
   ExternalLink, 
   AlertTriangle, 
-  Download, 
-  Bookmark, 
-  BookmarkCheck, 
-  Sparkles, 
   Loader2, 
   Info,
   CheckCircle,
   FileSpreadsheet,
-  FileCode
+  FileCode,
+  Share2,
+  Check
 } from 'lucide-react';
 import { generateRIS, generateCSV, downloadFile } from '@/lib/export';
 
@@ -26,21 +24,16 @@ interface EvidenceDetailModalProps {
   candidate: RepurposingCandidate;
   drug: DrugConcept;
   onClose: () => void;
-  onSaveToResearch: (notes: string) => void;
-  isSaved: boolean;
 }
 
 export function EvidenceDetailModal({
   candidate,
   drug,
   onClose,
-  onSaveToResearch,
-  isSaved,
 }: EvidenceDetailModalProps) {
   const [aiSummary, setAiSummary] = useState<AISummary | null>(null);
   const [isAiLoading, setIsAiLoading] = useState(false);
-  const [aiAttempted, setAiAttempted] = useState(false);
-  const [userNotes, setUserNotes] = useState('');
+  const [copied, setCopied] = useState(false);
   const [activeTab, setActiveTab] = useState<'evidence' | 'trials' | 'literature' | 'scoring'>('evidence');
 
   // Load AI Summary on mount if not already fetched
@@ -65,7 +58,6 @@ export function EvidenceDetailModal({
       } finally {
         if (isMounted) {
           setIsAiLoading(false);
-          setAiAttempted(true);
         }
       }
     }
@@ -98,6 +90,18 @@ export function EvidenceDetailModal({
     downloadFile(csvContent, `${drug.genericName}_${safeCond}_evidence.csv`, 'text/csv;charset=utf-8;');
   };
 
+  const handleCopyLink = async () => {
+    if (typeof window === 'undefined') return;
+    const shareUrl = `${window.location.origin}/?drug=${encodeURIComponent(drug.genericName)}&candidate=${encodeURIComponent(candidate.condition)}`;
+    try {
+      await navigator.clipboard.writeText(shareUrl);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    } catch (err) {
+      console.error('Failed to copy candidate link to clipboard:', err);
+    }
+  };
+
   const breakdown = candidate.evidenceScore;
 
   return (
@@ -128,14 +132,14 @@ export function EvidenceDetailModal({
 
           <button
             onClick={onClose}
-            className="p-1.5 text-slate-400 hover:text-white rounded hover:bg-slate-800 focus-visible:ring-2 focus-visible:ring-teal-400 transition-colors"
+            className="p-1.5 text-slate-400 hover:text-white rounded hover:bg-slate-800 focus-visible:ring-2 focus-visible:ring-teal-400 transition-colors cursor-pointer"
             aria-label="Close dialog"
           >
             <X className="w-5 h-5" />
           </button>
         </div>
 
-        {/* Action Bar (Export, Save, Score) */}
+        {/* Action Bar (Score, Export, Copy Link - No raw link shown) */}
         <div className="bg-slate-50 border-b border-slate-200 px-5 py-2.5 flex flex-wrap items-center justify-between gap-3 text-xs shrink-0">
           <div className="flex items-center gap-2">
             <span className="text-slate-500 font-medium">Evidence Score:</span>
@@ -151,7 +155,7 @@ export function EvidenceDetailModal({
           <div className="flex items-center gap-2">
             <button
               onClick={handleExportRIS}
-              className="flex items-center gap-1 px-2.5 py-1.5 bg-white hover:bg-slate-100 text-slate-700 border border-slate-300 rounded font-medium transition-colors"
+              className="flex items-center gap-1 px-2.5 py-1.5 bg-white hover:bg-slate-100 text-slate-700 border border-slate-300 rounded font-medium transition-colors cursor-pointer"
               title="Export citations for Zotero, Mendeley, EndNote"
             >
               <FileCode className="w-3.5 h-3.5 text-slate-500" />
@@ -160,7 +164,7 @@ export function EvidenceDetailModal({
 
             <button
               onClick={handleExportCSV}
-              className="flex items-center gap-1 px-2.5 py-1.5 bg-white hover:bg-slate-100 text-slate-700 border border-slate-300 rounded font-medium transition-colors"
+              className="flex items-center gap-1 px-2.5 py-1.5 bg-white hover:bg-slate-100 text-slate-700 border border-slate-300 rounded font-medium transition-colors cursor-pointer"
               title="Export spreadsheet of trials and citations"
             >
               <FileSpreadsheet className="w-3.5 h-3.5 text-slate-500" />
@@ -168,15 +172,16 @@ export function EvidenceDetailModal({
             </button>
 
             <button
-              onClick={() => onSaveToResearch(userNotes)}
-              className={`flex items-center gap-1.5 px-3 py-1.5 rounded font-medium border transition-colors ${
-                isSaved
-                  ? 'bg-teal-700 text-white border-teal-800'
+              onClick={handleCopyLink}
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded font-medium border transition-colors cursor-pointer ${
+                copied
+                  ? 'bg-teal-50 text-teal-800 border-teal-300'
                   : 'bg-slate-900 hover:bg-slate-800 text-white border-slate-900'
               }`}
+              title="Copy direct link to this candidate investigation"
             >
-              {isSaved ? <BookmarkCheck className="w-3.5 h-3.5" /> : <Bookmark className="w-3.5 h-3.5" />}
-              <span>{isSaved ? 'Saved in Research' : 'Save Candidate'}</span>
+              {copied ? <Check className="w-3.5 h-3.5 text-teal-700" /> : <Share2 className="w-3.5 h-3.5" />}
+              <span>{copied ? 'Link Copied' : 'Copy Link'}</span>
             </button>
           </div>
         </div>
@@ -185,7 +190,7 @@ export function EvidenceDetailModal({
         <div className="flex border-b border-slate-200 bg-white px-5 shrink-0 overflow-x-auto">
           <button
             onClick={() => setActiveTab('evidence')}
-            className={`py-2.5 px-3 text-xs font-semibold border-b-2 transition-colors whitespace-nowrap ${
+            className={`py-2.5 px-3 text-xs font-semibold border-b-2 transition-colors whitespace-nowrap cursor-pointer ${
               activeTab === 'evidence'
                 ? 'border-teal-700 text-teal-900'
                 : 'border-transparent text-slate-500 hover:text-slate-900'
@@ -195,7 +200,7 @@ export function EvidenceDetailModal({
           </button>
           <button
             onClick={() => setActiveTab('trials')}
-            className={`py-2.5 px-3 text-xs font-semibold border-b-2 transition-colors whitespace-nowrap ${
+            className={`py-2.5 px-3 text-xs font-semibold border-b-2 transition-colors whitespace-nowrap cursor-pointer ${
               activeTab === 'trials'
                 ? 'border-teal-700 text-teal-900'
                 : 'border-transparent text-slate-500 hover:text-slate-900'
@@ -205,7 +210,7 @@ export function EvidenceDetailModal({
           </button>
           <button
             onClick={() => setActiveTab('literature')}
-            className={`py-2.5 px-3 text-xs font-semibold border-b-2 transition-colors whitespace-nowrap ${
+            className={`py-2.5 px-3 text-xs font-semibold border-b-2 transition-colors whitespace-nowrap cursor-pointer ${
               activeTab === 'literature'
                 ? 'border-teal-700 text-teal-900'
                 : 'border-transparent text-slate-500 hover:text-slate-900'
@@ -215,7 +220,7 @@ export function EvidenceDetailModal({
           </button>
           <button
             onClick={() => setActiveTab('scoring')}
-            className={`py-2.5 px-3 text-xs font-semibold border-b-2 transition-colors whitespace-nowrap ${
+            className={`py-2.5 px-3 text-xs font-semibold border-b-2 transition-colors whitespace-nowrap cursor-pointer ${
               activeTab === 'scoring'
                 ? 'border-teal-700 text-teal-900'
                 : 'border-transparent text-slate-500 hover:text-slate-900'
@@ -332,24 +337,9 @@ export function EvidenceDetailModal({
                   </div>
                 ) : (
                   <p className="text-xs text-slate-500 italic">
-                    AI synthesis is unavailable (API key not configured or strict schema validation rejected unverified output). Examine the verified clinical trial records and PubMed citations directly below.
+                    AI synthesis is unavailable. Examine the verified clinical trial records and PubMed citations directly below.
                   </p>
                 )}
-              </div>
-
-              {/* Personal Research Notes */}
-              <div className="border border-slate-200 rounded-lg p-4 bg-slate-50/50">
-                <label htmlFor="user-research-notes" className="text-xs font-semibold uppercase tracking-wider text-slate-700 block mb-1.5">
-                  Researcher Notes & Hypotheses
-                </label>
-                <textarea
-                  id="user-research-notes"
-                  value={userNotes}
-                  onChange={(e) => setUserNotes(e.target.value)}
-                  placeholder="Record observations, dosing trial endpoints, target patient subsets, or protocol questions..."
-                  rows={3}
-                  className="w-full text-xs p-2.5 bg-white border border-slate-300 rounded focus:border-teal-700 focus:outline-hidden"
-                />
               </div>
             </div>
           )}
@@ -568,11 +558,11 @@ export function EvidenceDetailModal({
         {/* Modal Footer */}
         <div className="bg-slate-100 border-t border-slate-200 px-5 py-3 flex items-center justify-between text-xs shrink-0">
           <span className="text-slate-500">
-            Citations formatted for academic attribution.
+            For academic exploration and citation attribution.
           </span>
           <button
             onClick={onClose}
-            className="px-4 py-2 bg-slate-900 text-white rounded text-xs font-semibold hover:bg-slate-800 transition-colors"
+            className="px-4 py-2 bg-slate-900 text-white rounded text-xs font-semibold hover:bg-slate-800 transition-colors cursor-pointer"
           >
             Close Evidence View
           </button>

@@ -1,18 +1,31 @@
 'use client';
 
-import { ExternalLink, ShieldAlert, CheckCircle2, Bookmark, BookmarkCheck, FileText } from 'lucide-react';
+import { useState } from 'react';
+import { ExternalLink, ShieldAlert, CheckCircle2, FileText, Share2, Check } from 'lucide-react';
 import { DrugConcept } from '@/types';
 
 interface DrugOverviewProps {
   drug: DrugConcept;
-  onSaveDrug: () => void;
-  isSaved: boolean;
 }
 
-export function DrugOverview({ drug, onSaveDrug, isSaved }: DrugOverviewProps) {
+export function DrugOverview({ drug }: DrugOverviewProps) {
+  const [copied, setCopied] = useState(false);
+
+  const handleCopyLink = async () => {
+    if (typeof window === 'undefined') return;
+    const shareUrl = `${window.location.origin}/?drug=${encodeURIComponent(drug.genericName)}`;
+    try {
+      await navigator.clipboard.writeText(shareUrl);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    } catch (err) {
+      console.error('Failed to copy link to clipboard:', err);
+    }
+  };
+
   return (
     <article className="bg-white border border-slate-200 rounded-lg p-5 sm:p-6 mb-6 shadow-xs">
-      {/* Top Header & Save Button */}
+      {/* Top Header & Copy Link Button */}
       <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4 pb-4 border-b border-slate-100">
         <div>
           <div className="flex items-center gap-2 mb-1 flex-wrap">
@@ -52,24 +65,26 @@ export function DrugOverview({ drug, onSaveDrug, isSaved }: DrugOverviewProps) {
           )}
         </div>
 
+        {/* Copy Link Button (no link text shown on UI) */}
         <button
-          onClick={onSaveDrug}
-          className={`flex items-center gap-2 px-3.5 py-2 rounded-md text-xs font-semibold border transition-colors self-start ${
-            isSaved
+          onClick={handleCopyLink}
+          className={`flex items-center gap-2 px-3.5 py-2 rounded-md text-xs font-semibold border transition-colors self-start cursor-pointer ${
+            copied
               ? 'bg-teal-50 text-teal-800 border-teal-300'
               : 'bg-white hover:bg-slate-50 text-slate-700 border-slate-300'
           }`}
-          aria-label={isSaved ? 'Saved to research folder' : 'Save drug to research'}
+          aria-label="Copy direct link to this drug"
+          title="Copy link to clipboard"
         >
-          {isSaved ? (
+          {copied ? (
             <>
-              <BookmarkCheck className="w-4 h-4 text-teal-700" />
-              <span>Saved in Research</span>
+              <Check className="w-4 h-4 text-teal-700" />
+              <span>Link Copied</span>
             </>
           ) : (
             <>
-              <Bookmark className="w-4 h-4 text-slate-500" />
-              <span>Save Drug</span>
+              <Share2 className="w-4 h-4 text-slate-500" />
+              <span>Copy Link</span>
             </>
           )}
         </button>
