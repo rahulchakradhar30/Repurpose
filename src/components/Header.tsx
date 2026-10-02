@@ -28,9 +28,6 @@ export function Header() {
             <span className="font-semibold text-lg tracking-tight text-white">
               Repurpose
             </span>
-            <span className="hidden sm:inline-block text-[11px] font-mono uppercase tracking-wider text-teal-400 bg-slate-800 px-2 py-0.5 rounded border border-slate-700">
-              Evidence Explorer
-            </span>
           </Link>
         </div>
 
