@@ -67,7 +67,10 @@ export const metadata: Metadata = {
     title: SITE_NAME,
   },
   verification: {
-    google: "TVRormk2JxbUCOVNS_0kWGP5hn26StqTY5bJjs4Vi2s",
+    google: [
+      "TVRormk2JxbUCOVNS_0kWGP5hn26StqTY5bJjs4Vi2s",
+      "google0b8acc4763cd96aa",
+    ],
   },
 };
 
