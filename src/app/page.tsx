@@ -153,6 +153,21 @@ function HomeContent() {
         {currentTab === 'about' && <AboutView />}
       </main>
 
+      {/* Footer */}
+      <footer className="w-full border-t border-slate-200 bg-white py-5 px-4 text-center text-xs text-slate-600 mb-14 md:mb-0">
+        <div className="max-w-5xl mx-auto">
+          <p>
+            Open-source tool prepared by P. Rahul Chakradhar · Contact:{' '}
+            <a
+              href="mailto:rahulchakradhar30@outlook.com"
+              className="font-medium text-teal-800 hover:text-teal-900 hover:underline"
+            >
+              rahulchakradhar30@outlook.com
+            </a>
+          </p>
+        </div>
+      </footer>
+
       {/* Candidate Deep-Dive Modal (Read-Only with Copy Link) */}
       {selectedCandidate && researchSnapshot && (
         <EvidenceDetailModal
