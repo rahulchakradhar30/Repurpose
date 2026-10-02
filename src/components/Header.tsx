@@ -1,6 +1,7 @@
 'use client';
 
 import Link from 'next/link';
+import Image from 'next/image';
 import { usePathname } from 'next/navigation';
 import { Search, BookOpen, Scale, Database, HelpCircle } from 'lucide-react';
 
@@ -18,13 +19,21 @@ export function Header() {
   return (
     <header className="bg-slate-900 text-white border-b border-slate-800 sticky top-0 z-30">
       <div className="max-w-5xl mx-auto px-4 h-14 flex items-center justify-between">
-        {/* Wordmark Only */}
+        {/* Logo & Brand Wordmark */}
         <div className="flex items-center gap-3">
           <Link
             href="/"
-            className="flex items-center gap-2 text-left focus-visible:ring-2 focus-visible:ring-teal-400 rounded-sm cursor-pointer"
+            className="flex items-center gap-2.5 text-left focus-visible:ring-2 focus-visible:ring-teal-400 rounded-sm cursor-pointer group"
             aria-label="Repurpose Home"
           >
+            <Image
+              src="/icon.svg"
+              alt="Repurpose Logo"
+              width={26}
+              height={26}
+              className="w-6.5 h-6.5 rounded-md shadow-xs transition-transform group-hover:scale-105"
+              priority
+            />
             <span className="font-semibold text-lg tracking-tight text-white">
               Repurpose
             </span>
