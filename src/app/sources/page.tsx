@@ -97,127 +97,131 @@ export default function SourcesPage() {
         dangerouslySetInnerHTML={{ __html: JSON.stringify(articleJsonLd) }}
       />
 
-      <div className="max-w-4xl mx-auto px-4 py-8 sm:py-12">
-        <nav className="mb-6" aria-label="Breadcrumb">
-          <ol className="flex items-center text-xs text-slate-500 gap-2">
-            <li><Link href="/" className="hover:text-cyan-400 transition-colors">Home</Link></li>
-            <li>/</li>
-            <li className="text-slate-300 font-medium">Data Sources</li>
-          </ol>
-        </nav>
+      <div className="min-h-screen bg-slate-50 text-slate-900 pb-16">
+        <div className="max-w-4xl mx-auto px-4 py-8 sm:py-12">
+          {/* Breadcrumb Navigation */}
+          <nav className="mb-6" aria-label="Breadcrumb">
+            <ol className="flex items-center text-xs text-slate-500 gap-2">
+              <li><Link href="/" className="hover:text-teal-800 transition-colors">Home</Link></li>
+              <li>/</li>
+              <li className="text-slate-800 font-semibold">Data Sources</li>
+            </ol>
+          </nav>
 
-        <div className="mb-10">
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-cyan-950/60 border border-cyan-800/40 text-cyan-400 text-xs font-mono uppercase tracking-wider mb-4">
-            <Database className="w-3.5 h-3.5" />
-            Registry Provenance & API Integrity
+          {/* Page Heading Header */}
+          <div className="mb-8">
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-teal-50 border border-teal-200 text-teal-800 text-xs font-semibold uppercase tracking-wider mb-3">
+              <Database className="w-3.5 h-3.5" />
+              Registry Provenance & API Integrity
+            </div>
+            <h1 className="text-3xl sm:text-4xl font-extrabold tracking-tight text-slate-900 mb-3">
+              Biomedical Data Sources & Integrations
+            </h1>
+            <p className="text-slate-600 text-base sm:text-lg leading-relaxed">
+              Repurpose adheres to a strict zero-hallucination architecture. We query authoritative, publicly accessible biomedical registries via official government and research APIs. Every claim, condition, trial phase, and chemical target displayed in this platform maps back to a verifiable public record.
+            </p>
           </div>
-          <h1 className="text-3xl sm:text-4xl font-bold tracking-tight text-white mb-4">
-            Biomedical Data Sources & Integrations
-          </h1>
-          <p className="text-slate-300 text-base sm:text-lg leading-relaxed">
-            Repurpose adheres to a strict zero-hallucination architecture. We query authoritative, publicly accessible biomedical registries via official government and research APIs. Every claim, condition, trial phase, and chemical target displayed in this platform maps back to a verifiable public record.
-          </p>
-        </div>
 
-        {/* Licensing & Proprietary Exclusion Note */}
-        <div className="p-4 sm:p-5 rounded-xl bg-slate-900/80 border border-slate-800 mb-10">
-          <div className="flex items-start gap-3">
-            <ShieldCheck className="w-5 h-5 text-emerald-400 shrink-0 mt-0.5" />
-            <div className="text-xs sm:text-sm text-slate-300 leading-relaxed">
-              <span className="font-semibold text-white">Open Science & Intellectual Property Compliance: </span>
-              Repurpose intentionally avoids scraping copyrighted or commercial proprietary databases (e.g., DrugBank Commercial, Clarivate Cortellis). We rely exclusively on open-access, public domain datasets provided by the U.S. National Institutes of Health (NIH), the Food and Drug Administration (FDA), and official international bioinformatics repositories.
+          {/* Licensing & Proprietary Exclusion Note */}
+          <div className="p-5 rounded-xl bg-white border border-slate-200 shadow-xs mb-8">
+            <div className="flex items-start gap-3">
+              <ShieldCheck className="w-5 h-5 text-teal-700 shrink-0 mt-0.5" />
+              <div className="text-xs sm:text-sm text-slate-700 leading-relaxed">
+                <span className="font-bold text-slate-900">Open Science & Intellectual Property Compliance: </span>
+                Repurpose intentionally avoids scraping copyrighted or commercial proprietary databases (e.g., DrugBank Commercial, Clarivate Cortellis). We rely exclusively on open-access, public domain datasets provided by the U.S. National Institutes of Health (NIH), the Food and Drug Administration (FDA), and official bioinformatics repositories.
+              </div>
             </div>
           </div>
-        </div>
 
-        {/* Source Cards */}
-        <div className="space-y-6 mb-12">
-          {INTEGRATED_SOURCES.map((src) => (
-            <div
-              key={src.name}
-              className="p-6 rounded-xl bg-slate-900/60 border border-slate-800/80 hover:border-slate-700/80 transition-all shadow-sm"
-            >
-              <div className="flex flex-col sm:flex-row sm:items-baseline justify-between gap-2 mb-3">
-                <div className="flex items-center gap-2">
-                  <h2 className="text-xl font-bold text-white tracking-tight">{src.name}</h2>
-                  <a
-                    href={src.url}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="text-slate-400 hover:text-cyan-400 transition-colors"
-                    aria-label={`Official website for ${src.name}`}
-                  >
-                    <ExternalLink className="w-4 h-4" />
-                  </a>
-                </div>
-                <span className="text-xs font-mono text-cyan-400 bg-cyan-950/40 border border-cyan-900/40 px-2.5 py-0.5 rounded-full w-fit">
-                  {src.license}
-                </span>
-              </div>
-
-              <div className="text-xs text-slate-400 font-mono mb-3">
-                Maintained by: {src.institution}
-              </div>
-
-              <p className="text-sm text-slate-300 leading-relaxed mb-4">
-                {src.description}
-              </p>
-
-              <div>
-                <h3 className="text-xs font-semibold uppercase tracking-wider text-slate-400 mb-2">
-                  Key Fields Ingested:
-                </h3>
-                <div className="flex flex-wrap gap-1.5">
-                  {src.fieldsRetrieved.map((field) => (
-                    <span
-                      key={field}
-                      className="inline-flex items-center gap-1 text-xs px-2.5 py-1 rounded-md bg-slate-800/80 text-slate-300 border border-slate-700/50"
+          {/* Source Cards */}
+          <div className="space-y-5 mb-10">
+            {INTEGRATED_SOURCES.map((src) => (
+              <div
+                key={src.name}
+                className="p-6 rounded-xl bg-white border border-slate-200 shadow-xs hover:border-teal-600 hover:shadow-sm transition-all"
+              >
+                <div className="flex flex-col sm:flex-row sm:items-baseline justify-between gap-2 mb-2">
+                  <div className="flex items-center gap-2">
+                    <h2 className="text-xl font-bold text-slate-900 tracking-tight">{src.name}</h2>
+                    <a
+                      href={src.url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-slate-400 hover:text-teal-800 transition-colors"
+                      aria-label={`Official website for ${src.name}`}
                     >
-                      <CheckCircle2 className="w-3 h-3 text-emerald-400" />
-                      {field}
-                    </span>
-                  ))}
+                      <ExternalLink className="w-4 h-4" />
+                    </a>
+                  </div>
+                  <span className="text-xs font-mono font-medium text-teal-800 bg-teal-50 border border-teal-200 px-2.5 py-0.5 rounded-full w-fit">
+                    {src.license}
+                  </span>
+                </div>
+
+                <div className="text-xs text-slate-500 font-mono mb-3">
+                  Maintained by: <span className="text-slate-700 font-semibold">{src.institution}</span>
+                </div>
+
+                <p className="text-sm text-slate-600 leading-relaxed mb-4">
+                  {src.description}
+                </p>
+
+                <div>
+                  <h3 className="text-xs font-bold uppercase tracking-wider text-slate-500 mb-2">
+                    Key Fields Ingested:
+                  </h3>
+                  <div className="flex flex-wrap gap-2">
+                    {src.fieldsRetrieved.map((field) => (
+                      <span
+                        key={field}
+                        className="inline-flex items-center gap-1.5 text-xs px-2.5 py-1 rounded-md bg-slate-100 text-slate-700 border border-slate-200 font-medium"
+                      >
+                        <CheckCircle2 className="w-3.5 h-3.5 text-teal-700" />
+                        {field}
+                      </span>
+                    ))}
+                  </div>
                 </div>
               </div>
-            </div>
-          ))}
-        </div>
+            ))}
+          </div>
 
-        {/* Live Fallback Strategy */}
-        <div className="p-6 rounded-xl bg-amber-950/20 border border-amber-800/40 mb-12">
-          <div className="flex items-start gap-3">
-            <AlertTriangle className="w-5 h-5 text-amber-400 shrink-0 mt-0.5" />
-            <div>
-              <h2 className="text-base font-bold text-amber-200 mb-2">
-                Handling API Latency, Downtime & Rate Limits
-              </h2>
-              <p className="text-xs sm:text-sm text-slate-300 leading-relaxed mb-3">
-                Government APIs occasionally experience scheduled maintenance, transient timeouts, or rate limits. Repurpose executes concurrent parallel requests with graceful degradation:
-              </p>
-              <ul className="text-xs sm:text-sm text-slate-300 space-y-1.5 list-disc pl-5">
-                <li>If RxNorm fails, search halts with a clear error prompt rather than guessing an unverified compound identity.</li>
-                <li>If ClinicalTrials.gov is temporarily unresponsive, published indication data from openFDA continues to render, accompanied by an explicit badge stating trial data could not be refreshed.</li>
-                <li>AI synthesis is strictly blocked whenever underlying primary records are missing, preventing ungrounded inference.</li>
-              </ul>
+          {/* Live Fallback Strategy */}
+          <div className="p-6 rounded-xl bg-amber-50 border-2 border-amber-300 mb-10">
+            <div className="flex items-start gap-3">
+              <AlertTriangle className="w-5 h-5 text-amber-800 shrink-0 mt-0.5" />
+              <div>
+                <h2 className="text-base font-bold text-amber-950 mb-2">
+                  Handling API Latency, Downtime & Rate Limits
+                </h2>
+                <p className="text-xs sm:text-sm text-amber-900 leading-relaxed mb-3">
+                  Government APIs occasionally experience scheduled maintenance, transient timeouts, or rate limits. Repurpose executes concurrent parallel requests with graceful degradation:
+                </p>
+                <ul className="text-xs sm:text-sm text-amber-900 space-y-1.5 list-disc pl-5">
+                  <li>If RxNorm fails, search halts with a clear error prompt rather than guessing an unverified compound identity.</li>
+                  <li>If ClinicalTrials.gov is temporarily unresponsive, published indication data from openFDA continues to render, accompanied by an explicit badge stating trial data could not be refreshed.</li>
+                  <li>AI synthesis is strictly blocked whenever underlying primary records are missing, preventing ungrounded inference.</li>
+                </ul>
+              </div>
             </div>
           </div>
-        </div>
 
-        {/* Bottom Navigation */}
-        <div className="flex flex-col sm:flex-row justify-between items-center pt-8 border-t border-slate-800 gap-4">
-          <Link
-            href="/methodology"
-            className="inline-flex items-center gap-2 text-sm text-slate-400 hover:text-white transition-colors"
-          >
-            <ArrowLeft className="w-4 h-4" />
-            Read Evidence Scoring Methodology
-          </Link>
-          <Link
-            href="/"
-            className="inline-flex items-center justify-center px-4 py-2 text-sm font-medium rounded-lg bg-cyan-600 hover:bg-cyan-500 text-white transition-colors"
-          >
-            Search Verified Compounds
-          </Link>
+          {/* Bottom Navigation */}
+          <div className="flex flex-col sm:flex-row justify-between items-center pt-6 border-t border-slate-200 gap-4">
+            <Link
+              href="/methodology"
+              className="inline-flex items-center gap-2 text-sm font-medium text-slate-600 hover:text-slate-900 transition-colors"
+            >
+              <ArrowLeft className="w-4 h-4" />
+              Read Evidence Scoring Methodology
+            </Link>
+            <Link
+              href="/"
+              className="inline-flex items-center justify-center px-4 py-2.5 text-sm font-semibold rounded-lg bg-slate-900 hover:bg-slate-800 text-white transition-colors"
+            >
+              Search Verified Compounds
+            </Link>
+          </div>
         </div>
       </div>
     </>
