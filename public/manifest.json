@@ -1,0 +1,20 @@
+{
+  "name": "Repurpose - Evidence-Based Drug Repurposing",
+  "short_name": "Repurpose",
+  "description": "Educational and research platform for exploring evidence-based drug repurposing opportunities.",
+  "start_url": "/",
+  "id": "/",
+  "display": "standalone",
+  "background_color": "#f8fafc",
+  "theme_color": "#0f172a",
+  "orientation": "portrait-primary",
+  "icons": [
+    {
+      "src": "/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ],
+  "categories": ["medical", "education", "productivity", "research"]
+}

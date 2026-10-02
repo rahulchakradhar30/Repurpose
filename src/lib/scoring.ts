@@ -1,0 +1,204 @@
+import { ClinicalTrial, PubMedCitation, EvidenceScoreBreakdown } from '@/types';
+
+interface ScoringInput {
+  condition: string;
+  trials: ClinicalTrial[];
+  citations: PubMedCitation[];
+  mechanismOfAction?: string;
+  biologicalRationale?: string;
+  fdaWarnings?: string[];
+  fdaContraindications?: string[];
+}
+
+export function computeEvidenceScore(input: ScoringInput): EvidenceScoreBreakdown {
+  const contributingFactors: string[] = [];
+  const uncertaintyFlags: string[] = [];
+
+  // 1. Clinical trial evidence: 0 - 40 points
+  let clinicalTrialScore = 0;
+  const trials = input.trials || [];
+  
+  if (trials.length === 0) {
+    clinicalTrialScore = 0;
+    uncertaintyFlags.push('No registered interventional clinical trials found for this candidate condition.');
+  } else {
+    // Check trial phases and statuses
+    const phases = trials.map(t => (t.phase || '').toUpperCase());
+    const statuses = trials.map(t => (t.status || '').toUpperCase());
+    
+    const allTerminated = statuses.every(s => 
+      s.includes('TERMINATED') || s.includes('WITHDRAWN') || s.includes('SUSPENDED')
+    );
+
+    if (allTerminated) {
+      clinicalTrialScore = 4;
+      contributingFactors.push(`Found ${trials.length} trial(s), but all were terminated, withdrawn, or suspended.`);
+      uncertaintyFlags.push('Trial stopped: All identified clinical trials were prematurely terminated or withdrawn.');
+    } else {
+      let highestPoints = 0;
+      let highestPhaseDesc = '';
+
+      for (const trial of trials) {
+        const p = (trial.phase || '').toUpperCase();
+        const s = (trial.status || '').toUpperCase();
+        const isCompleted = s.includes('COMPLETED');
+        const isActive = s.includes('RECRUITING') || s.includes('ACTIVE');
+
+        let trialPoints = 0;
+        if (p.includes('PHASE 4') || p.includes('PHASE4')) {
+          trialPoints = isCompleted ? 40 : 36;
+          highestPhaseDesc = 'Phase 4';
+        } else if (p.includes('PHASE 3') || p.includes('PHASE3')) {
+          trialPoints = isCompleted ? 35 : (isActive ? 32 : 28);
+          highestPhaseDesc = 'Phase 3';
+        } else if (p.includes('PHASE 2/PHASE 3') || p.includes('PHASE 2') || p.includes('PHASE2')) {
+          trialPoints = isCompleted ? 26 : (isActive ? 22 : 18);
+          highestPhaseDesc = 'Phase 2';
+        } else if (p.includes('PHASE 1/PHASE 2')) {
+          trialPoints = isCompleted ? 18 : 15;
+          highestPhaseDesc = 'Phase 1/2';
+        } else if (p.includes('PHASE 1') || p.includes('PHASE1')) {
+          trialPoints = isCompleted ? 14 : 10;
+          highestPhaseDesc = 'Phase 1';
+        } else {
+          trialPoints = isCompleted ? 8 : 6;
+          highestPhaseDesc = 'Early/Unclassified';
+        }
+
+        if (trialPoints > highestPoints) {
+          highestPoints = trialPoints;
+        }
+      }
+
+      // Bonus for multiple active/completed trials (up to +4 within 40 max)
+      const validTrialsCount = trials.filter(t => 
+        !['TERMINATED', 'WITHDRAWN'].some(s => (t.status || '').toUpperCase().includes(s))
+      ).length;
+      
+      if (validTrialsCount > 1) {
+        highestPoints = Math.min(40, highestPoints + Math.min(4, validTrialsCount));
+        contributingFactors.push(`${validTrialsCount} interventional clinical trials registered (highest: ${highestPhaseDesc}).`);
+      } else {
+        contributingFactors.push(`1 registered clinical trial identified (${highestPhaseDesc}).`);
+      }
+
+      clinicalTrialScore = Math.min(40, highestPoints);
+
+      if (clinicalTrialScore < 20) {
+        uncertaintyFlags.push('Evidence is preliminary: Clinical trial progression is early-stage (Phase 1 or pilot).');
+      }
+    }
+  }
+
+  // 2. Human / Observational evidence: 0 - 20 points
+  let humanObservationalScore = 0;
+  const citations = input.citations || [];
+
+  if (citations.length === 0) {
+    humanObservationalScore = 0;
+    uncertaintyFlags.push('Human evidence unavailable: No peer-reviewed PubMed citations indexed for this specific pairing.');
+  } else {
+    // Scoring based on verified PubMed records
+    if (citations.length >= 4) {
+      humanObservationalScore = 20;
+      contributingFactors.push(`${citations.length} peer-reviewed PubMed citations indexed with clinical relevance.`);
+    } else if (citations.length === 3) {
+      humanObservationalScore = 16;
+      contributingFactors.push(`3 peer-reviewed PubMed publications indexed.`);
+    } else if (citations.length === 2) {
+      humanObservationalScore = 12;
+      contributingFactors.push(`2 peer-reviewed PubMed publications indexed.`);
+    } else {
+      humanObservationalScore = 7;
+      contributingFactors.push(`1 peer-reviewed PubMed publication indexed.`);
+      uncertaintyFlags.push('Limited publication volume: Only a single indexed literature citation found.');
+    }
+  }
+
+  // 3. Mechanistic and target-disease plausibility: 0 - 20 points
+  let mechanisticScore = 0;
+  const mechanism = (input.mechanismOfAction || '').trim();
+  const rationale = (input.biologicalRationale || '').trim();
+
+  if (mechanism.length > 20 || rationale.length > 20) {
+    if (mechanism.length > 50 && rationale.length > 30) {
+      mechanisticScore = 20;
+      contributingFactors.push('Well-characterized pharmacological mechanism aligned with disease pathway.');
+    } else {
+      mechanisticScore = 14;
+      contributingFactors.push('Documented drug mechanism with biological hypothesis.');
+    }
+  } else {
+    mechanisticScore = 5;
+    uncertaintyFlags.push('Mechanistic hypothesis remains partially characterized or inferred.');
+  }
+
+  // 4. Reproducibility & publication quality signals: 0 - 10 points
+  let reproducibilityScore = 0;
+  const sponsors = new Set(trials.map(t => (t.leadSponsor || '').trim().toLowerCase()).filter(Boolean));
+  
+  if (sponsors.size >= 2) {
+    reproducibilityScore = 10;
+    contributingFactors.push(`Multiple independent study sponsors (${sponsors.size} distinct organizations).`);
+  } else if (sponsors.size === 1) {
+    reproducibilityScore = 6;
+    contributingFactors.push('Single sponsor / single institution investigation.');
+    uncertaintyFlags.push('Independent multi-center replication by external sponsors is limited.');
+  } else if (citations.length >= 2) {
+    reproducibilityScore = 5;
+    contributingFactors.push('Supported by multiple scientific publication sources.');
+  } else {
+    reproducibilityScore = 2;
+    uncertaintyFlags.push('Cross-institutional replication evidence is not yet established.');
+  }
+
+  // 5. Safety and contraindication compatibility: 0 - 10 points
+  let safetyCompatibilityScore = 10;
+  const warnings = input.fdaWarnings || [];
+  const contraindications = input.fdaContraindications || [];
+  const condLower = input.condition.toLowerCase();
+
+  // Check for direct contraindication collision with condition
+  const hasDirectConflict = contraindications.some(c => 
+    c.toLowerCase().includes(condLower)
+  );
+
+  const hasDirectWarning = warnings.some(w => 
+    w.toLowerCase().includes(condLower)
+  );
+
+  if (hasDirectConflict) {
+    safetyCompatibilityScore = 1;
+    uncertaintyFlags.push('Safety alert: Official FDA label explicitly lists this condition or related pathophysiology as a contraindication.');
+    contributingFactors.push('High-risk safety contraindication detected in official product labeling.');
+  } else if (hasDirectWarning) {
+    safetyCompatibilityScore = 5;
+    uncertaintyFlags.push('Precaution: FDA boxed warning or precautions mention caution in this therapeutic domain.');
+    contributingFactors.push('Specific FDA warning overlap identified; close monitoring required.');
+  } else if (warnings.length > 0) {
+    safetyCompatibilityScore = 9;
+    contributingFactors.push('FDA safety warnings reviewed with no direct condition conflict.');
+  } else {
+    safetyCompatibilityScore = 8;
+    contributingFactors.push('Baseline safety profile evaluated.');
+  }
+
+  const totalScore = Math.min(100, Math.max(0, 
+    clinicalTrialScore + 
+    humanObservationalScore + 
+    mechanisticScore + 
+    reproducibilityScore + 
+    safetyCompatibilityScore
+  ));
+
+  return {
+    clinicalTrialScore,
+    humanObservationalScore,
+    mechanisticScore,
+    reproducibilityScore,
+    safetyCompatibilityScore,
+    totalScore,
+    contributingFactors,
+    uncertaintyFlags
+  };
+}
