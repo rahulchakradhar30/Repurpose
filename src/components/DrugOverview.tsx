@@ -1,8 +1,9 @@
 'use client';
 
 import { useState } from 'react';
-import { ExternalLink, ShieldAlert, CheckCircle2, FileText, Share2, Check } from 'lucide-react';
+import { ExternalLink, ShieldAlert, CheckCircle2, FileText, Share2, Check, AlertTriangle } from 'lucide-react';
 import { DrugConcept } from '@/types';
+import { filterDistinctBrandNames } from '@/lib/normalization';
 
 interface DrugOverviewProps {
   drug: DrugConcept;
@@ -23,6 +24,24 @@ export function DrugOverview({ drug }: DrugOverviewProps) {
     }
   };
 
+  const distinctBrandNames = filterDistinctBrandNames(drug.brandNames || [], drug.genericName);
+
+  const fdaSource = drug.sources.find(
+    (s) => s.name.toLowerCase().includes('fda') || s.name.toLowerCase().includes('dailymed')
+  );
+  const originalLabelUrl =
+    fdaSource?.url ||
+    `https://dailymed.nlm.nih.gov/dailymed/search.cfm?labeltype=all&query=${encodeURIComponent(drug.genericName)}`;
+
+  // Truncate long indications to concise summaries (up to 3 items)
+  const displayIndications = (drug.approvedIndications || [])
+    .map((ind) => ind.replace(/^INDICATIONS AND USAGE:?\s*/i, '').trim())
+    .filter(Boolean)
+    .slice(0, 3);
+
+  // Incomplete sources check
+  const unavailableSources = (drug.sources || []).filter((s) => s.status !== 'ok');
+
   return (
     <article className="bg-white border border-slate-200 rounded-lg p-5 sm:p-6 mb-6 shadow-xs">
       {/* Top Header & Copy Link Button */}
@@ -33,14 +52,28 @@ export function DrugOverview({ drug }: DrugOverviewProps) {
               Verified Generic
             </span>
             {drug.rxNormId && (
-              <span className="text-[11px] font-mono text-slate-500 bg-slate-100 px-1.5 py-0.5 rounded">
-                RxCUI: {drug.rxNormId}
-              </span>
+              <a
+                href={`https://mor.nlm.nih.gov/RxNav/search?searchBy=RXCUI&searchTerm=${drug.rxNormId}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-[11px] font-mono text-slate-600 hover:text-teal-800 bg-slate-100 hover:bg-slate-200 px-1.5 py-0.5 rounded transition-colors inline-flex items-center gap-1"
+                title="View in NLM RxNav"
+              >
+                <span>RxCUI: {drug.rxNormId}</span>
+                <ExternalLink className="w-2.5 h-2.5" />
+              </a>
             )}
             {drug.pubchemCid && (
-              <span className="text-[11px] font-mono text-slate-500 bg-slate-100 px-1.5 py-0.5 rounded">
-                CID: {drug.pubchemCid}
-              </span>
+              <a
+                href={`https://pubchem.ncbi.nlm.nih.gov/compound/${drug.pubchemCid}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-[11px] font-mono text-slate-600 hover:text-teal-800 bg-slate-100 hover:bg-slate-200 px-1.5 py-0.5 rounded transition-colors inline-flex items-center gap-1"
+                title="View in NCBI PubChem"
+              >
+                <span>CID: {drug.pubchemCid}</span>
+                <ExternalLink className="w-2.5 h-2.5" />
+              </a>
             )}
             <span className="text-[11px] text-slate-400">
               Verified: {drug.lastVerifiedDate}
@@ -52,15 +85,15 @@ export function DrugOverview({ drug }: DrugOverviewProps) {
           </h2>
 
           {drug.drugClass && (
-            <p className="text-xs sm:text-sm font-medium text-slate-600 mt-0.5">
-              Class: {drug.drugClass}
+            <p className="text-xs sm:text-sm font-medium text-slate-700 mt-0.5">
+              <span className="text-slate-500">Pharmacological Class:</span> {drug.drugClass}
             </p>
           )}
 
-          {drug.brandNames && drug.brandNames.length > 0 && (
+          {distinctBrandNames.length > 0 && (
             <div className="flex items-center gap-1.5 mt-2 flex-wrap text-xs text-slate-500">
-              <span className="font-medium text-slate-600">Reported Brand Names:</span>
-              <span>{drug.brandNames.join(', ')}</span>
+              <span className="font-medium text-slate-600">Verified Brand Names:</span>
+              <span className="font-semibold text-slate-800">{distinctBrandNames.join(', ')}</span>
             </div>
           )}
         </div>
@@ -111,12 +144,21 @@ export function DrugOverview({ drug }: DrugOverviewProps) {
               Approved Regulatory Indications (FDA / DailyMed)
             </h3>
           </div>
-          <span className="text-[11px] text-slate-500">Baseline Indications</span>
+          <a
+            href={originalLabelUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex items-center gap-1 text-[11px] font-medium text-teal-800 hover:text-teal-900 hover:underline"
+            title="Open official DailyMed drug label insert"
+          >
+            <span>View original label</span>
+            <ExternalLink className="w-3 h-3" />
+          </a>
         </div>
 
-        {drug.approvedIndications.length > 0 ? (
+        {displayIndications.length > 0 ? (
           <ul className="grid grid-cols-1 gap-2 text-xs sm:text-sm text-slate-800 bg-slate-50 border border-slate-200 rounded p-3">
-            {drug.approvedIndications.map((ind, i) => (
+            {displayIndications.map((ind, i) => (
               <li key={i} className="flex items-start gap-2">
                 <span className="w-1.5 h-1.5 rounded-full bg-emerald-600 mt-2 shrink-0" />
                 <span className="leading-snug">{ind}</span>
@@ -152,6 +194,19 @@ export function DrugOverview({ drug }: DrugOverviewProps) {
                 <span>{drug.warnings.join(' ')}</span>
               </div>
             )}
+          </div>
+        </div>
+      )}
+
+      {/* Incomplete source coverage banner if any source failed */}
+      {unavailableSources.length > 0 && (
+        <div className="mt-4 p-3 bg-amber-50/80 border border-amber-200 rounded-md text-xs text-amber-900 flex items-start gap-2.5">
+          <AlertTriangle className="w-4 h-4 text-amber-700 shrink-0 mt-0.5" />
+          <div>
+            <span className="font-semibold">Source Coverage Limitation: </span>
+            <span>
+              Direct live response from {unavailableSources.map((s) => s.name).join(', ')} is currently incomplete or unindexed. Displayed evidence reflects verified responses from available biomedical repositories.
+            </span>
           </div>
         </div>
       )}

@@ -1,5 +1,6 @@
 import { fetchWithTimeoutAndRetry } from '@/lib/network';
 import { ClinicalTrial, SourceProvenance } from '@/types';
+import { normalizeCondition, deduplicateTrials } from '@/lib/normalization';
 
 export interface ClinicalTrialsResponse {
   trials: ClinicalTrial[];
@@ -35,7 +36,7 @@ export async function fetchClinicalTrials(drugName: string): Promise<ClinicalTri
     const totalCount = data?.totalCount || studies.length;
 
     const trials: ClinicalTrial[] = [];
-    const conditionMap: Record<string, ClinicalTrial[]> = {};
+    const rawConditionMap: Record<string, ClinicalTrial[]> = {};
 
     for (const study of studies) {
       const proto = study.protocolSection;
@@ -66,16 +67,25 @@ export async function fetchClinicalTrials(drugName: string): Promise<ClinicalTri
 
       trials.push(trial);
 
-      // Map trial to each clean condition
+      // Map trial to normalized condition
       for (const rawCond of conditions) {
-        const cond = cleanConditionName(rawCond);
+        if (!rawCond || isGenericPlaceholder(rawCond)) continue;
+        const normalized = normalizeCondition(rawCond);
+        const cond = normalized.displayName;
+
         if (cond.length > 2 && !isGenericPlaceholder(cond)) {
-          if (!conditionMap[cond]) {
-            conditionMap[cond] = [];
+          if (!rawConditionMap[cond]) {
+            rawConditionMap[cond] = [];
           }
-          conditionMap[cond].push(trial);
+          rawConditionMap[cond].push(trial);
         }
       }
+    }
+
+    // Deduplicate trials per condition
+    const conditionMap: Record<string, ClinicalTrial[]> = {};
+    for (const [cond, condTrials] of Object.entries(rawConditionMap)) {
+      conditionMap[cond] = deduplicateTrials(condTrials);
     }
 
     return {
@@ -105,17 +115,6 @@ export async function fetchClinicalTrials(drugName: string): Promise<ClinicalTri
       },
     };
   }
-}
-
-function cleanConditionName(name: string): string {
-  return name
-    .trim()
-    .replace(/\s+/g, ' ')
-    .replace(/^the\s+/i, '')
-    // Capitalize first letter of each word
-    .split(' ')
-    .map(w => w.length > 2 ? w.charAt(0).toUpperCase() + w.slice(1).toLowerCase() : w.toLowerCase())
-    .join(' ');
 }
 
 function isGenericPlaceholder(condition: string): boolean {

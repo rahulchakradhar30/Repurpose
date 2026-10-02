@@ -10,7 +10,9 @@ import {
   FlaskConical, 
   AlertTriangle, 
   ChevronRight, 
-  Filter 
+  Filter,
+  ExternalLink,
+  AlertCircle
 } from 'lucide-react';
 
 interface RepurposingListProps {
@@ -158,8 +160,8 @@ export function RepurposingList({
                 aria-label={`View evidence details for ${cand.condition}, score ${score} of 100`}
                 className="bg-white hover:bg-slate-50 border border-slate-200 hover:border-slate-300 rounded-lg p-4 sm:p-5 transition-all text-left shadow-xs cursor-pointer focus-visible:ring-2 focus-visible:ring-teal-700"
               >
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-                  <div className="space-y-1.5 flex-1">
+                <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4">
+                  <div className="space-y-2 flex-1">
                     <div className="flex items-center gap-2 flex-wrap">
                       <span className={`text-[11px] font-semibold uppercase tracking-wider px-2 py-0.5 rounded border ${getStatusBadgeStyle(cand.status)}`}>
                         {cand.status}
@@ -167,6 +169,17 @@ export function RepurposingList({
                       <span className="text-[11px] font-medium text-slate-600 bg-slate-100 px-2 py-0.5 rounded border border-slate-200">
                         {cand.highestPhase}
                       </span>
+                      {cand.evidenceScore.evidenceTier && (
+                        <span className={`text-[11px] font-medium px-2 py-0.5 rounded border ${
+                          cand.evidenceScore.evidenceTier === 'Insufficient evidence'
+                            ? 'bg-rose-50 text-rose-800 border-rose-200'
+                            : cand.evidenceScore.evidenceTier === 'High'
+                            ? 'bg-teal-50 text-teal-800 border-teal-200'
+                            : 'bg-slate-100 text-slate-700 border-slate-200'
+                        }`}>
+                          Tier: {cand.evidenceScore.evidenceTier}
+                        </span>
+                      )}
                       <span className="text-[11px] text-slate-500">
                         {cand.clinicalTrials.length} Trial{cand.clinicalTrials.length === 1 ? '' : 's'} · {cand.citations.length} Citation{cand.citations.length === 1 ? '' : 's'}
                       </span>
@@ -176,8 +189,54 @@ export function RepurposingList({
                       {cand.condition}
                     </h3>
 
+                    {/* Trial Outcome Status Alert Banner */}
+                    {cand.trialOutcomeStatus && (
+                      <div className="flex items-start gap-1.5 text-xs text-amber-900 bg-amber-50/90 border border-amber-200 rounded p-2">
+                        <AlertCircle className="w-3.5 h-3.5 text-amber-700 shrink-0 mt-0.5" />
+                        <span className="font-medium leading-snug">
+                          {cand.trialOutcomeStatus}
+                        </span>
+                      </div>
+                    )}
+
+                    {/* Evidence Note */}
+                    {cand.evidenceNote && (
+                      <p className="text-xs text-slate-600 bg-slate-50 border border-slate-200 rounded p-2">
+                        <span className="font-semibold text-slate-700">Evidence Note: </span>
+                        {cand.evidenceNote}
+                      </p>
+                    )}
+
+                    {/* Direct ClinicalTrials.gov Links & NCT Details */}
+                    {cand.clinicalTrials.length > 0 && (
+                      <div className="flex flex-wrap items-center gap-1.5 pt-0.5 text-xs">
+                        <span className="text-[11px] font-medium text-slate-500">ClinicalTrials.gov:</span>
+                        {cand.clinicalTrials.slice(0, 3).map((trial) => (
+                          <a
+                            key={trial.nctId}
+                            href={trial.studyUrl}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            onClick={(e) => e.stopPropagation()}
+                            className="inline-flex items-center gap-1 font-mono text-[11px] bg-slate-100 hover:bg-teal-50 text-slate-700 hover:text-teal-900 border border-slate-200 hover:border-teal-300 px-1.5 py-0.5 rounded transition-colors"
+                            title={`${trial.title} (${trial.phase}, ${trial.status})`}
+                          >
+                            <span>{trial.nctId}</span>
+                            <span className="text-slate-400">·</span>
+                            <span className="text-[10px] text-slate-500">{trial.phase}</span>
+                            <ExternalLink className="w-2.5 h-2.5 text-slate-400" />
+                          </a>
+                        ))}
+                        {cand.clinicalTrials.length > 3 && (
+                          <span className="text-[11px] text-slate-400 font-mono">
+                            +{cand.clinicalTrials.length - 3} more
+                          </span>
+                        )}
+                      </div>
+                    )}
+
                     {/* Uncertainty language tags */}
-                    {cand.evidenceScore.uncertaintyFlags.length > 0 && (
+                    {cand.evidenceScore.uncertaintyFlags.length > 0 && !cand.trialOutcomeStatus && (
                       <div className="flex items-center gap-1.5 text-xs text-amber-800">
                         <AlertTriangle className="w-3.5 h-3.5 shrink-0" />
                         <span className="truncate">
@@ -188,7 +247,7 @@ export function RepurposingList({
                   </div>
 
                   {/* Score & Visual Bar */}
-                  <div className="flex items-center sm:flex-col sm:items-end justify-between gap-2 sm:min-w-[140px] pt-2 sm:pt-0 border-t sm:border-t-0 border-slate-100">
+                  <div className="flex items-center sm:flex-col sm:items-end justify-between gap-2 sm:min-w-[140px] pt-2 sm:pt-0 border-t sm:border-t-0 border-slate-100 shrink-0">
                     <div className="flex items-baseline gap-1">
                       <span className="text-xs font-medium text-slate-500">Evidence Score:</span>
                       <span className={`text-base font-bold px-2 py-0.5 rounded border font-mono ${getScoreColor(score)}`}>

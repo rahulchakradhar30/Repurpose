@@ -243,6 +243,30 @@ export function EvidenceDetailModal({
                 </p>
               </div>
 
+              {/* Trial Outcome Status Alert */}
+              {candidate.trialOutcomeStatus && (
+                <div className="bg-amber-50 border-l-4 border-amber-600 rounded-r-lg p-4">
+                  <h4 className="text-xs font-bold uppercase tracking-wider text-amber-950 mb-1 flex items-center gap-1.5">
+                    <AlertTriangle className="w-4 h-4 text-amber-700" />
+                    <span>Trial Outcome Status</span>
+                  </h4>
+                  <p className="text-xs text-amber-950 font-medium">
+                    {candidate.trialOutcomeStatus}
+                  </p>
+                  <p className="text-[11px] text-amber-800 mt-1">
+                    Interventional trials are registered on ClinicalTrials.gov, but no peer-reviewed outcome publications have been indexed in PubMed for this indication. Trial existence does not demonstrate clinical outcome efficacy.
+                  </p>
+                </div>
+              )}
+
+              {/* Evidence Note */}
+              {candidate.evidenceNote && (
+                <div className="bg-slate-50 border border-slate-200 rounded-lg p-3 text-xs text-slate-700">
+                  <span className="font-semibold text-slate-900">Score Assignment Rationale: </span>
+                  <span>{candidate.evidenceNote}</span>
+                </div>
+              )}
+
               {/* Uncertainty Badges */}
               {breakdown.uncertaintyFlags.length > 0 && (
                 <div className="bg-amber-50 border border-amber-200 rounded-lg p-4">

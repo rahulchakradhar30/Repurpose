@@ -5,12 +5,35 @@ import { fetchClinicalTrials } from './sources/clinicaltrials';
 import { fetchPubMedCitations } from './sources/pubmed';
 import { computeEvidenceScore } from './scoring';
 import { 
+  filterDistinctBrandNames, 
+  deduplicateTrials, 
+  deduplicateCitations 
+} from './normalization';
+import { 
   DrugResearchSnapshot, 
   RepurposingCandidate, 
   DrugConcept, 
   EvidenceStatus, 
   SourceProvenance 
 } from '@/types';
+
+// Curated verified pharmacological classes for known therapeutics
+const KNOWN_PHARM_CLASSES: Record<string, string> = {
+  azithromycin: 'Macrolide antibiotic',
+  metformin: 'Biguanide oral antihyperglycemic',
+  thalidomide: 'Immunomodulatory Drug (IMiD)',
+  imatinib: 'BCR-ABL / KIT / PDGFR tyrosine kinase inhibitor',
+  hydroxychloroquine: '4-Aminoquinoline antimalarial and antirheumatic agent',
+  sildenafil: 'Phosphodiesterase-5 (PDE5) inhibitor',
+  aspirin: 'Nonsteroidal anti-inflammatory drug (NSAID) / Antiplatelet agent',
+  atorvastatin: 'HMG-CoA reductase inhibitor (Statin)',
+  ibuprofen: 'Nonsteroidal anti-inflammatory drug (NSAID)',
+  losartan: 'Angiotensin II receptor blocker (ARB)',
+  dexamethasone: 'Glucocorticoid corticosteroid',
+  ivermectin: 'Avermectin antiparasitic agent',
+  ritonavir: 'HIV protease inhibitor',
+  famotidine: 'Histamine H2-receptor antagonist',
+};
 
 export async function aggregateDrugResearch(drugQuery: string): Promise<DrugResearchSnapshot | null> {
   const cleanDrug = drugQuery.trim();
@@ -69,16 +92,31 @@ export async function aggregateDrugResearch(drugQuery: string): Promise<DrugRese
   }
 
   // Determine normalized generic name
-  const genericName = rxData?.genericName || cleanDrug;
-  const brandNames = Array.from(new Set([
+  const rawGeneric = rxData?.genericName || cleanDrug;
+  const genericName = rawGeneric.charAt(0).toUpperCase() + rawGeneric.slice(1);
+  const genLower = genericName.toLowerCase();
+
+  // Filter distinct, verified brand names (strip generic repetitions and generic dosage forms)
+  const combinedBrands = [
     ...(rxData?.brandNames || []),
     ...(fdaData?.brandNames || [])
-  ])).slice(0, 10);
+  ];
+  const brandNames = filterDistinctBrandNames(combinedBrands, genericName).slice(0, 8);
 
   const approvedIndications = fdaData?.approvedIndications || [];
   const warnings = fdaData?.warnings || [];
   const contraindications = fdaData?.contraindications || [];
-  const drugClass = fdaData?.drugClass || 'Small molecule therapeutic agent';
+
+  // Determine pharmacological class (prefer verified medical class over generic fallback)
+  let drugClass = KNOWN_PHARM_CLASSES[genLower];
+  if (!drugClass) {
+    if (fdaData?.drugClass && !fdaData.drugClass.toLowerCase().includes('small molecule')) {
+      drugClass = fdaData.drugClass;
+    } else {
+      drugClass = 'Small molecule therapeutic agent';
+    }
+  }
+
   const mechanismOfAction = fdaData?.mechanismOfAction || pubchemData?.description || 'Pharmacological mechanism documented in biomedical literature.';
 
   const sourcesList: SourceProvenance[] = [];
@@ -129,15 +167,17 @@ export async function aggregateDrugResearch(drugQuery: string): Promise<DrugRese
   const topCandidateNames = candidateConditions.slice(0, 6);
 
   const candidatePromises = topCandidateNames.map(async (condName, idx) => {
-    const trials = conditionMap[condName] || [];
+    const rawTrials = conditionMap[condName] || [];
+    const trials = deduplicateTrials(rawTrials);
     
     // Fetch real PubMed citations for this pair
-    let citations: import('@/types').PubMedCitation[] = [];
+    let rawCitations: import('@/types').PubMedCitation[] = [];
     try {
-      citations = await fetchPubMedCitations(genericName, condName);
+      rawCitations = await fetchPubMedCitations(genericName, condName);
     } catch {
-      citations = [];
+      rawCitations = [];
     }
+    const citations = deduplicateCitations(rawCitations);
 
     // Determine highest phase
     let highestPhase = 'Phase 1';
@@ -175,12 +215,28 @@ export async function aggregateDrugResearch(drugQuery: string): Promise<DrugRese
       fdaContraindications: contraindications,
     });
 
+    // Generate clear, explanatory evidence note
+    let evidenceNote = '';
+    if (evidenceScore.evidenceTier === 'Insufficient evidence') {
+      evidenceNote = `Insufficient evidence: ${trials.length} trial(s) and ${citations.length} citation(s) identified. Score capped at ${evidenceScore.totalScore}/100 pending verified human studies or peer-reviewed literature.`;
+    } else if (evidenceScore.trialOutcomeStatus) {
+      evidenceNote = `${evidenceScore.trialOutcomeStatus} Phase ${highestPhase.replace(/phase /i, '')} clinical trial activity registered, but peer-reviewed outcome publications have not yet been indexed in PubMed. Trial existence does not establish efficacy.`;
+    } else if (citations.length > 0 && trials.length > 0) {
+      evidenceNote = `Supported by ${trials.length} registered clinical trial(s) (highest: ${highestPhase}) and ${citations.length} peer-reviewed PubMed publication(s). Research exploration only.`;
+    } else if (trials.length > 0) {
+      evidenceNote = `Investigational study registered in ClinicalTrials.gov (${trials.length} study/studies, highest: ${highestPhase}). Published outcome literature pending.`;
+    } else {
+      evidenceNote = `Identified in ${citations.length} PubMed publication(s) as an off-label or exploratory hypothesis.`;
+    }
+
     const candidate: RepurposingCandidate = {
       id: `cand-${idx}-${encodeURIComponent(condName.toLowerCase())}`,
       condition: condName,
       status,
       highestPhase,
       evidenceScore,
+      evidenceNote,
+      trialOutcomeStatus: evidenceScore.trialOutcomeStatus,
       clinicalTrials: trials.slice(0, 5),
       citations,
       biologicalRationale: `Exploration of ${genericName} (${drugClass}) for ${condName} based on shared mechanistic targets and observed clinical or pre-clinical activity.`,

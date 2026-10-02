@@ -109,6 +109,7 @@ describe('Production SEO Suite', () => {
       expect(urls).toContain('https://repurpose-research.org/drug/metformin');
       expect(urls).toContain('https://repurpose-research.org/drug/thalidomide');
       expect(urls).toContain('https://repurpose-research.org/drug/imatinib');
+      expect(urls).toContain('https://repurpose-research.org/drug/azithromycin');
 
       // Unverified or random searched terms must NEVER appear in sitemap
       expect(urls).not.toContain('https://repurpose-research.org/drug/fake-drug');
@@ -191,7 +192,23 @@ describe('Production SEO Suite', () => {
       expect(slugs).toContain('metformin');
       expect(slugs).toContain('thalidomide');
       expect(slugs).toContain('imatinib');
-      expect(slugs.length).toBeGreaterThanOrEqual(3);
+      expect(slugs).toContain('azithromycin');
+      expect(slugs.length).toBeGreaterThanOrEqual(4);
+    });
+
+    it('should generate indexable metadata for azithromycin', async () => {
+      const meta = await generateDrugMetadata({
+        params: Promise.resolve({ slug: 'azithromycin' }),
+      });
+
+      expect(meta.title).toContain('Azithromycin');
+      expect(meta.robots).toEqual(
+        expect.objectContaining({
+          index: true,
+          follow: true,
+        })
+      );
+      expect(meta.alternates?.canonical).toBe('https://repurpose-research.org/drug/azithromycin');
     });
 
     it('should generate indexable metadata for verified drugs', async () => {

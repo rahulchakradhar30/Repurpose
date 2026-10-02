@@ -14,11 +14,17 @@ export function computeEvidenceScore(input: ScoringInput): EvidenceScoreBreakdow
   const contributingFactors: string[] = [];
   const uncertaintyFlags: string[] = [];
 
+  const trials = input.trials || [];
+  const citations = input.citations || [];
+  const hasCitations = citations.length > 0;
+  const hasTrials = trials.length > 0;
+
   // 1. Clinical trial evidence: 0 - 40 points
   let clinicalTrialScore = 0;
-  const trials = input.trials || [];
+  let hasPhase2or3 = false;
+  let completedLateStageTrial = false;
   
-  if (trials.length === 0) {
+  if (!hasTrials) {
     clinicalTrialScore = 0;
     uncertaintyFlags.push('No registered interventional clinical trials found for this candidate condition.');
   } else {
@@ -41,6 +47,14 @@ export function computeEvidenceScore(input: ScoringInput): EvidenceScoreBreakdow
         const s = (trial.status || '').toUpperCase();
         const isCompleted = s.includes('COMPLETED');
         const isActive = s.includes('RECRUITING') || s.includes('ACTIVE');
+
+        if (p.includes('PHASE 2') || p.includes('PHASE 3') || p.includes('PHASE2') || p.includes('PHASE3')) {
+          hasPhase2or3 = true;
+        }
+
+        if ((p.includes('PHASE 3') || p.includes('PHASE 4') || p.includes('PHASE3') || p.includes('PHASE4')) && isCompleted) {
+          completedLateStageTrial = true;
+        }
 
         let trialPoints = 0;
         if (p.includes('PHASE 4') || p.includes('PHASE4')) {
@@ -90,13 +104,11 @@ export function computeEvidenceScore(input: ScoringInput): EvidenceScoreBreakdow
 
   // 2. Human / Observational evidence: 0 - 20 points
   let humanObservationalScore = 0;
-  const citations = input.citations || [];
 
-  if (citations.length === 0) {
+  if (!hasCitations) {
     humanObservationalScore = 0;
     uncertaintyFlags.push('Human evidence unavailable: No peer-reviewed PubMed citations indexed for this specific pairing.');
   } else {
-    // Scoring based on verified PubMed records
     if (citations.length >= 4) {
       humanObservationalScore = 20;
       contributingFactors.push(`${citations.length} peer-reviewed PubMed citations indexed with clinical relevance.`);
@@ -121,7 +133,7 @@ export function computeEvidenceScore(input: ScoringInput): EvidenceScoreBreakdow
   if (mechanism.length > 20 || rationale.length > 20) {
     if (mechanism.length > 50 && rationale.length > 30) {
       mechanisticScore = 20;
-      contributingFactors.push('Well-characterized pharmacological mechanism aligned with disease pathway.');
+      contributingFactors.push('Characterized pharmacological mechanism aligned with disease pathway.');
     } else {
       mechanisticScore = 14;
       contributingFactors.push('Documented drug mechanism with biological hypothesis.');
@@ -156,7 +168,6 @@ export function computeEvidenceScore(input: ScoringInput): EvidenceScoreBreakdow
   const contraindications = input.fdaContraindications || [];
   const condLower = input.condition.toLowerCase();
 
-  // Check for direct contraindication collision with condition
   const hasDirectConflict = contraindications.some(c => 
     c.toLowerCase().includes(condLower)
   );
@@ -181,13 +192,55 @@ export function computeEvidenceScore(input: ScoringInput): EvidenceScoreBreakdow
     contributingFactors.push('Baseline safety profile evaluated.');
   }
 
-  const totalScore = Math.min(100, Math.max(0, 
+  let totalScore = 
     clinicalTrialScore + 
     humanObservationalScore + 
     mechanisticScore + 
     reproducibilityScore + 
-    safetyCompatibilityScore
-  ));
+    safetyCompatibilityScore;
+
+  // -------------------------------------------------------------
+  // CRITICAL SAFEGUARDS: Separate trial existence from outcome evidence
+  // -------------------------------------------------------------
+  let trialOutcomeStatus: string | undefined = undefined;
+
+  // If Phase 2/3 trial activity exists but no published PubMed outcome literature was identified:
+  if (hasPhase2or3 && !hasCitations) {
+    trialOutcomeStatus = 'Clinical trial activity identified; published outcome evidence unavailable.';
+    uncertaintyFlags.unshift('Clinical trial activity identified; published outcome evidence unavailable.');
+  }
+
+  // Safeguard: A candidate must NOT receive a "High" score (>= 70) when 0 citations are present,
+  // unless an independently verified completed late-stage Phase 3/4 trial exists.
+  if (!hasCitations && !completedLateStageTrial) {
+    totalScore = Math.min(58, totalScore);
+  }
+
+  // Safeguard: If no trials AND no citations exist, cap score strictly and mark insufficient
+  if (!hasTrials && !hasCitations) {
+    totalScore = Math.min(20, totalScore);
+    uncertaintyFlags.push('Insufficient evidence: No registered interventional trials or peer-reviewed human publications found.');
+  }
+
+  // Ensure score remains within bounds [0, 100]
+  totalScore = Math.min(100, Math.max(0, totalScore));
+
+  // Determine definitive Evidence Tier
+  let evidenceTier: 'High' | 'Moderate' | 'Preliminary' | 'Insufficient evidence';
+  if (totalScore < 30 || (!hasTrials && !hasCitations)) {
+    evidenceTier = 'Insufficient evidence';
+  } else if (totalScore < 50) {
+    evidenceTier = 'Preliminary';
+  } else if (totalScore < 70) {
+    evidenceTier = 'Moderate';
+  } else {
+    // Only allow High if citations are documented OR completed Phase 3/4 trial exists
+    if (hasCitations || completedLateStageTrial) {
+      evidenceTier = 'High';
+    } else {
+      evidenceTier = 'Moderate';
+    }
+  }
 
   return {
     clinicalTrialScore,
@@ -196,7 +249,9 @@ export function computeEvidenceScore(input: ScoringInput): EvidenceScoreBreakdow
     reproducibilityScore,
     safetyCompatibilityScore,
     totalScore,
+    evidenceTier,
+    trialOutcomeStatus,
     contributingFactors,
-    uncertaintyFlags
+    uncertaintyFlags,
   };
 }

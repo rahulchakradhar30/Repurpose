@@ -84,6 +84,13 @@ function HomeContent() {
 
   return (
     <>
+      {/* If user search is active, emit noindex, follow in client DOM */}
+      {searchQuery && (
+        <head>
+          <meta name="robots" content="noindex, follow" />
+        </head>
+      )}
+
       {/* Inject Structured Data */}
       {homeJsonLd.map((schema, index) => (
         <script

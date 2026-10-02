@@ -59,6 +59,8 @@ export interface EvidenceScoreBreakdown {
   reproducibilityScore: number;    // 0 - 10
   safetyCompatibilityScore: number;// 0 - 10
   totalScore: number;              // 0 - 100
+  evidenceTier?: 'High' | 'Moderate' | 'Preliminary' | 'Insufficient evidence';
+  trialOutcomeStatus?: string;     // e.g. "Clinical trial activity identified; published outcome evidence unavailable."
   contributingFactors: string[];
   uncertaintyFlags: string[];
 }
@@ -74,6 +76,8 @@ export interface RepurposingCandidate {
   biologicalRationale: string;
   safetyNotes: string[];
   sourceCount: number;
+  evidenceNote?: string;
+  trialOutcomeStatus?: string;
 }
 
 export interface AISummary {

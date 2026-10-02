@@ -1,5 +1,6 @@
 import { fetchWithTimeoutAndRetry } from '@/lib/network';
 import { SourceProvenance } from '@/types';
+import { filterDistinctBrandNames } from '@/lib/normalization';
 
 export interface OpenFDALabelData {
   approvedIndications: string[];
@@ -60,9 +61,13 @@ export async function fetchOpenFDALabel(drugName: string): Promise<OpenFDALabelD
     const contraindications = cleanFDASection(result.contraindications);
     const warnings = cleanFDASection(result.boxed_warning || result.warnings_and_cautions || result.warnings);
 
-    const pharmClass = openfda.pharm_class_epc?.[0] || openfda.pharm_class_moa?.[0] || openfda.pharm_class_cs?.[0];
+    let pharmClass = openfda.pharm_class_epc?.[0] || openfda.pharm_class_moa?.[0] || openfda.pharm_class_cs?.[0];
+    if (pharmClass) {
+      pharmClass = pharmClass.replace(/\s*\[(EPC|MoA|CS|PE)\]/gi, '').trim();
+    }
     const moaText = cleanFDASection(result.mechanism_of_action || result.clinical_pharmacology)?.[0];
-    const brandNames = Array.isArray(openfda.brand_name) ? openfda.brand_name.slice(0, 6) : [];
+    const rawBrandNames: string[] = Array.isArray(openfda.brand_name) ? openfda.brand_name : [];
+    const brandNames = filterDistinctBrandNames(rawBrandNames, cleanName).slice(0, 6);
 
     return {
       approvedIndications: indications.length > 0 ? indications : ['FDA label indications available in official prescribing insert.'],
