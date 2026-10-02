@@ -1,4 +1,4 @@
-import { RepurposingCandidate, DrugConcept, PubMedCitation, ClinicalTrial } from '@/types';
+import { RepurposingCandidate, DrugConcept } from '@/types';
 
 /**
  * Generate standard RIS (Research Information Systems) format for academic reference managers (Zotero, EndNote, Mendeley).

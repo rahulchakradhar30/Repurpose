@@ -226,7 +226,7 @@ export async function recordSearchQuery(userId: string, queryText: string, gener
       const ref = doc(db, 'users', userId, 'searches', item.id);
       await setDoc(ref, item);
       return;
-    } catch (err) {
+    } catch {
       // Local fallback
     }
   }

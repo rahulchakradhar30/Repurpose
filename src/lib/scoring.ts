@@ -22,8 +22,6 @@ export function computeEvidenceScore(input: ScoringInput): EvidenceScoreBreakdow
     clinicalTrialScore = 0;
     uncertaintyFlags.push('No registered interventional clinical trials found for this candidate condition.');
   } else {
-    // Check trial phases and statuses
-    const phases = trials.map(t => (t.phase || '').toUpperCase());
     const statuses = trials.map(t => (t.status || '').toUpperCase());
     
     const allTerminated = statuses.every(s => 

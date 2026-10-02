@@ -49,7 +49,6 @@ export async function searchRxNormAutocomplete(query: string): Promise<Array<{ n
 }
 
 export async function fetchRxNormDetails(drugName: string): Promise<RxNormDrugData | null> {
-  const timestamp = new Date().toISOString();
   const searchUrl = `https://rxnav.nlm.nih.gov/REST/rxcui.json?name=${encodeURIComponent(drugName.trim())}&search=2`;
 
   try {

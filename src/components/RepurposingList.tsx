@@ -9,7 +9,6 @@ import {
   ArrowUpDown, 
   FlaskConical, 
   AlertTriangle, 
-  BookOpen, 
   ChevronRight, 
   Filter 
 } from 'lucide-react';

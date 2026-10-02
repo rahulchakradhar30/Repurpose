@@ -1,5 +1,5 @@
 import { fetchWithTimeoutAndRetry } from '@/lib/network';
-import { PubMedCitation, SourceProvenance } from '@/types';
+import { PubMedCitation } from '@/types';
 
 export async function fetchPubMedCitations(drugName: string, condition: string): Promise<PubMedCitation[]> {
   const cleanDrug = drugName.trim();

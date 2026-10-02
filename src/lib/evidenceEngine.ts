@@ -9,7 +9,6 @@ import {
   RepurposingCandidate, 
   DrugConcept, 
   EvidenceStatus, 
-  ClinicalTrial, 
   SourceProvenance 
 } from '@/types';
 

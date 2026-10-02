@@ -1,4 +1,4 @@
-import { ShieldAlert, BookOpen, Database, Scale, Cpu, CheckCircle } from 'lucide-react';
+import { ShieldAlert, Database, Scale, Cpu, CheckCircle } from 'lucide-react';
 
 export function AboutView() {
   return (
@@ -77,7 +77,7 @@ export function AboutView() {
               <li>4+ indexed peer-reviewed citations: 20 pts</li>
               <li>2–3 indexed peer-reviewed citations: 12–16 pts</li>
               <li>1 indexed citation: 7 pts</li>
-              <li>0 citations: 0 pts with "Human evidence unavailable" flag</li>
+              <li>0 citations: 0 pts with &quot;Human evidence unavailable&quot; flag</li>
             </ul>
           </div>
 

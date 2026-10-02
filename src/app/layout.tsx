@@ -1,10 +1,61 @@
 import type { Metadata, Viewport } from "next";
+import { getSiteUrl, SITE_NAME, SITE_TAGLINE, SITE_DESCRIPTION } from "@/lib/seo";
 import "./globals.css";
 
+const siteUrl = getSiteUrl();
+
 export const metadata: Metadata = {
-  title: "Repurpose | Evidence-Based Drug Repurposing Explorer",
-  description: "Educational and research platform for pharmacy students and biomedical researchers to explore evidence-based drug repurposing opportunities with live biomedical registry integration.",
-  applicationName: "Repurpose",
+  metadataBase: new URL(siteUrl),
+  title: {
+    default: `${SITE_NAME} | ${SITE_TAGLINE}`,
+    template: `%s | ${SITE_NAME}`,
+  },
+  description: SITE_DESCRIPTION,
+  applicationName: SITE_NAME,
+  authors: [{ name: "P. Rahul Chakradhar", url: "mailto:rahulchakradhar30@outlook.com" }],
+  creator: "P. Rahul Chakradhar",
+  publisher: "P. Rahul Chakradhar",
+  formatDetection: {
+    email: false,
+    address: false,
+    telephone: false,
+  },
+  alternates: {
+    canonical: "/",
+  },
+  openGraph: {
+    type: "website",
+    locale: "en_US",
+    url: siteUrl,
+    siteName: SITE_NAME,
+    title: `${SITE_NAME} | ${SITE_TAGLINE}`,
+    description: SITE_DESCRIPTION,
+    images: [
+      {
+        url: "/icon.svg",
+        width: 512,
+        height: 512,
+        alt: `${SITE_NAME} - Evidence-Based Drug Repurposing Research Explorer`,
+      },
+    ],
+  },
+  twitter: {
+    card: "summary",
+    title: `${SITE_NAME} | ${SITE_TAGLINE}`,
+    description: SITE_DESCRIPTION,
+    images: ["/icon.svg"],
+  },
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: {
+      index: true,
+      follow: true,
+      "max-video-preview": -1,
+      "max-image-preview": "large",
+      "max-snippet": -1,
+    },
+  },
   manifest: "/manifest.json",
   icons: {
     icon: "/icon.svg",
@@ -13,7 +64,7 @@ export const metadata: Metadata = {
   appleWebApp: {
     capable: true,
     statusBarStyle: "default",
-    title: "Repurpose",
+    title: SITE_NAME,
   },
 };
 
