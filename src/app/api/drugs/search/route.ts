@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { searchRxNormAutocomplete } from '@/lib/sources/rxnorm';
 import { searchDrugDirectory } from '@/lib/drugDirectory';
 import { checkRateLimit, sanitizeDrugInput } from '@/lib/network';
+import { logSecurityEvent } from '@/lib/securityLogger';
 
 export interface SearchSuggestionItem {
   name: string;
@@ -19,6 +20,21 @@ export interface SearchSuggestionItem {
 export async function GET(request: NextRequest) {
   const { searchParams } = new URL(request.url);
   const rawQuery = searchParams.get('q') || '';
+
+  // Input length constraint to prevent memory exhaustion / DoS
+  if (rawQuery.length > 80) {
+    logSecurityEvent({
+      eventType: 'INVALID_INPUT_DETECTED',
+      path: '/api/drugs/search',
+      details: { queryLength: rawQuery.length },
+      statusCode: 400,
+    });
+    return NextResponse.json(
+      { error: 'Search query exceeds maximum allowed length of 80 characters.' },
+      { status: 400 }
+    );
+  }
+
   const query = sanitizeDrugInput(rawQuery);
 
   // Client IP for rate limiting
@@ -27,7 +43,7 @@ export async function GET(request: NextRequest) {
 
   if (!rateLimit.allowed) {
     return NextResponse.json(
-      { error: 'Rate limit exceeded. Please wait a few seconds before searching again.' },
+      { error: 'Rate limit exceeded. Please wait a moment before searching again.' },
       { 
         status: 429,
         headers: {
@@ -88,7 +104,13 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json({ results });
   } catch (error) {
-    console.error('Drug search API error:', error);
+    logSecurityEvent({
+      eventType: 'UPSTREAM_FAILURE',
+      path: '/api/drugs/search',
+      details: { queryLength: query.length },
+      statusCode: 500,
+    });
     return NextResponse.json({ error: 'Failed to search drug directory' }, { status: 500 });
   }
 }
+

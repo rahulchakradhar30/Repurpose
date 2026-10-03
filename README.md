@@ -110,12 +110,40 @@ Repurpose operates under a strict open-science and intellectual property complia
 
 ---
 
-## 5. Security & Authorization Architecture
+## 5. Security & Threat Model Architecture (OWASP ASVS Level 1)
 
-- **Owner-Only Firestore Rules:** Firestore security rules enforce strict user-isolation. Authenticated users can only read, write, and delete their own `/users/{userId}/*` documents.
-- **Server-Managed Public Evidence:** Public evidence dossiers and scoring algorithms are server-managed and immutable to client tampering.
-- **Credential Protection:** All server API keys and environment variables remain server-side; zero secrets are exposed in client bundles.
-- **CSP & Modern Web Hardening:** Configured with secure HTTP headers, HTTPS enforcement, and rate-limiting.
+Repurpose implements production security hardening following **OWASP ASVS (Application Security Verification Standard) Level 1** controls (see [`SECURITY_SCORECARD.md`](SECURITY_SCORECARD.md) for full scorecard and [`SECURITY.md`](SECURITY.md) for vulnerability disclosure policies):
+
+- **Zero Client-Side Secrets:** All API keys (`GROQ_API_KEY`, `GEMINI_API_KEY`, Firebase Admin credentials) operate strictly within server-side route handlers. Zero secrets use the `NEXT_PUBLIC_` prefix or appear in client bundles.
+- **Server-Side Request Forgery (SSRF) Protection:** Outbound calls from backend route handlers are locked to an explicit allowlist of authorized biomedical hosts (`clinicaltrials.gov`, `api.fda.gov`, `pubchem.ncbi.nlm.nih.gov`, `eutils.ncbi.nlm.nih.gov`, `rxnav.nlm.nih.gov`).
+- **Owner-Isolated Firestore & Storage Security Rules:** Deny-by-default security rules in [`firestore.rules`](firestore.rules) and [`storage.rules`](storage.rules) strictly enforce that users can only read or write their own documents (`request.auth.uid == userId`) with immutable owner IDs and size limits. Client access to internal collections (`/verified_drugs`, `/evidence_cache`, `/scores`, `/admin`, `/audit_logs`) is blocked.
+- **Evidence Integrity & Score Protection:** Research readiness scores and evidence timelines are calculated deterministically on the server; clients cannot modify or forge candidate scores.
+- **Production HTTP Security Headers:** Configured in `next.config.ts` with Content-Security-Policy (CSP), Strict-Transport-Security (HSTS preload), X-Frame-Options (DENY), X-Content-Type-Options (nosniff), Referrer-Policy, and restricted Permissions-Policy.
+- **API Rate Limiting & Input Validation:** Sliding-window rate limiting on search (45/min), research (20/min), and AI synthesis (15/min anon, 40/min auth) endpoints. Strict length caps (80 chars for drug queries) and 50 KB request body caps (`413 Payload Too Large`).
+- **Privacy & 30-Day Auto-Purge:** Private notes and dossiers are retained for a maximum of 30 days and automatically purged across databases. A dedicated right-to-be-forgotten endpoint (`/api/user/delete-data`) enables immediate data clearing.
+- **Safe Structured Security Logging:** Automated redaction utility ([`src/lib/securityLogger.ts`](src/lib/securityLogger.ts)) logs security events while stripping tokens, credentials, cookies, and PII.
+
+---
+
+## 6. Secret-Rotation Runbook
+
+If any service key is ever suspected of compromise:
+
+1. **Groq / LLM Key:** Generate a new key in [Groq Console](https://console.groq.com/keys) -> update `GROQ_API_KEY` in Vercel -> revoke old key in Groq -> redeploy.
+2. **Google AI / Gemini Key:** Generate new key in [Google AI Studio](https://aistudio.google.com/app/apikey) -> update `GEMINI_API_KEY` in Vercel -> delete old key in Google Cloud Console.
+3. **Firebase API Credentials:** Rotate Web API keys in Google Cloud Console / Firebase Project Settings -> update `NEXT_PUBLIC_FIREBASE_*` variables -> redeploy.
+
+---
+
+## 7. Production Deployment Security Checklist
+
+Before deploying to production on Vercel:
+
+- [ ] **Vercel Production Secrets:** Set `GROQ_API_KEY` and `GEMINI_API_KEY` in Vercel Dashboard > Project Settings > Environment Variables (ensure they are only enabled for Production/Preview server environments, not exposed client-side).
+- [ ] **Firebase Domain Authorization:** Open [Firebase Console > Authentication > Settings > Authorized domains](https://console.firebase.google.com/) and add your production domain (e.g., `repurpose.vercel.app` or custom domain).
+- [ ] **Firebase App Check Rollout:** In Firebase Console > App Check, register your web app with reCAPTCHA Enterprise / reCAPTCHA v3 to prevent direct API abuse from non-browser clients.
+- [ ] **GitHub 2FA & Branch Protection:** Enable 2-Factor Authentication on your GitHub account, require pull-request reviews on `main`, and require passing CI status checks (`npm test`, CodeQL) before merging.
+- [ ] **Disable Production Source Maps:** Verified `productionBrowserSourceMaps: false` and `poweredByHeader: false` in `next.config.ts`.
 
 ---
 

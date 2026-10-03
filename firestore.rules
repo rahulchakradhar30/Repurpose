@@ -1,35 +1,90 @@
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
-    // Enforce that authenticated users can only access their own user directory
+
+    // Helper functions for auth & data integrity validation
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    function isOwner(userId) {
+      return isAuthenticated() && request.auth.uid == userId;
+    }
+
+    function isValidSavedDrug(data, userId) {
+      return data.userId == userId &&
+             data.drugGenericName is string &&
+             data.drugGenericName.size() > 0 &&
+             data.drugGenericName.size() <= 100 &&
+             (!('notes' in data) || (data.notes is string && data.notes.size() <= 50000)) &&
+             (!('tags' in data) || (data.tags is list && data.tags.size() <= 30)) &&
+             data.savedAt is string;
+    }
+
+    function isValidSearchRecord(data, userId) {
+      return (!('userId' in data) || data.userId == userId) &&
+             data.query is string &&
+             data.query.size() > 0 &&
+             data.query.size() <= 150 &&
+             data.timestamp is string;
+    }
+
+    // 1. User Private Isolation
     match /users/{userId} {
-      allow read, write: if request.auth != null && request.auth.uid == userId;
+      allow read, write: if isOwner(userId);
 
+      // Saved Drug Hypotheses subcollection
       match /saved_drugs/{drugId} {
-        allow read, write, delete: if request.auth != null && request.auth.uid == userId;
+        allow read, delete: if isOwner(userId);
+        allow create, update: if isOwner(userId) && isValidSavedDrug(request.resource.data, userId);
       }
 
+      // Notebook Items subcollection
       match /notebook_items/{itemId} {
-        allow read, write, delete: if request.auth != null && request.auth.uid == userId;
+        allow read, delete: if isOwner(userId);
+        allow create, update: if isOwner(userId) && isValidSavedDrug(request.resource.data, userId);
       }
 
-      match /citation_collections/{colId} {
-        allow read, write, delete: if request.auth != null && request.auth.uid == userId;
-      }
-
+      // User search history
       match /searches/{searchId} {
-        allow read, write, delete: if request.auth != null && request.auth.uid == userId;
+        allow read, delete: if isOwner(userId);
+        allow create, update: if isOwner(userId) && isValidSearchRecord(request.resource.data, userId);
       }
 
+      // User feedback / bug reports
       match /feedback/{feedbackId} {
-        allow create: if request.auth != null && request.auth.uid == userId;
-        allow read: if request.auth != null && request.auth.uid == userId;
+        allow read: if isOwner(userId);
+        allow create: if isOwner(userId) && 
+                         request.resource.data.message is string && 
+                         request.resource.data.message.size() <= 2000;
       }
     }
 
-    // Default deny for all other collections
+    // 2. Protected Collections (Server / Admin only - Deny all client access)
+    match /verified_drugs/{doc=**} {
+      allow read, write: false;
+    }
+
+    match /evidence_cache/{doc=**} {
+      allow read, write: false;
+    }
+
+    match /scores/{doc=**} {
+      allow read, write: false;
+    }
+
+    match /admin/{doc=**} {
+      allow read, write: false;
+    }
+
+    match /audit_logs/{doc=**} {
+      allow read, write: false;
+    }
+
+    // 3. Deny-by-default for all other unspecified paths
     match /{document=**} {
       allow read, write: false;
     }
   }
 }
+
