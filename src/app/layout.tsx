@@ -116,12 +116,16 @@ export default function RootLayout({
   return (
     <html 
       lang="en" 
+      suppressHydrationWarning
       className={`h-full antialiased ${notoSerif.variable} ${notoSans.variable} ${ibmPlexMono.variable}`}
     >
       <head>
         <link rel="icon" href="/icon.svg" type="image/svg+xml" />
       </head>
-      <body className="min-h-full flex flex-col bg-slate-50 text-slate-900 selection:bg-teal-100 selection:text-teal-900">
+      <body 
+        suppressHydrationWarning
+        className="min-h-full flex flex-col bg-slate-50 text-slate-900 selection:bg-teal-100 selection:text-teal-900"
+      >
         <Header />
         <div className="flex-1 flex flex-col">
           {children}
