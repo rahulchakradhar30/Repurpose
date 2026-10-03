@@ -56,10 +56,6 @@ export function Footer() {
             </p>
           </div>
         )}
-
-        <p className="text-[9px] text-slate-400/90 max-w-2xl mx-auto leading-normal pt-1 border-t border-slate-100">
-          Repurpose is an open-source evidence workspace for investigating drug-repurposing hypotheses through transparent clinical, biological, regulatory, safety, and literature evidence. Strictly for research and education; not medical advice, treatment recommendations, or prescribing guidance.
-        </p>
       </div>
     </footer>
   );

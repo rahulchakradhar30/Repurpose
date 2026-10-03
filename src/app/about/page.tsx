@@ -77,6 +77,17 @@ export default function AboutPage() {
             </p>
           </div>
 
+          {/* Highlighted Red Disclaimer Section */}
+          <div className="mb-8 p-4 sm:p-5 rounded-xl bg-red-50 border-2 border-red-300 shadow-xs flex items-start gap-3">
+            <ShieldAlert className="w-5 h-5 text-red-600 shrink-0 mt-0.5" />
+            <p className="text-xs sm:text-sm font-semibold text-red-700 leading-relaxed">
+              <span className="text-red-950 font-bold uppercase tracking-wider block mb-1">
+                Notice: Research &amp; Educational Purpose Only
+              </span>
+              Repurpose is an open-source evidence workspace for investigating drug-repurposing hypotheses through transparent clinical, biological, regulatory, safety, and literature evidence. Strictly for research and education; not medical advice, treatment recommendations, or prescribing guidance.
+            </p>
+          </div>
+
           {/* Mission Statement */}
           <section className="mb-8 p-6 rounded-xl bg-white border border-slate-200 shadow-xs space-y-3">
             <h2 className="text-xl font-bold text-slate-900 tracking-tight flex items-center gap-2">
