@@ -1,7 +1,6 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
-import { DisclaimerBanner } from '@/components/DisclaimerBanner';
-import { Header } from '@/components/Header';
+
 import { 
   getAbsoluteUrl, 
   generateArticleJsonLd, 
@@ -59,7 +58,7 @@ export default function WhatIsDrugRepurposingPage() {
   ]);
 
   return (
-    <div className="min-h-screen bg-slate-50 flex flex-col text-slate-900 pb-16 md:pb-6">
+    <div className="flex-1 flex flex-col pb-16 md:pb-6 text-slate-900">
       {/* Structured Data */}
       <script
         type="application/ld+json"
@@ -69,9 +68,6 @@ export default function WhatIsDrugRepurposingPage() {
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbsJsonLd) }}
       />
-
-      <DisclaimerBanner />
-      <Header />
 
       <main className="flex-1 w-full max-w-4xl mx-auto px-4 py-6 sm:py-10 space-y-8">
         {/* Breadcrumb Navigation */}

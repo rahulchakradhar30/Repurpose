@@ -10,11 +10,6 @@ import {
   Printer, 
   ArrowLeft, 
   CheckCircle2, 
-  AlertTriangle, 
-  ShieldAlert, 
-  BookOpen, 
-  Activity, 
-  Compass, 
   ExternalLink,
   Info
 } from 'lucide-react';
@@ -59,89 +54,89 @@ export default function ComparePage() {
 
   const handleAddCandidate = (preset: CompareItem) => {
     if (selectedCandidates.length >= 3) return;
-    const exists = selectedCandidates.some(
-      s => s.drugSlug === preset.drugSlug && s.candidate.condition === preset.candidate.condition
-    );
-    if (!exists) {
-      setSelectedCandidates([...selectedCandidates, preset]);
-    }
+    if (selectedCandidates.some(s => s.drugSlug === preset.drugSlug && s.candidate.condition === preset.candidate.condition)) return;
+    setSelectedCandidates(prev => [...prev, preset]);
   };
 
   const handleRemoveCandidate = (index: number) => {
-    setSelectedCandidates(selectedCandidates.filter((_, i) => i !== index));
+    setSelectedCandidates(prev => prev.filter((_, i) => i !== index));
   };
 
   const handleExportCSV = () => {
-    if (selectedCandidates.length === 0) return;
-    const csvData = exportComparisonToCSV(selectedCandidates);
-    triggerFileDownload(csvData, `repurpose_comparison_${Date.now()}.csv`, 'text/csv;charset=utf-8;');
+    const csvContent = exportComparisonToCSV(
+      selectedCandidates.map(c => ({
+        drug: c.drug,
+        candidate: c.candidate,
+      }))
+    );
+    triggerFileDownload(csvContent, 'repurpose_hypotheses_comparison.csv', 'text/csv;charset=utf-8;');
   };
 
   const handlePrint = () => {
-    window.print();
+    if (typeof window !== 'undefined') {
+      window.print();
+    }
   };
 
   return (
-    <div className="min-h-screen bg-slate-950 text-slate-100 print:bg-white print:text-black">
-      {/* Top Header */}
-      <header className="border-b border-slate-800 bg-slate-900/60 backdrop-blur-md sticky top-0 z-20 print:static print:border-b-2 print:border-black">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex flex-wrap items-center justify-between gap-4">
-          <div className="flex items-center gap-3">
-            <Link 
-              href="/" 
-              className="p-2 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 transition-colors print:hidden"
-              aria-label="Back to home"
-            >
-              <ArrowLeft className="w-4 h-4" />
+    <div className="flex-1 flex flex-col pb-16 md:pb-6 text-slate-900">
+      <main className="max-w-6xl mx-auto px-4 sm:px-6 py-6 sm:py-8 space-y-6 flex-1 w-full">
+        {/* Navigation Breadcrumb & Header */}
+        <div className="space-y-3">
+          <nav aria-label="Breadcrumbs" className="flex items-center gap-1.5 text-xs text-slate-500 no-print">
+            <Link href="/" className="hover:text-teal-800 transition-colors flex items-center gap-1">
+              <ArrowLeft className="w-3.5 h-3.5" />
+              <span>Workspace</span>
             </Link>
+            <span>/</span>
+            <span className="text-slate-800 font-semibold">Compare Workspace</span>
+          </nav>
+
+          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
             <div>
-              <div className="flex items-center gap-2">
-                <span className="text-xs uppercase font-mono tracking-wider text-indigo-400 font-semibold print:text-black">
-                  Compare Workspace
-                </span>
-                <span className="px-2 py-0.5 rounded-full text-[10px] font-mono bg-indigo-500/10 border border-indigo-500/30 text-indigo-400 print:hidden">
-                  Up to 3 hypotheses
-                </span>
+              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-teal-50 border border-teal-200 text-teal-800 text-xs font-semibold uppercase tracking-wider mb-2">
+                <Scale className="w-3.5 h-3.5" />
+                <span>Side-by-Side Hypotheses Comparison (Up to 3)</span>
               </div>
-              <h1 className="text-xl sm:text-2xl font-extrabold text-slate-100 tracking-tight flex items-center gap-2 mt-0.5 print:text-black">
-                <Scale className="w-5 h-5 text-indigo-400 print:hidden" />
-                Side-by-Side Repurposing Hypothesis Comparison
+              <h1 className="text-2xl sm:text-3xl lg:text-4xl font-extrabold text-slate-900 tracking-tight font-heading">
+                Compare Repurposing Candidates
               </h1>
+              <p className="text-sm sm:text-base text-slate-600 mt-1 max-w-3xl">
+                Evaluate readiness scores, trial phases, published literature, and flagged contradiction gaps side-by-side.
+              </p>
+            </div>
+
+            <div className="flex items-center gap-2 no-print shrink-0">
+              <button
+                onClick={handleExportCSV}
+                disabled={selectedCandidates.length === 0}
+                className="px-3 py-1.5 rounded-lg border border-slate-300 bg-white hover:bg-slate-50 disabled:opacity-50 text-slate-700 text-xs font-medium inline-flex items-center gap-1.5 transition-colors shadow-xs"
+              >
+                <Download className="w-3.5 h-3.5 text-teal-700" />
+                <span>Export CSV</span>
+              </button>
+
+              <button
+                onClick={handlePrint}
+                disabled={selectedCandidates.length === 0}
+                className="px-3 py-1.5 rounded-lg border border-slate-300 bg-white hover:bg-slate-50 disabled:opacity-50 text-slate-700 text-xs font-medium inline-flex items-center gap-1.5 transition-colors shadow-xs"
+              >
+                <Printer className="w-3.5 h-3.5 text-blue-700" />
+                <span>Print Summary</span>
+              </button>
             </div>
           </div>
-
-          <div className="flex items-center gap-2 print:hidden">
-            <button
-              onClick={handleExportCSV}
-              disabled={selectedCandidates.length === 0}
-              className="px-3.5 py-1.5 rounded-lg border border-slate-700 bg-slate-800 hover:bg-slate-700 disabled:opacity-50 text-slate-300 text-xs font-medium inline-flex items-center gap-1.5 transition-colors"
-            >
-              <Download className="w-3.5 h-3.5 text-emerald-400" />
-              <span>Export Comparison CSV</span>
-            </button>
-
-            <button
-              onClick={handlePrint}
-              disabled={selectedCandidates.length === 0}
-              className="px-3.5 py-1.5 rounded-lg border border-slate-700 bg-slate-800 hover:bg-slate-700 disabled:opacity-50 text-slate-300 text-xs font-medium inline-flex items-center gap-1.5 transition-colors"
-            >
-              <Printer className="w-3.5 h-3.5 text-blue-400" />
-              <span>Printable Summary</span>
-            </button>
-          </div>
         </div>
-      </header>
 
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6">
-        {/* Selector banner (hidden when printing) */}
-        <div className="p-4 rounded-xl bg-slate-900/60 border border-slate-800 print:hidden space-y-3">
+        {/* Preset selector banner */}
+        <div className="p-5 rounded-xl bg-white border border-slate-200 shadow-xs no-print space-y-3">
           <div className="flex items-center justify-between flex-wrap gap-2">
-            <div className="text-xs text-slate-300 font-semibold flex items-center gap-2">
-              <Plus className="w-4 h-4 text-indigo-400" />
+            <div className="text-xs text-slate-800 font-semibold flex items-center gap-2">
+              <Plus className="w-4 h-4 text-teal-700" />
               Add Hypotheses to Workspace ({selectedCandidates.length}/3 selected)
             </div>
             {selectedCandidates.length >= 3 && (
-              <span className="text-xs text-amber-400 font-medium">Maximum 3 candidates compared simultaneously.</span>
+              <span className="text-xs text-amber-700 font-medium">Maximum 3 candidates compared simultaneously.</span>
             )}
           </div>
 
@@ -157,8 +152,8 @@ export default function ComparePage() {
                   onClick={() => handleAddCandidate(preset)}
                   className={`px-3 py-1 rounded-md text-xs font-medium transition-colors border ${
                     isSelected
-                      ? 'bg-slate-800/40 border-slate-800 text-slate-500 cursor-not-allowed'
-                      : 'bg-slate-800 border-slate-700 text-slate-200 hover:bg-slate-700 hover:border-slate-600'
+                      ? 'bg-slate-100 border-slate-200 text-slate-400 cursor-not-allowed'
+                      : 'bg-slate-50 border-slate-200 text-slate-700 hover:bg-white hover:border-teal-500 shadow-2xs'
                   }`}
                 >
                   + {preset.drug} ➔ {preset.candidate.condition.slice(0, 24)}...
@@ -169,44 +164,44 @@ export default function ComparePage() {
         </div>
 
         {selectedCandidates.length === 0 ? (
-          <div className="p-12 text-center rounded-2xl bg-slate-900/40 border border-slate-800 space-y-3">
-            <Scale className="w-12 h-12 text-slate-600 mx-auto" />
-            <h2 className="text-base font-semibold text-slate-300">No Candidates Selected for Comparison</h2>
-            <p className="text-xs text-slate-500 max-w-sm mx-auto">
+          <div className="p-12 text-center rounded-xl bg-white border border-slate-200 shadow-xs space-y-3">
+            <Scale className="w-12 h-12 text-slate-400 mx-auto" />
+            <h2 className="text-base font-semibold text-slate-800">No Candidates Selected for Comparison</h2>
+            <p className="text-xs text-slate-600 max-w-sm mx-auto">
               Select up to three hypotheses above or from individual drug research dossiers to compare readiness scores, trials, and safety signals.
             </p>
           </div>
         ) : (
-          <div className="overflow-x-auto">
+          <div className="overflow-x-auto bg-white border border-slate-200 rounded-xl shadow-xs">
             <table className="w-full text-xs text-left border-collapse">
               <thead>
-                <tr className="border-b border-slate-800 bg-slate-900/80">
-                  <th className="p-4 w-48 text-slate-400 font-semibold uppercase tracking-wider text-[11px] align-top">
+                <tr className="border-b border-slate-200 bg-slate-50">
+                  <th className="p-4 w-48 text-slate-700 font-semibold uppercase tracking-wider text-[11px] align-top">
                     Hypothesis Attribute
                   </th>
                   {selectedCandidates.map((item, idx) => (
-                    <th key={idx} className="p-4 min-w-[280px] max-w-[340px] align-top border-l border-slate-800/80">
+                    <th key={idx} className="p-4 min-w-[280px] max-w-[340px] align-top border-l border-slate-200">
                       <div className="space-y-2">
                         <div className="flex items-center justify-between">
-                          <span className="text-[10px] font-mono uppercase px-2 py-0.5 rounded bg-indigo-500/10 text-indigo-400 border border-indigo-500/30">
+                          <span className="text-[10px] font-mono uppercase px-2 py-0.5 rounded bg-teal-50 text-teal-800 border border-teal-200 font-semibold">
                             Candidate #{idx + 1}
                           </span>
                           <button
                             onClick={() => handleRemoveCandidate(idx)}
-                            className="text-slate-500 hover:text-rose-400 p-1 rounded transition-colors print:hidden"
+                            className="text-slate-400 hover:text-rose-600 p-1 rounded transition-colors no-print"
                             title="Remove from comparison"
                           >
                             <Trash2 className="w-3.5 h-3.5" />
                           </button>
                         </div>
                         <div>
-                          <div className="text-base font-bold text-slate-100">{item.drug}</div>
-                          <div className="text-xs text-indigo-300 font-medium">{item.candidate.condition}</div>
+                          <div className="text-base font-bold text-slate-900">{item.drug}</div>
+                          <div className="text-xs text-teal-800 font-semibold">{item.candidate.condition}</div>
                         </div>
                         <div className="pt-1">
                           <Link
                             href={`/evidence/${item.drugSlug}/${item.conditionSlug}`}
-                            className="text-[11px] text-indigo-400 hover:text-indigo-300 flex items-center gap-1 font-medium print:hidden"
+                            className="text-[11px] text-teal-800 hover:text-teal-900 flex items-center gap-1 font-medium no-print"
                           >
                             <span>Open full dossier</span>
                             <ExternalLink className="w-3 h-3" />
@@ -217,13 +212,13 @@ export default function ComparePage() {
                   ))}
                 </tr>
               </thead>
-              <tbody className="divide-y divide-slate-800/60">
+              <tbody className="divide-y divide-slate-200">
                 {/* 1. Research State */}
-                <tr className="hover:bg-slate-900/40">
-                  <td className="p-4 font-semibold text-slate-300 bg-slate-900/30">Research State</td>
+                <tr className="hover:bg-slate-50/50">
+                  <td className="p-4 font-semibold text-slate-800 bg-slate-50/60">Research State</td>
                   {selectedCandidates.map((item, idx) => (
-                    <td key={idx} className="p-4 border-l border-slate-800/80">
-                      <span className="px-2.5 py-1 rounded-md text-xs font-semibold bg-indigo-500/10 text-indigo-400 border border-indigo-500/30">
+                    <td key={idx} className="p-4 border-l border-slate-200">
+                      <span className="px-2.5 py-1 rounded-md text-xs font-semibold bg-teal-50 text-teal-800 border border-teal-200">
                         {item.candidate.researchState || item.candidate.status}
                       </span>
                     </td>
@@ -231,21 +226,21 @@ export default function ComparePage() {
                 </tr>
 
                 {/* 2. Research Readiness Score */}
-                <tr className="hover:bg-slate-900/40">
-                  <td className="p-4 font-semibold text-slate-300 bg-slate-900/30">
+                <tr className="hover:bg-slate-50/50">
+                  <td className="p-4 font-semibold text-slate-800 bg-slate-50/60">
                     <div>Research Readiness</div>
                     <div className="text-[10px] text-slate-500 font-normal">Score out of 100</div>
                   </td>
                   {selectedCandidates.map((item, idx) => {
                     const score = item.candidate.readinessScore ?? item.candidate.evidenceScore.totalScore;
                     return (
-                      <td key={idx} className="p-4 border-l border-slate-800/80">
+                      <td key={idx} className="p-4 border-l border-slate-200">
                         <div className="flex items-baseline gap-1.5">
-                          <span className="text-2xl font-bold font-mono text-indigo-400">{score}</span>
+                          <span className="text-2xl font-bold font-mono text-teal-800">{score}</span>
                           <span className="text-slate-500 font-mono text-xs">/ 100</span>
                         </div>
-                        <div className="text-[10px] text-slate-400 mt-1">
-                          Tier: <span className="font-semibold text-slate-300">{item.candidate.readinessTier || item.candidate.evidenceScore.evidenceTier}</span>
+                        <div className="text-[10px] text-slate-600 mt-1">
+                          Tier: <span className="font-semibold text-slate-800">{item.candidate.readinessTier || item.candidate.evidenceScore.evidenceTier}</span>
                         </div>
                       </td>
                     );
@@ -253,38 +248,40 @@ export default function ComparePage() {
                 </tr>
 
                 {/* 3. Score Breakdown */}
-                <tr className="hover:bg-slate-900/40">
-                  <td className="p-4 font-semibold text-slate-300 bg-slate-900/30">
+                <tr className="hover:bg-slate-50/50">
+                  <td className="p-4 font-semibold text-slate-800 bg-slate-50/60">
                     <div>Score Breakdown</div>
                     <div className="text-[10px] text-slate-500 font-normal">Transparent criteria</div>
                   </td>
                   {selectedCandidates.map((item, idx) => {
                     const b = item.candidate.readinessBreakdown;
                     return (
-                      <td key={idx} className="p-4 border-l border-slate-800/80 space-y-1.5 font-mono text-[11px]">
+                      <td key={idx} className="p-4 border-l border-slate-200 space-y-1.5 font-mono text-[11px]">
                         <div className="flex justify-between">
-                          <span className="text-slate-400">Clinical trials (0-25):</span>
-                          <span className="text-blue-400 font-bold">{b?.clinicalTrialMaturity.score ?? 'N/A'}</span>
+                          <span className="text-slate-600">Clinical trials (0-25):</span>
+                          <span className="text-teal-800 font-bold">{b?.clinicalTrialMaturity.score ?? 'N/A'}</span>
                         </div>
                         <div className="flex justify-between">
-                          <span className="text-slate-400">Human literature (0-25):</span>
-                          <span className="text-indigo-400 font-bold">{b?.publishedHumanEvidence.score ?? 'N/A'}</span>
+                          <span className="text-slate-600">Human literature (0-25):</span>
+                          <span className="text-blue-800 font-bold">{b?.publishedHumanEvidence.score ?? 'N/A'}</span>
                         </div>
                         <div className="flex justify-between">
-                          <span className="text-slate-400">Mechanism (0-20):</span>
-                          <span className="text-purple-400 font-bold">{b?.mechanisticPlausibility.score ?? 'N/A'}</span>
+                          <span className="text-slate-600">Mechanism (0-20):</span>
+                          <span className="text-purple-800 font-bold">{b?.mechanisticPlausibility.score ?? 'N/A'}</span>
                         </div>
                         <div className="flex justify-between">
-                          <span className="text-slate-400">Source quality (0-15):</span>
-                          <span className="text-emerald-400 font-bold">{b?.sourceQualityRecency.score ?? 'N/A'}</span>
+                          <span className="text-slate-600">Source quality (0-15):</span>
+                          <span className="text-emerald-800 font-bold">{b?.sourceQualityRecency.score ?? 'N/A'}</span>
                         </div>
                         <div className="flex justify-between">
-                          <span className="text-slate-400">Safety context (0-15):</span>
-                          <span className="text-teal-400 font-bold">{b?.safetyContextCompatibility.score ?? 'N/A'}</span>
+                          <span className="text-slate-600">Safety context (0-15):</span>
+                          <span className="text-amber-800 font-bold">{b?.safetyContextCompatibility.score ?? 'N/A'}</span>
                         </div>
                         <div className="flex justify-between">
-                          <span className="text-slate-400">Conflict penalties:</span>
-                          <span className="text-rose-400 font-bold">{b?.conflictPenalties.score ?? 0}</span>
+                          <span className="text-slate-600">Conflict penalties:</span>
+                          <span className={`font-bold ${(b?.conflictPenalties.score ?? 0) < 0 ? 'text-rose-700' : 'text-slate-600'}`}>
+                            {b?.conflictPenalties.score ?? 0}
+                          </span>
                         </div>
                       </td>
                     );
@@ -292,18 +289,18 @@ export default function ComparePage() {
                 </tr>
 
                 {/* 4. Clinical Trials Count & Phase */}
-                <tr className="hover:bg-slate-900/40">
-                  <td className="p-4 font-semibold text-slate-300 bg-slate-900/30">Clinical Trial Coverage</td>
+                <tr className="hover:bg-slate-50/50">
+                  <td className="p-4 font-semibold text-slate-800 bg-slate-50/60">Clinical Trial Coverage</td>
                   {selectedCandidates.map((item, idx) => (
-                    <td key={idx} className="p-4 border-l border-slate-800/80 space-y-1">
-                      <div className="font-semibold text-slate-200">
+                    <td key={idx} className="p-4 border-l border-slate-200 space-y-1">
+                      <div className="font-semibold text-slate-900">
                         {item.candidate.clinicalTrials?.length || 0} registered study/studies
                       </div>
-                      <div className="text-slate-400">
-                        Highest phase: <span className="font-mono text-indigo-400">{item.candidate.highestPhase || 'Phase 1'}</span>
+                      <div className="text-slate-600">
+                        Highest phase: <span className="font-mono text-teal-800 font-semibold">{item.candidate.highestPhase || 'Phase 1'}</span>
                       </div>
                       {item.candidate.trialOutcomeStatus && (
-                        <div className="text-[10px] text-amber-300/90 bg-amber-950/20 p-1.5 rounded border border-amber-900/40">
+                        <div className="text-[10px] text-amber-900 bg-amber-50 p-1.5 rounded border border-amber-200">
                           {item.candidate.trialOutcomeStatus}
                         </div>
                       )}
@@ -312,14 +309,14 @@ export default function ComparePage() {
                 </tr>
 
                 {/* 5. Published Literature */}
-                <tr className="hover:bg-slate-900/40">
-                  <td className="p-4 font-semibold text-slate-300 bg-slate-900/30">Published Literature</td>
+                <tr className="hover:bg-slate-50/50">
+                  <td className="p-4 font-semibold text-slate-800 bg-slate-50/60">Published Literature</td>
                   {selectedCandidates.map((item, idx) => (
-                    <td key={idx} className="p-4 border-l border-slate-800/80">
-                      <div className="font-semibold text-slate-200">
+                    <td key={idx} className="p-4 border-l border-slate-200">
+                      <div className="font-semibold text-slate-900">
                         {item.candidate.citations?.length || 0} PubMed citation(s)
                       </div>
-                      <div className="text-[11px] text-slate-400 mt-1">
+                      <div className="text-[11px] text-slate-600 mt-1">
                         {item.candidate.citations && item.candidate.citations.length > 0 ? (
                           <span>Latest: &quot;{item.candidate.citations[0].title.slice(0, 60)}...&quot;</span>
                         ) : (
@@ -331,34 +328,34 @@ export default function ComparePage() {
                 </tr>
 
                 {/* 6. Biological Rationale */}
-                <tr className="hover:bg-slate-900/40">
-                  <td className="p-4 font-semibold text-slate-300 bg-slate-900/30">Target & Rationale</td>
+                <tr className="hover:bg-slate-50/50">
+                  <td className="p-4 font-semibold text-slate-800 bg-slate-50/60">Target &amp; Rationale</td>
                   {selectedCandidates.map((item, idx) => (
-                    <td key={idx} className="p-4 border-l border-slate-800/80 text-[11px] text-slate-300 leading-relaxed">
+                    <td key={idx} className="p-4 border-l border-slate-200 text-[11px] text-slate-700 leading-relaxed">
                       {item.candidate.biologicalRationale || 'Pathway mechanism under investigation.'}
                     </td>
                   ))}
                 </tr>
 
                 {/* 7. Contradictions & Verification Flags */}
-                <tr className="hover:bg-slate-900/40">
-                  <td className="p-4 font-semibold text-slate-300 bg-slate-900/30">
+                <tr className="hover:bg-slate-50/50">
+                  <td className="p-4 font-semibold text-slate-800 bg-slate-50/60">
                     <div>Verification Needs</div>
-                    <div className="text-[10px] text-slate-500 font-normal">Identified gaps & conflicts</div>
+                    <div className="text-[10px] text-slate-500 font-normal">Identified gaps &amp; conflicts</div>
                   </td>
                   {selectedCandidates.map((item, idx) => {
                     const flags = item.candidate.contradictions || [];
                     return (
-                      <td key={idx} className="p-4 border-l border-slate-800/80 space-y-1.5">
+                      <td key={idx} className="p-4 border-l border-slate-200 space-y-1.5">
                         {flags.length === 0 ? (
-                          <span className="text-emerald-400 text-[11px] flex items-center gap-1">
-                            <CheckCircle2 className="w-3.5 h-3.5" /> No critical contradictions flagged
+                          <span className="text-teal-800 font-medium text-[11px] flex items-center gap-1">
+                            <CheckCircle2 className="w-3.5 h-3.5 text-teal-700" /> No critical contradictions flagged
                           </span>
                         ) : (
                           flags.map((f, fi) => (
-                            <div key={fi} className="p-2 rounded bg-amber-950/20 border border-amber-900/40 text-[11px] text-amber-300">
+                            <div key={fi} className="p-2 rounded bg-amber-50 border border-amber-200 text-[11px] text-amber-950">
                               <span className="font-semibold block">{f.title}</span>
-                              <span className="text-[10px] text-amber-200/80">{f.description}</span>
+                              <span className="text-[10px] text-amber-900">{f.description}</span>
                             </div>
                           ))
                         )}
@@ -368,10 +365,10 @@ export default function ComparePage() {
                 </tr>
 
                 {/* 8. Last Verified Date */}
-                <tr className="hover:bg-slate-900/40">
-                  <td className="p-4 font-semibold text-slate-300 bg-slate-900/30">Last Verified</td>
+                <tr className="hover:bg-slate-50/50">
+                  <td className="p-4 font-semibold text-slate-800 bg-slate-50/60">Last Verified</td>
                   {selectedCandidates.map((item, idx) => (
-                    <td key={idx} className="p-4 border-l border-slate-800/80 font-mono text-slate-400 text-[11px]">
+                    <td key={idx} className="p-4 border-l border-slate-200 font-mono text-slate-600 text-[11px]">
                       {item.lastVerifiedDate}
                     </td>
                   ))}
@@ -382,12 +379,12 @@ export default function ComparePage() {
         )}
 
         {/* Comparison Research Disclaimer */}
-        <footer className="p-4 rounded-xl bg-slate-900/60 border border-slate-800 text-xs text-slate-400 flex items-start gap-3">
-          <Info className="w-4 h-4 text-indigo-400 shrink-0 mt-0.5" />
+        <div className="p-4 rounded-xl bg-amber-50 border-2 border-amber-300 text-xs text-amber-950 flex items-start gap-3">
+          <Info className="w-4 h-4 text-amber-700 shrink-0 mt-0.5" />
           <p className="leading-relaxed">
             The Repurpose Compare Workspace displays comparative research signals side-by-side to assist hypothesis prioritization. All comparisons are generated deterministically from primary source data (RxNorm, openFDA, PubChem, ClinicalTrials.gov, PubMed). This tool does not provide comparative clinical efficacy rankings or treatment recommendations.
           </p>
-        </footer>
+        </div>
       </main>
     </div>
   );

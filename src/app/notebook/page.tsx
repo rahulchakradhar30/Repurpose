@@ -9,26 +9,19 @@ import {
   FileText, 
   CheckSquare, 
   Square, 
-  Download, 
   ExternalLink, 
   LogIn, 
   LogOut, 
   ShieldCheck, 
-  AlertCircle,
-  Plus,
-  Compass,
-  ArrowLeft,
-  Sparkles,
-  Save,
-  Search
+  Plus, 
+  ArrowLeft, 
+  Search 
 } from 'lucide-react';
 import { 
   subscribeToAuth, 
   signInWithGoogle, 
-  signInUserAnonymously, 
   signOutUser 
 } from '@/lib/firebase/client';
-import { exportToRIS, exportCitationsToCSV, triggerFileDownload } from '@/lib/exportUtils';
 
 interface NotebookDossierItem {
   id: string; // drugSlug__conditionSlug
@@ -62,39 +55,38 @@ export default function NotebookPage() {
   const [newTagInput, setNewTagInput] = useState('');
   const [saveStatus, setSaveStatus] = useState<string | null>(null);
 
-  // Subscribe to auth
+  // Subscribe to auth state
   useEffect(() => {
-    const unsubscribe = subscribeToAuth((authUser) => {
-      setUser(authUser);
+    const unsubscribe = subscribeToAuth((currentUser) => {
+      setUser(currentUser);
     });
     return () => unsubscribe();
   }, []);
 
-  // Load saved notebook items
+  // Load from local storage
   useEffect(() => {
     try {
       const stored = localStorage.getItem('repurpose_saved_dossiers');
       if (stored) {
-        const parsed: NotebookDossierItem[] = JSON.parse(stored);
+        const parsed = JSON.parse(stored);
         setItems(parsed);
         if (parsed.length > 0 && !activeItemId) {
           setActiveItemId(parsed[0].id);
         }
       }
-    } catch (err) {
-      console.error('Failed to load notebook items:', err);
+    } catch (e) {
+      console.error('Failed to load notebook dossiers', e);
     }
-  }, []);
+  }, [activeItemId]);
 
-  // Save items back to local storage
   const persistItems = (updated: NotebookDossierItem[]) => {
     setItems(updated);
     try {
       localStorage.setItem('repurpose_saved_dossiers', JSON.stringify(updated));
-      setSaveStatus('Changes saved');
+      setSaveStatus('Saved');
       setTimeout(() => setSaveStatus(null), 2000);
-    } catch (err) {
-      console.error('Failed to save to storage:', err);
+    } catch (e) {
+      console.error('Failed to persist items', e);
     }
   };
 
@@ -108,10 +100,12 @@ export default function NotebookPage() {
 
   const handleAddTag = () => {
     if (!activeItem || !newTagInput.trim()) return;
-    const tag = newTagInput.trim().toLowerCase();
+    const tag = newTagInput.trim().replace(/^#/, '');
     const currentTags = activeItem.tags || [];
     if (!currentTags.includes(tag)) {
-      const updated = items.map(i => i.id === activeItem.id ? { ...i, tags: [...currentTags, tag] } : i);
+      const updated = items.map(i => 
+        i.id === activeItem.id ? { ...i, tags: [...currentTags, tag] } : i
+      );
       persistItems(updated);
     }
     setNewTagInput('');
@@ -163,86 +157,84 @@ export default function NotebookPage() {
   });
 
   return (
-    <div className="min-h-screen bg-slate-950 text-slate-100">
-      {/* Top Header */}
-      <header className="border-b border-slate-800 bg-slate-900/60 backdrop-blur-md sticky top-0 z-20">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex flex-wrap items-center justify-between gap-4">
-          <div className="flex items-center gap-3">
-            <Link 
-              href="/" 
-              className="p-2 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 transition-colors"
-              aria-label="Back to home"
-            >
-              <ArrowLeft className="w-4 h-4" />
+    <div className="flex-1 flex flex-col pb-16 md:pb-6 text-slate-900">
+      <main className="max-w-6xl mx-auto px-4 sm:px-6 py-6 sm:py-8 space-y-6 flex-1 w-full">
+        {/* Navigation Breadcrumbs & Header */}
+        <div className="space-y-3">
+          <nav aria-label="Breadcrumbs" className="flex items-center gap-1.5 text-xs text-slate-500">
+            <Link href="/" className="hover:text-teal-800 transition-colors flex items-center gap-1">
+              <ArrowLeft className="w-3.5 h-3.5" />
+              <span>Workspace</span>
             </Link>
+            <span>/</span>
+            <span className="text-slate-800 font-semibold">Research Notebook</span>
+          </nav>
+
+          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
             <div>
-              <div className="flex items-center gap-2">
-                <span className="text-xs uppercase font-mono tracking-wider text-indigo-400 font-semibold">
-                  Personal Workspace
-                </span>
-                <span className="px-2 py-0.5 rounded-full text-[10px] font-mono bg-indigo-500/10 border border-indigo-500/30 text-indigo-400">
-                  Private & Encrypted
-                </span>
+              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-teal-50 border border-teal-200 text-teal-800 text-xs font-semibold uppercase tracking-wider mb-2">
+                <BookMarked className="w-3.5 h-3.5" />
+                <span>Personal Hypothesis Vault</span>
               </div>
-              <h1 className="text-xl sm:text-2xl font-extrabold text-slate-100 tracking-tight flex items-center gap-2 mt-0.5">
-                <BookMarked className="w-5 h-5 text-indigo-400" />
-                Research Notebook & Hypothesis Vault
+              <h1 className="text-2xl sm:text-3xl lg:text-4xl font-extrabold text-slate-900 tracking-tight font-heading">
+                Research Notebook
               </h1>
+              <p className="text-sm sm:text-base text-slate-600 mt-1 max-w-3xl">
+                Maintain private investigator notes, track verification steps, and manage hypothesis priority tags.
+              </p>
+            </div>
+
+            {/* User Auth controls */}
+            <div className="flex items-center gap-3 shrink-0">
+              {user && !user.isAnonymous ? (
+                <div className="flex items-center gap-2">
+                  <div className="text-right text-xs">
+                    <div className="font-semibold text-slate-800">{user.displayName || user.email}</div>
+                    <div className="text-slate-500 font-mono text-[10px]">Cloud Synced</div>
+                  </div>
+                  <button
+                    onClick={() => signOutUser()}
+                    className="p-2 rounded-lg border border-slate-300 bg-white hover:bg-slate-50 text-slate-700 text-xs transition-colors shadow-xs"
+                    title="Sign out"
+                  >
+                    <LogOut className="w-4 h-4" />
+                  </button>
+                </div>
+              ) : (
+                <div className="flex items-center gap-2">
+                  <span className="text-xs text-slate-500 hidden sm:inline">Guest Mode (Local Storage)</span>
+                  <button
+                    onClick={() => signInWithGoogle()}
+                    className="px-3 py-1.5 rounded-lg border border-teal-300 bg-teal-50 hover:bg-teal-100 text-teal-800 text-xs font-medium flex items-center gap-1.5 transition-colors shadow-xs"
+                  >
+                    <LogIn className="w-3.5 h-3.5" />
+                    <span>Sign In for Cloud Sync</span>
+                  </button>
+                </div>
+              )}
             </div>
           </div>
-
-          {/* User Auth controls */}
-          <div className="flex items-center gap-3">
-            {user && !user.isAnonymous ? (
-              <div className="flex items-center gap-2">
-                <div className="text-right text-xs">
-                  <div className="font-semibold text-slate-200">{user.displayName || user.email}</div>
-                  <div className="text-slate-400 font-mono text-[10px]">Cloud Synced</div>
-                </div>
-                <button
-                  onClick={() => signOutUser()}
-                  className="p-2 rounded-lg border border-slate-700 bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs transition-colors"
-                  title="Sign out"
-                >
-                  <LogOut className="w-4 h-4" />
-                </button>
-              </div>
-            ) : (
-              <div className="flex items-center gap-2">
-                <span className="text-xs text-slate-400 hidden sm:inline">Guest Mode (Local Storage)</span>
-                <button
-                  onClick={() => signInWithGoogle()}
-                  className="px-3 py-1.5 rounded-lg border border-indigo-500/40 bg-indigo-600/20 hover:bg-indigo-600/30 text-indigo-300 text-xs font-medium flex items-center gap-1.5 transition-colors"
-                >
-                  <LogIn className="w-3.5 h-3.5" />
-                  <span>Sign In for Cloud Sync</span>
-                </button>
-              </div>
-            )}
-          </div>
         </div>
-      </header>
 
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Privacy Assurance Banner */}
-        <div className="mb-6 p-3.5 rounded-xl bg-slate-900/60 border border-slate-800 text-xs text-slate-400 flex items-start gap-3">
-          <ShieldCheck className="w-4 h-4 text-emerald-400 shrink-0 mt-0.5" />
+        <div className="p-4 rounded-xl bg-teal-50 border border-teal-200 text-xs text-teal-950 flex items-start gap-3">
+          <ShieldCheck className="w-4 h-4 text-teal-700 shrink-0 mt-0.5" />
           <p className="leading-relaxed">
-            <span className="text-slate-200 font-semibold">Owner-Only Privacy:</span> Your private notes, custom tags, and checklist statuses are stored strictly in your authenticated Firestore vault or device local storage. They are never shared publicly, aggregated into public evidence scores, or exported without explicit action.
+            <span className="text-teal-950 font-semibold">Owner-Only Privacy:</span> Your private notes, custom tags, and checklist statuses are stored strictly in your authenticated Firestore vault or device local storage. They are never shared publicly, aggregated into public evidence scores, or exported without explicit action.
           </p>
         </div>
 
         {items.length === 0 ? (
-          <div className="p-16 text-center rounded-2xl bg-slate-900/40 border border-slate-800 space-y-4">
-            <BookMarked className="w-12 h-12 text-slate-600 mx-auto" />
-            <h2 className="text-lg font-semibold text-slate-300">Your Research Notebook is Empty</h2>
-            <p className="text-xs text-slate-500 max-w-md mx-auto">
+          <div className="p-16 text-center rounded-xl bg-white border border-slate-200 shadow-xs space-y-4">
+            <BookMarked className="w-12 h-12 text-slate-400 mx-auto" />
+            <h2 className="text-lg font-semibold text-slate-800">Your Research Notebook is Empty</h2>
+            <p className="text-xs text-slate-600 max-w-md mx-auto">
               Save drug–condition dossiers while exploring hypotheses to maintain private research notes, track study checklists, and organize citation bibliographies.
             </p>
             <div className="pt-2">
               <Link
                 href="/"
-                className="px-4 py-2 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-semibold inline-flex items-center gap-2 transition-colors"
+                className="px-4 py-2 rounded-lg bg-teal-700 hover:bg-teal-800 text-white text-xs font-semibold inline-flex items-center gap-2 transition-colors shadow-xs"
               >
                 <span>Explore Drug Hypotheses</span>
               </Link>
@@ -253,13 +245,13 @@ export default function NotebookPage() {
             {/* LEFT COLUMN: Saved Dossier List */}
             <div className="lg:col-span-4 space-y-3">
               <div className="relative">
-                <Search className="w-4 h-4 text-slate-500 absolute left-3 top-2.5" />
+                <Search className="w-4 h-4 text-slate-400 absolute left-3 top-2.5" />
                 <input
                   type="text"
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
                   placeholder="Filter by drug, disease, or tag..."
-                  className="w-full pl-9 pr-3 py-2 rounded-lg bg-slate-900/80 border border-slate-800 text-xs text-slate-200 placeholder-slate-500 focus:outline-none focus:border-indigo-500"
+                  className="w-full pl-9 pr-3 py-2 rounded-lg bg-white border border-slate-300 text-xs text-slate-900 placeholder-slate-400 focus:outline-none focus:border-teal-600 shadow-xs"
                 />
               </div>
 
@@ -272,17 +264,17 @@ export default function NotebookPage() {
                       onClick={() => setActiveItemId(item.id)}
                       className={`p-3.5 rounded-xl border cursor-pointer transition-all text-xs space-y-1.5 ${
                         isSelected
-                          ? 'bg-indigo-950/30 border-indigo-500/50 shadow-md'
-                          : 'bg-slate-900/60 border-slate-800 hover:border-slate-700'
+                          ? 'bg-teal-50 border-teal-300 shadow-xs'
+                          : 'bg-white border-slate-200 hover:border-slate-300 shadow-xs'
                       }`}
                     >
                       <div className="flex items-center justify-between">
-                        <span className="font-bold text-slate-100">{item.drug}</span>
-                        <span className="font-mono text-xs font-semibold text-indigo-400">
+                        <span className="font-bold text-slate-900">{item.drug}</span>
+                        <span className="font-mono text-xs font-semibold text-teal-800">
                           {item.score}/100
                         </span>
                       </div>
-                      <div className="text-slate-300 font-medium truncate">{item.condition}</div>
+                      <div className="text-slate-700 font-medium truncate">{item.condition}</div>
                       <div className="flex items-center justify-between text-[10px] text-slate-500 pt-1">
                         <span>{item.state}</span>
                         <span>{item.savedAt ? item.savedAt.split('T')[0] : ''}</span>
@@ -293,10 +285,10 @@ export default function NotebookPage() {
               </div>
 
               {/* Data Deletion Control */}
-              <div className="pt-4 border-t border-slate-800">
+              <div className="pt-4 border-t border-slate-200">
                 <button
                   onClick={handleDeleteAllData}
-                  className="w-full py-2 px-3 rounded-lg border border-rose-900/40 bg-rose-950/20 hover:bg-rose-950/40 text-rose-300 text-xs font-medium flex items-center justify-center gap-1.5 transition-colors"
+                  className="w-full py-2 px-3 rounded-lg border border-rose-200 bg-rose-50 hover:bg-rose-100 text-rose-800 text-xs font-medium flex items-center justify-center gap-1.5 transition-colors"
                 >
                   <Trash2 className="w-3.5 h-3.5" />
                   <span>Clear All Notebook Data</span>
@@ -308,13 +300,13 @@ export default function NotebookPage() {
             {activeItem && (
               <div className="lg:col-span-8 space-y-6">
                 {/* Dossier Header Card */}
-                <div className="p-5 rounded-xl bg-slate-900/70 border border-slate-800 space-y-3">
+                <div className="p-5 sm:p-6 rounded-xl bg-white border border-slate-200 shadow-xs space-y-3">
                   <div className="flex flex-wrap items-center justify-between gap-3">
                     <div>
-                      <div className="text-xs uppercase font-mono text-indigo-400 font-semibold">
+                      <div className="text-xs uppercase font-mono text-teal-800 font-semibold">
                         Saved Research Snapshot
                       </div>
-                      <h2 className="text-xl font-bold text-slate-100 mt-0.5">
+                      <h2 className="text-xl font-bold text-slate-900 mt-0.5">
                         {activeItem.drug} ➔ {activeItem.condition}
                       </h2>
                     </div>
@@ -322,7 +314,7 @@ export default function NotebookPage() {
                     <div className="flex items-center gap-2">
                       <Link
                         href={`/evidence/${activeItem.drugSlug}/${activeItem.conditionSlug}`}
-                        className="px-3 py-1.5 rounded-lg border border-indigo-500/40 bg-indigo-600/20 hover:bg-indigo-600/30 text-indigo-300 text-xs font-medium flex items-center gap-1 transition-colors"
+                        className="px-3 py-1.5 rounded-lg border border-teal-300 bg-teal-50 hover:bg-teal-100 text-teal-800 text-xs font-medium flex items-center gap-1 transition-colors shadow-xs"
                       >
                         <span>Open Public Dossier</span>
                         <ExternalLink className="w-3 h-3" />
@@ -330,7 +322,7 @@ export default function NotebookPage() {
 
                       <button
                         onClick={() => handleDeleteItem(activeItem.id)}
-                        className="p-1.5 rounded-lg border border-slate-700 bg-slate-800 hover:bg-rose-900/30 hover:text-rose-400 text-slate-400 transition-colors"
+                        className="p-1.5 rounded-lg border border-slate-300 bg-white hover:bg-rose-50 hover:text-rose-700 text-slate-500 transition-colors shadow-xs"
                         title="Delete from notebook"
                       >
                         <Trash2 className="w-4 h-4" />
@@ -338,33 +330,33 @@ export default function NotebookPage() {
                     </div>
                   </div>
 
-                  <div className="flex items-center gap-4 text-xs font-mono pt-1 text-slate-400 flex-wrap">
-                    <span>Readiness: <strong className="text-indigo-400">{activeItem.score}/100</strong></span>
+                  <div className="flex items-center gap-4 text-xs font-mono pt-1 text-slate-600 flex-wrap">
+                    <span>Readiness: <strong className="text-teal-800 font-bold">{activeItem.score}/100</strong></span>
                     <span>•</span>
-                    <span>State: <strong className="text-slate-300">{activeItem.state}</strong></span>
+                    <span>State: <strong className="text-slate-800">{activeItem.state}</strong></span>
                     <span>•</span>
                     <span>Saved on: {activeItem.savedAt ? activeItem.savedAt.split('T')[0] : 'N/A'}</span>
-                    {saveStatus && <span className="text-emerald-400 font-sans ml-auto">{saveStatus}</span>}
+                    {saveStatus && <span className="text-teal-700 font-sans ml-auto font-medium">{saveStatus}</span>}
                   </div>
                 </div>
 
                 {/* Tags Management */}
-                <div className="p-5 rounded-xl bg-slate-900/60 border border-slate-800 space-y-3">
-                  <h3 className="text-xs font-bold text-slate-200 uppercase tracking-wider flex items-center gap-1.5">
-                    <Tag className="w-3.5 h-3.5 text-indigo-400" />
-                    Research Tags & Classification
+                <div className="p-5 sm:p-6 rounded-xl bg-white border border-slate-200 shadow-xs space-y-3">
+                  <h3 className="text-xs font-bold text-slate-900 uppercase tracking-wider flex items-center gap-1.5">
+                    <Tag className="w-3.5 h-3.5 text-teal-700" />
+                    Research Tags &amp; Classification
                   </h3>
                   
                   <div className="flex items-center gap-2 flex-wrap">
                     {(activeItem.tags || []).map((t, idx) => (
                       <span
                         key={idx}
-                        className="px-2.5 py-1 rounded-md bg-indigo-950/40 border border-indigo-800/60 text-indigo-300 text-xs font-mono flex items-center gap-1.5"
+                        className="px-2.5 py-1 rounded-md bg-teal-50 border border-teal-200 text-teal-800 text-xs font-mono flex items-center gap-1.5 font-medium"
                       >
                         <span>#{t}</span>
                         <button
                           onClick={() => handleRemoveTag(t)}
-                          className="text-slate-500 hover:text-rose-400"
+                          className="text-teal-600 hover:text-rose-600"
                         >
                           ×
                         </button>
@@ -378,11 +370,11 @@ export default function NotebookPage() {
                         onChange={(e) => setNewTagInput(e.target.value)}
                         onKeyDown={(e) => e.key === 'Enter' && handleAddTag()}
                         placeholder="Add tag..."
-                        className="px-2 py-1 rounded bg-slate-950 border border-slate-800 text-xs text-slate-200 focus:outline-none focus:border-indigo-500 w-28"
+                        className="px-2 py-1 rounded bg-slate-50 border border-slate-300 text-xs text-slate-900 focus:outline-none focus:border-teal-600 w-28"
                       />
                       <button
                         onClick={handleAddTag}
-                        className="p-1 rounded bg-slate-800 hover:bg-slate-700 text-slate-300"
+                        className="p-1 rounded bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-200"
                         title="Add tag"
                       >
                         <Plus className="w-3.5 h-3.5" />
@@ -392,9 +384,9 @@ export default function NotebookPage() {
                 </div>
 
                 {/* Private Notes */}
-                <div className="p-5 rounded-xl bg-slate-900/60 border border-slate-800 space-y-3">
-                  <h3 className="text-xs font-bold text-slate-200 uppercase tracking-wider flex items-center gap-1.5">
-                    <FileText className="w-3.5 h-3.5 text-blue-400" />
+                <div className="p-5 sm:p-6 rounded-xl bg-white border border-slate-200 shadow-xs space-y-3">
+                  <h3 className="text-xs font-bold text-slate-900 uppercase tracking-wider flex items-center gap-1.5">
+                    <FileText className="w-3.5 h-3.5 text-teal-700" />
                     Private Research Notes
                   </h3>
                   <textarea
@@ -402,7 +394,7 @@ export default function NotebookPage() {
                     value={activeItem.notes || ''}
                     onChange={(e) => handleUpdateNotes(e.target.value)}
                     placeholder="Write hypothesis notes, clinical trial observations, investigator questions, or literature synthesis..."
-                    className="w-full p-3 rounded-lg bg-slate-950 border border-slate-800 text-xs text-slate-200 placeholder-slate-600 focus:outline-none focus:border-indigo-500 leading-relaxed"
+                    className="w-full p-3 rounded-lg bg-slate-50 border border-slate-300 text-xs text-slate-900 placeholder-slate-400 focus:outline-none focus:border-teal-600 leading-relaxed"
                   />
                   <div className="text-[11px] text-slate-500">
                     Auto-saved privately to your research profile.
@@ -410,9 +402,9 @@ export default function NotebookPage() {
                 </div>
 
                 {/* Personal Research Checklist */}
-                <div className="p-5 rounded-xl bg-slate-900/60 border border-slate-800 space-y-3">
-                  <h3 className="text-xs font-bold text-slate-200 uppercase tracking-wider flex items-center gap-1.5">
-                    <CheckSquare className="w-3.5 h-3.5 text-emerald-400" />
+                <div className="p-5 sm:p-6 rounded-xl bg-white border border-slate-200 shadow-xs space-y-3">
+                  <h3 className="text-xs font-bold text-slate-900 uppercase tracking-wider flex items-center gap-1.5">
+                    <CheckSquare className="w-3.5 h-3.5 text-teal-700" />
                     Personal Research Verification Checklist
                   </h3>
 
@@ -425,14 +417,14 @@ export default function NotebookPage() {
                           onClick={() => handleToggleChecklist(step.id)}
                           className={`p-3 rounded-lg border cursor-pointer transition-all text-xs flex items-center gap-3 ${
                             isChecked
-                              ? 'bg-emerald-950/15 border-emerald-900/40 text-slate-300'
-                              : 'bg-slate-950/60 border-slate-800 text-slate-300 hover:border-slate-700'
+                              ? 'bg-teal-50/60 border-teal-200 text-slate-600'
+                              : 'bg-slate-50 border-slate-200 text-slate-800 hover:border-slate-300'
                           }`}
                         >
-                          <div className="shrink-0 text-emerald-400">
-                            {isChecked ? <CheckSquare className="w-4 h-4" /> : <Square className="w-4 h-4 text-slate-600" />}
+                          <div className="shrink-0 text-teal-700">
+                            {isChecked ? <CheckSquare className="w-4 h-4 text-teal-700" /> : <Square className="w-4 h-4 text-slate-400" />}
                           </div>
-                          <span className={isChecked ? 'line-through text-slate-500' : 'text-slate-200'}>
+                          <span className={isChecked ? 'line-through text-slate-400' : 'text-slate-900 font-medium'}>
                             {step.label}
                           </span>
                         </div>

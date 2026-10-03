@@ -1,9 +1,16 @@
 @import "tailwindcss";
 
+@theme {
+  --font-sans: var(--font-sans), Arial, Helvetica, sans-serif;
+  --font-serif: var(--font-heading), Georgia, serif;
+  --font-mono: var(--font-mono), "Courier New", monospace;
+}
+
 :root {
-  --font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-  --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
-  
+  --font-heading-stack: var(--font-heading), Georgia, serif;
+  --font-sans-stack: var(--font-sans), Arial, Helvetica, sans-serif;
+  --font-mono-stack: var(--font-mono), "Courier New", monospace;
+
   --bg-clinical: #f8fafc;
   --surface-card: #ffffff;
   --surface-subtle: #f1f5f9;
@@ -28,12 +35,60 @@
   --alert-border: #fecaca;
 }
 
+/* Universal default typography: Noto Sans, minimum 16px, comfortable line height */
+html,
 body {
   background-color: var(--bg-clinical);
   color: var(--ink-primary);
-  font-family: var(--font-sans);
+  font-family: var(--font-sans-stack);
+  font-size: 16px;
+  line-height: 1.6;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+}
+
+/* Restrained, scholarly main headings: Noto Serif for H1 and major page titles only */
+h1,
+.font-heading,
+.page-title,
+.major-title {
+  font-family: var(--font-heading-stack);
+  font-weight: 700;
+  letter-spacing: -0.015em;
+  color: var(--ink-primary);
+}
+
+/* Interface, subheadings (H2–H6), navigation, buttons, forms, tables, cards, help text, disclaimers */
+h2,
+h3,
+h4,
+h5,
+h6 {
+  font-family: var(--font-sans-stack);
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  color: var(--ink-primary);
+}
+
+/* Reusable metadata, evidence scores, and technical data labels: IBM Plex Mono */
+.font-mono,
+.data-label,
+.metadata-badge,
+.evidence-score-badge,
+.nct-id,
+.pmid-id,
+.rxnorm-id,
+.trial-id,
+.score-badge {
+  font-family: var(--font-mono-stack) !important;
+  font-feature-settings: "tnum" 1, "lnum" 1;
+}
+
+/* Paragraph accessibility: minimum 16px, readable line height, no decorative transformations */
+p {
+  font-size: 1rem; /* 16px */
+  line-height: 1.6;
+  text-transform: none;
 }
 
 /* Accessible focus ring across all interactive controls */
@@ -50,7 +105,7 @@ body {
 
 /* Clean print styling for research citations */
 @media print {
-  header, nav, .no-print {
+  header, nav, footer, .no-print {
     display: none !important;
   }
   body {

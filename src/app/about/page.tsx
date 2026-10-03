@@ -52,14 +52,14 @@ export default function AboutPage() {
         dangerouslySetInnerHTML={{ __html: JSON.stringify(webPageJsonLd) }}
       />
 
-      <div className="min-h-screen bg-slate-50 text-slate-900 pb-16">
-        <div className="max-w-3xl mx-auto px-4 py-8 sm:py-12">
+      <div className="flex-1 flex flex-col pb-16 md:pb-6 text-slate-900">
+        <div className="max-w-3xl mx-auto px-4 py-8 sm:py-12 flex-1 w-full">
           {/* Breadcrumb Navigation */}
           <nav className="mb-6" aria-label="Breadcrumb">
             <ol className="flex items-center text-xs text-slate-500 gap-2">
               <li><Link href="/" className="hover:text-teal-800 transition-colors">Home</Link></li>
               <li>/</li>
-              <li className="text-slate-800 font-semibold">About & Privacy</li>
+              <li className="text-slate-800 font-semibold">About &amp; Privacy</li>
             </ol>
           </nav>
 
@@ -69,7 +69,7 @@ export default function AboutPage() {
               <HeartHandshake className="w-3.5 h-3.5" />
               Open-Source Project Principles
             </div>
-            <h1 className="text-3xl sm:text-4xl font-extrabold tracking-tight text-slate-900 mb-3">
+            <h1 className="text-3xl sm:text-4xl font-extrabold tracking-tight text-slate-900 mb-3 font-heading">
               About Repurpose
             </h1>
             <p className="text-slate-600 text-base sm:text-lg leading-relaxed">

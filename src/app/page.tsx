@@ -2,8 +2,6 @@
 
 import { useState, useEffect, useCallback, Suspense } from 'react';
 import Link from 'next/link';
-import { DisclaimerBanner } from '@/components/DisclaimerBanner';
-import { Header } from '@/components/Header';
 import { SearchSection } from '@/components/SearchSection';
 import { DrugOverview } from '@/components/DrugOverview';
 import { RepurposingList } from '@/components/RepurposingList';
@@ -100,15 +98,9 @@ function HomeContent() {
         />
       ))}
 
-      <div className="min-h-screen bg-slate-50 flex flex-col pb-16 md:pb-6 text-slate-900 selection:bg-teal-100 selection:text-teal-900">
+      <div className="flex-1 flex flex-col pb-16 md:pb-6 text-slate-900 selection:bg-teal-100 selection:text-teal-900">
         {/* PWA offline banner & install prompt */}
         <PWARegister />
-
-        {/* Prominent Educational/Clinical Disclaimer Banner */}
-        <DisclaimerBanner />
-
-        {/* Main App Navigation Header (Read-Only) */}
-        <Header />
 
         {/* Main Content Area */}
         <main className="flex-1 w-full max-w-5xl mx-auto px-4 py-4 sm:py-6">
@@ -224,45 +216,7 @@ function HomeContent() {
             </div>
         </main>
 
-        {/* Footer */}
-        <footer className="w-full border-t border-slate-200 bg-white py-5 px-4 text-center text-xs text-slate-600 mb-14 md:mb-0">
-          <div className="max-w-5xl mx-auto space-y-2">
-            <div className="flex flex-wrap justify-center items-center gap-x-4 gap-y-1 text-slate-500">
-              <Link href="/compare" className="hover:text-slate-800 transition-colors font-medium">
-                Compare
-              </Link>
-              <span>·</span>
-              <Link href="/notebook" className="hover:text-slate-800 transition-colors font-medium">
-                Notebook
-              </Link>
-              <span>·</span>
-              <Link href="/what-is-drug-repurposing" className="hover:text-slate-800 transition-colors">
-                Guide
-              </Link>
-              <span>·</span>
-              <Link href="/methodology" className="hover:text-slate-800 transition-colors">
-                Methodology
-              </Link>
-              <span>·</span>
-              <Link href="/sources" className="hover:text-slate-800 transition-colors">
-                Data Sources
-              </Link>
-              <span>·</span>
-              <Link href="/about" className="hover:text-slate-800 transition-colors">
-                About & Privacy
-              </Link>
-            </div>
-            <p>
-              Open-source tool prepared by P. Rahul Chakradhar · Contact:{' '}
-              <a
-                href="mailto:rahulchakradhar30@outlook.com"
-                className="font-medium text-teal-800 hover:text-teal-900 hover:underline"
-              >
-                rahulchakradhar30@outlook.com
-              </a>
-            </p>
-          </div>
-        </footer>
+
 
         {/* Candidate Deep-Dive Modal (Read-Only with Copy Link) */}
         {selectedCandidate && researchSnapshot && (

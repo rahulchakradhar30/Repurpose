@@ -239,7 +239,7 @@ export function SearchSection({
   return (
     <section className="w-full max-w-2xl mx-auto py-6 px-4">
       <div className="text-center mb-6">
-        <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-slate-900 mb-2">
+        <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-slate-900 mb-2 font-heading">
           Evidence-Based Drug Repurposing Explorer
         </h1>
         <p className="text-sm text-slate-600 max-w-lg mx-auto">

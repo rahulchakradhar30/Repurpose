@@ -3,13 +3,13 @@ import { Search, ArrowLeft, AlertCircle } from 'lucide-react';
 
 export default function NotFound() {
   return (
-    <div className="min-h-screen bg-slate-50 flex flex-col items-center justify-center p-4 text-slate-900">
+    <div className="flex-1 flex flex-col items-center justify-center p-4 text-slate-900">
       <div className="max-w-md w-full bg-white border border-slate-200 rounded-lg p-6 sm:p-8 shadow-xs text-center space-y-4">
         <div className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-amber-50 text-amber-800 border border-amber-200 mx-auto">
           <AlertCircle className="w-6 h-6" />
         </div>
 
-        <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-slate-900">
+        <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-slate-900 font-heading">
           Page or Drug Record Not Found
         </h1>
 

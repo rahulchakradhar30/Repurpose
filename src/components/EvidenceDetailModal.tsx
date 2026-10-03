@@ -147,7 +147,7 @@ export function EvidenceDetailModal({
         <div className="bg-slate-50 border-b border-slate-200 px-5 py-2.5 flex flex-wrap items-center justify-between gap-3 text-xs shrink-0">
           <div className="flex items-center gap-2">
             <span className="text-slate-500 font-medium">Research Readiness:</span>
-            <span className="font-bold font-mono text-sm px-2 py-0.5 rounded bg-indigo-50 text-indigo-900 border border-indigo-300">
+            <span className="font-bold font-mono text-sm px-2 py-0.5 rounded bg-teal-50 text-teal-800 border border-teal-200">
               {candidate.readinessScore ?? breakdown.totalScore}/100
             </span>
             <span className="text-slate-400 hidden sm:inline">|</span>
@@ -159,7 +159,7 @@ export function EvidenceDetailModal({
           <div className="flex items-center gap-2 flex-wrap">
             <Link
               href={`/evidence/${encodeURIComponent(drug.genericName.toLowerCase().replace(/[^a-z0-9]+/g, '-'))}/${encodeURIComponent(candidate.condition.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, ''))}`}
-              className="flex items-center gap-1.5 px-3 py-1.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded font-medium transition-colors cursor-pointer"
+              className="flex items-center gap-1.5 px-3 py-1.5 bg-teal-700 hover:bg-teal-800 text-white rounded font-medium transition-colors cursor-pointer shadow-xs"
             >
               <span>Open Dossier</span>
               <ArrowRight className="w-3.5 h-3.5" />
@@ -167,7 +167,7 @@ export function EvidenceDetailModal({
 
             <button
               onClick={handleExportRIS}
-              className="flex items-center gap-1 px-2.5 py-1.5 bg-white hover:bg-slate-100 text-slate-700 border border-slate-300 rounded font-medium transition-colors cursor-pointer"
+              className="flex items-center gap-1 px-2.5 py-1.5 bg-white hover:bg-slate-100 text-slate-700 border border-slate-300 rounded font-medium transition-colors cursor-pointer shadow-2xs"
               title="Export citations for Zotero, Mendeley, EndNote"
             >
               <FileCode className="w-3.5 h-3.5 text-slate-500" />
@@ -176,7 +176,7 @@ export function EvidenceDetailModal({
 
             <button
               onClick={handleExportCSV}
-              className="flex items-center gap-1 px-2.5 py-1.5 bg-white hover:bg-slate-100 text-slate-700 border border-slate-300 rounded font-medium transition-colors cursor-pointer"
+              className="flex items-center gap-1 px-2.5 py-1.5 bg-white hover:bg-slate-100 text-slate-700 border border-slate-300 rounded font-medium transition-colors cursor-pointer shadow-2xs"
               title="Export spreadsheet of trials and citations"
             >
               <FileSpreadsheet className="w-3.5 h-3.5 text-slate-500" />
@@ -185,10 +185,10 @@ export function EvidenceDetailModal({
 
             <button
               onClick={handleCopyLink}
-              className={`flex items-center gap-1.5 px-3 py-1.5 rounded font-medium border transition-colors cursor-pointer ${
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded font-medium border transition-colors cursor-pointer shadow-2xs ${
                 copied
                   ? 'bg-teal-50 text-teal-800 border-teal-300'
-                  : 'bg-slate-900 hover:bg-slate-800 text-white border-slate-900'
+                  : 'bg-white hover:bg-slate-50 text-slate-700 border-slate-300'
               }`}
               title="Copy direct link to this candidate investigation"
             >
@@ -204,11 +204,11 @@ export function EvidenceDetailModal({
             onClick={() => setActiveTab('compass')}
             className={`py-2.5 px-3 text-xs font-semibold border-b-2 transition-colors whitespace-nowrap cursor-pointer flex items-center gap-1.5 ${
               activeTab === 'compass'
-                ? 'border-indigo-600 text-indigo-900 bg-indigo-50/40'
+                ? 'border-teal-700 text-teal-900 bg-teal-50/40'
                 : 'border-transparent text-slate-500 hover:text-slate-900'
             }`}
           >
-            <Compass className="w-3.5 h-3.5 text-indigo-600" />
+            <Compass className="w-3.5 h-3.5 text-teal-700" />
             <span>Repurpose Compass™</span>
           </button>
           <button
