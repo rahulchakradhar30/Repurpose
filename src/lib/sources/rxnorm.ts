@@ -16,9 +16,11 @@ export interface RxNormDrugData {
 }
 
 export async function searchRxNormAutocomplete(query: string): Promise<Array<{ name: string; rxcui: string }>> {
-  if (!query || query.trim().length < 2) return [];
+  if (!query || query.trim().length < 3) return [];
 
-  const url = `https://rxnav.nlm.nih.gov/REST/approximateTerm.json?term=${encodeURIComponent(query.trim())}&maxEntries=10`;
+  const trimmedQuery = query.trim();
+  const lowerQuery = trimmedQuery.toLowerCase();
+  const url = `https://rxnav.nlm.nih.gov/REST/approximateTerm.json?term=${encodeURIComponent(trimmedQuery)}&maxEntries=12`;
 
   try {
     const res = await fetchWithTimeoutAndRetry(url, { timeoutMs: 5000, retries: 1 });
@@ -28,15 +30,22 @@ export async function searchRxNormAutocomplete(query: string): Promise<Array<{ n
     const candidates = data?.approximateGroup?.candidate;
     if (!Array.isArray(candidates)) return [];
 
-    // Filter unique by name
+    // Filter unique by name, ensuring candidate matches the query prefix or words
     const seen = new Set<string>();
     const results: Array<{ name: string; rxcui: string }> = [];
 
     for (const c of candidates) {
       const name = (c.name || '').trim();
       const rxcui = c.rxcui;
-      if (name && rxcui && !seen.has(name.toLowerCase())) {
-        seen.add(name.toLowerCase());
+      if (!name || !rxcui) continue;
+
+      const lowerName = name.toLowerCase();
+      // Only keep candidates that actually start with the query or have a word starting with it
+      const words = lowerName.split(/\s+/);
+      const isMatch = lowerName.startsWith(lowerQuery) || words.some((w: string) => w.startsWith(lowerQuery));
+
+      if (isMatch && !seen.has(lowerName)) {
+        seen.add(lowerName);
         results.push({ name, rxcui });
       }
     }

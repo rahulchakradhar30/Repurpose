@@ -1,12 +1,54 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
-import { Search, ArrowRight, Loader2, X } from 'lucide-react';
+import { useState, useEffect, useRef, useCallback } from 'react';
+import { Search, ArrowRight, Loader2, X, Pill } from 'lucide-react';
+import { searchDrugDirectory, DrugDirectoryEntry } from '@/lib/drugDirectory';
+
+interface SearchSuggestionItem {
+  name: string;
+  genericName: string;
+  brandNames?: string[];
+  drugClass?: string;
+  rxcui?: string;
+  matchedOn?: 'generic' | 'brand';
+  matchedTerm?: string;
+  source?: 'directory' | 'rxnorm';
+}
 
 interface SearchSectionProps {
   onSearch: (drugName: string) => void;
   isLoading: boolean;
   initialQuery?: string;
+}
+
+/**
+ * Highlights the matched characters/prefix in a suggestion name,
+ * matching Google / YouTube search autocomplete visual style.
+ */
+function HighlightMatchedText({ text, query }: { text: string; query: string }) {
+  if (!query || !text) return <span>{text}</span>;
+
+  const lowerText = text.toLowerCase();
+  const lowerQuery = query.toLowerCase().trim();
+  const matchIndex = lowerText.indexOf(lowerQuery);
+
+  if (matchIndex === -1) {
+    return <span>{text}</span>;
+  }
+
+  const before = text.slice(0, matchIndex);
+  const matched = text.slice(matchIndex, matchIndex + lowerQuery.length);
+  const after = text.slice(matchIndex + lowerQuery.length);
+
+  return (
+    <span>
+      {before}
+      <span className="font-semibold text-teal-800 bg-teal-100/70 rounded-xs px-0.5">
+        {matched}
+      </span>
+      {after}
+    </span>
+  );
 }
 
 export function SearchSection({
@@ -15,7 +57,7 @@ export function SearchSection({
   initialQuery = '',
 }: SearchSectionProps) {
   const [query, setQuery] = useState(initialQuery);
-  const [suggestions, setSuggestions] = useState<Array<{ name: string; rxcui: string }>>([]);
+  const [suggestions, setSuggestions] = useState<SearchSuggestionItem[]>([]);
   const [isAutocompleteLoading, setIsAutocompleteLoading] = useState(false);
   const [isOpen, setIsOpen] = useState(false);
   const [selectedIndex, setSelectedIndex] = useState(-1);
@@ -29,11 +71,46 @@ export function SearchSection({
     }
   }, [initialQuery]);
 
-  // Live autocomplete query to /api/drugs/search (RxNorm)
+  // Synchronous client-side directory elimination search helper
+  const getInstantDirectoryMatches = useCallback((trimmed: string): SearchSuggestionItem[] => {
+    if (trimmed.length < 3) return [];
+    const dirResults: DrugDirectoryEntry[] = searchDrugDirectory(trimmed, 8);
+    return dirResults.map((item) => ({
+      name: item.matchedOn === 'brand' && item.matchedTerm ? item.matchedTerm : item.name,
+      genericName: item.genericName,
+      brandNames: item.brandNames,
+      drugClass: item.drugClass,
+      rxcui: item.rxcui,
+      matchedOn: item.matchedOn || 'generic',
+      matchedTerm: item.matchedTerm || item.name,
+      source: 'directory' as const,
+    }));
+  }, []);
+
+  // Handle typing: immediate elimination on every keystroke
+  const handleInputChange = (newVal: string) => {
+    setQuery(newVal);
+    const trimmed = newVal.trim();
+
+    // Strict 3-character threshold: do not show dropdown for 1 or 2 characters
+    if (trimmed.length < 3) {
+      setSuggestions([]);
+      setIsOpen(false);
+      setSelectedIndex(-1);
+      return;
+    }
+
+    // Instant zero-latency prefix elimination for >= 3 characters (Google/YouTube style)
+    const instant = getInstantDirectoryMatches(trimmed);
+    setSuggestions(instant);
+    setIsOpen(true);
+    setSelectedIndex(-1);
+  };
+
+  // Background debounced RxNorm concept enrichment for >= 3 chars
   useEffect(() => {
     const trimmed = query.trim();
-    if (trimmed.length < 2) {
-      setSuggestions([]);
+    if (trimmed.length < 3) {
       setIsAutocompleteLoading(false);
       return;
     }
@@ -44,16 +121,18 @@ export function SearchSection({
         const res = await fetch(`/api/drugs/search?q=${encodeURIComponent(trimmed)}`);
         if (res.ok) {
           const data = await res.json();
-          setSuggestions(data.results || []);
-          setIsOpen(true);
-          setSelectedIndex(-1);
+          const apiResults: SearchSuggestionItem[] = data.results || [];
+          if (apiResults.length > 0) {
+            setSuggestions(apiResults);
+            setIsOpen(true);
+          }
         }
       } catch (err) {
         console.error('Autocomplete fetch error:', err);
       } finally {
         setIsAutocompleteLoading(false);
       }
-    }, 250);
+    }, 200);
 
     return () => clearTimeout(timer);
   }, [query]);
@@ -87,10 +166,11 @@ export function SearchSection({
     } else if (e.key === 'Enter') {
       e.preventDefault();
       if (selectedIndex >= 0 && selectedIndex < suggestions.length) {
-        const selected = suggestions[selectedIndex].name;
-        setQuery(selected);
+        const selected = suggestions[selectedIndex];
+        const searchName = selected.name;
+        setQuery(searchName);
         setIsOpen(false);
-        onSearch(selected);
+        onSearch(searchName);
       } else if (query.trim()) {
         setIsOpen(false);
         onSearch(query.trim());
@@ -100,10 +180,11 @@ export function SearchSection({
     }
   };
 
-  const handleSelectSuggestion = (name: string) => {
-    setQuery(name);
+  const handleSelectSuggestion = (item: SearchSuggestionItem) => {
+    const searchName = item.name;
+    setQuery(searchName);
     setIsOpen(false);
-    onSearch(name);
+    onSearch(searchName);
   };
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -113,6 +194,9 @@ export function SearchSection({
       onSearch(query.trim());
     }
   };
+
+  const trimmedQuery = query.trim();
+  const showDropdown = isOpen && trimmedQuery.length >= 3;
 
   return (
     <section className="w-full max-w-2xl mx-auto py-6 px-4">
@@ -142,9 +226,11 @@ export function SearchSection({
             ref={inputRef}
             type="text"
             value={query}
-            onChange={(e) => setQuery(e.target.value)}
+            onChange={(e) => handleInputChange(e.target.value)}
             onFocus={() => {
-              if (suggestions.length > 0) setIsOpen(true);
+              if (trimmedQuery.length >= 3 && suggestions.length > 0) {
+                setIsOpen(true);
+              }
             }}
             onKeyDown={handleKeyDown}
             placeholder="Enter drug generic or trade name (e.g. Metformin, Imatinib, Thalidomide)..."
@@ -159,6 +245,7 @@ export function SearchSection({
               onClick={() => {
                 setQuery('');
                 setSuggestions([]);
+                setIsOpen(false);
                 inputRef.current?.focus();
               }}
               className="absolute right-16 p-1 text-slate-400 hover:text-slate-600 rounded cursor-pointer"
@@ -177,35 +264,73 @@ export function SearchSection({
           </button>
         </form>
 
-        {/* Live Autocomplete Dropdown */}
-        {isOpen && suggestions.length > 0 && (
+        {/* Live Autocomplete Dropdown with Prefix Elimination */}
+        {showDropdown && (
           <div 
             role="listbox"
             id="drug-autocomplete-list"
-            className="absolute top-full left-0 right-0 mt-1 bg-white border border-slate-200 rounded-lg shadow-lg z-50 overflow-hidden divide-y divide-slate-100 max-h-72 overflow-y-auto"
+            className="absolute top-full left-0 right-0 mt-1 bg-white border border-slate-200 rounded-lg shadow-xl z-50 overflow-hidden divide-y divide-slate-100 max-h-80 overflow-y-auto"
           >
-            <div className="px-3 py-1.5 bg-slate-50 text-[11px] font-medium uppercase tracking-wider text-slate-500 flex justify-between items-center">
-              <span>RxNorm Verified Concepts</span>
+            <div className="px-3.5 py-1.5 bg-slate-50 text-[11px] font-medium text-slate-500 flex justify-between items-center border-b border-slate-100">
+              <span className="flex items-center gap-1.5">
+                <Pill className="w-3 h-3 text-teal-600" />
+                {suggestions.length > 0
+                  ? `Matching drugs (${suggestions.length}) · type more to narrow`
+                  : `No exact matches for "${trimmedQuery}"`}
+              </span>
               {isAutocompleteLoading && <Loader2 className="w-3 h-3 animate-spin text-teal-700" />}
             </div>
-            {suggestions.map((item, idx) => (
-              <button
-                key={`${item.rxcui}-${idx}`}
-                role="option"
-                aria-selected={selectedIndex === idx}
-                onClick={() => handleSelectSuggestion(item.name)}
-                className={`w-full text-left px-3.5 py-2.5 text-sm flex items-center justify-between transition-colors cursor-pointer ${
-                  selectedIndex === idx
-                    ? 'bg-teal-50 text-teal-900 font-medium'
-                    : 'text-slate-800 hover:bg-slate-50'
-                }`}
-              >
-                <span className="truncate">{item.name}</span>
-                <span className="text-[10px] font-mono text-slate-400 ml-2 shrink-0">
-                  RxCUI: {item.rxcui}
-                </span>
-              </button>
-            ))}
+
+            {suggestions.length > 0 ? (
+              suggestions.map((item, idx) => {
+                const isSelected = selectedIndex === idx;
+                const isBrand = item.matchedOn === 'brand';
+
+                return (
+                  <button
+                    key={`${item.rxcui || item.name}-${idx}`}
+                    role="option"
+                    aria-selected={isSelected}
+                    onClick={() => handleSelectSuggestion(item)}
+                    className={`w-full text-left px-3.5 py-2.5 text-sm flex items-center justify-between transition-colors cursor-pointer ${
+                      isSelected
+                        ? 'bg-teal-50/90 text-teal-950 font-medium'
+                        : 'text-slate-800 hover:bg-slate-50'
+                    }`}
+                  >
+                    <div className="flex flex-col min-w-0 pr-2">
+                      <div className="flex items-center gap-2 truncate">
+                        <span className="truncate text-slate-900 font-medium">
+                          <HighlightMatchedText text={item.name} query={trimmedQuery} />
+                        </span>
+                        {isBrand && item.genericName && (
+                          <span className="text-[11px] text-slate-500 shrink-0 font-normal">
+                            (generic: {item.genericName})
+                          </span>
+                        )}
+                      </div>
+                      {item.drugClass && (
+                        <span className="text-[11px] text-slate-500 truncate mt-0.5 font-normal">
+                          {item.drugClass}
+                        </span>
+                      )}
+                    </div>
+
+                    <div className="flex items-center gap-1.5 shrink-0">
+                      {item.rxcui && (
+                        <span className="text-[10px] font-mono bg-slate-100 text-slate-600 px-1.5 py-0.5 rounded border border-slate-200">
+                          RxCUI: {item.rxcui}
+                        </span>
+                      )}
+                    </div>
+                  </button>
+                );
+              })
+            ) : (
+              <div className="px-4 py-3 text-xs text-slate-500 text-center">
+                No indexed drugs starting with &ldquo;{trimmedQuery}&rdquo;. Press Enter to query biomedical registries directly.
+              </div>
+            )}
           </div>
         )}
       </div>
