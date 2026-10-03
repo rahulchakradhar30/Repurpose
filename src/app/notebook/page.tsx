@@ -17,11 +17,15 @@ import {
   ArrowLeft, 
   Search,
   Clock,
-  Printer
+  Printer,
+  AlertTriangle,
+  Loader2
 } from 'lucide-react';
 import { 
   subscribeToAuth, 
   signInWithGoogle, 
+  signInWithGoogleRedirect,
+  checkRedirectResult,
   signOutUser 
 } from '@/lib/firebase/client';
 import { 
@@ -49,14 +53,63 @@ export default function NotebookPage() {
   const [searchTerm, setSearchTerm] = useState('');
   const [newTagInput, setNewTagInput] = useState('');
   const [saveStatus, setSaveStatus] = useState<string | null>(null);
+  const [isSigningIn, setIsSigningIn] = useState(false);
+  const [authError, setAuthError] = useState<{ message: string; code?: string; domain?: string } | null>(null);
 
-  // Subscribe to auth state
+  // Subscribe to auth state & check redirect sign-in outcome on mount
   useEffect(() => {
+    checkRedirectResult().catch(() => {});
+
     const unsubscribe = subscribeToAuth((currentUser) => {
       setUser(currentUser);
+      if (currentUser && !currentUser.isAnonymous) {
+        setAuthError(null);
+      }
     });
     return () => unsubscribe();
   }, []);
+
+  const handleGoogleSignIn = async () => {
+    setAuthError(null);
+    setIsSigningIn(true);
+    try {
+      const res = await signInWithGoogle();
+      if (!res.success) {
+        setAuthError({
+          message: res.error || 'Sign-in failed. Please try again.',
+          code: res.code,
+          domain: res.domain || (typeof window !== 'undefined' ? window.location.hostname : undefined),
+        });
+      }
+    } catch (err: unknown) {
+      const error = err as { message?: string };
+      setAuthError({
+        message: error.message || 'An unexpected error occurred during Google sign-in.',
+      });
+    } finally {
+      setIsSigningIn(false);
+    }
+  };
+
+  const handleGoogleRedirectSignIn = async () => {
+    setAuthError(null);
+    setIsSigningIn(true);
+    try {
+      const res = await signInWithGoogleRedirect();
+      if (!res.success) {
+        setAuthError({
+          message: res.error || 'Failed to initiate redirect sign-in.',
+        });
+        setIsSigningIn(false);
+      }
+    } catch (err: unknown) {
+      const error = err as { message?: string };
+      setAuthError({
+        message: error.message || 'An unexpected error occurred during Google sign-in redirect.',
+      });
+      setIsSigningIn(false);
+    }
+  };
 
   // Load from notebook storage (automatically purges items > 30 days old)
   useEffect(() => {
@@ -196,23 +249,108 @@ export default function NotebookPage() {
               ) : (
                 <div className="flex items-center gap-2">
                   <button
-                    onClick={async () => {
-                      try {
-                        await signInWithGoogle();
-                      } catch (err) {
-                        console.error('Sign in error:', err);
-                      }
-                    }}
-                    className="px-3 py-1.5 rounded-lg border border-teal-300 bg-teal-50 hover:bg-teal-100 text-teal-800 text-xs font-semibold flex items-center gap-1.5 transition-colors shadow-xs cursor-pointer"
+                    onClick={handleGoogleSignIn}
+                    disabled={isSigningIn}
+                    className="px-3 py-1.5 rounded-lg border border-teal-300 bg-teal-50 hover:bg-teal-100 disabled:opacity-60 text-teal-800 text-xs font-semibold flex items-center gap-1.5 transition-colors shadow-xs cursor-pointer"
+                    title="Sign in with your Google account"
                   >
-                    <LogIn className="w-3.5 h-3.5" />
-                    <span>Sign In with Google</span>
+                    {isSigningIn ? (
+                      <>
+                        <Loader2 className="w-3.5 h-3.5 animate-spin text-teal-700" />
+                        <span>Connecting...</span>
+                      </>
+                    ) : (
+                      <>
+                        <svg className="w-3.5 h-3.5 shrink-0" viewBox="0 0 24 24" aria-hidden="true">
+                          <path fill="#4285F4" d="M23.745 12.27c0-.7-.06-1.4-.19-2.07H12v4.51h6.6c-.29 1.52-1.14 2.8-2.4 3.65v3.03h3.88c2.27-2.09 3.66-5.17 3.66-9.12z"/>
+                          <path fill="#34A853" d="M12 24c3.24 0 5.95-1.08 7.93-2.91l-3.88-3.03c-1.08.72-2.45 1.16-4.05 1.16-3.12 0-5.77-2.1-6.72-4.93H1.25v3.13C3.27 21.43 7.33 24 12 24z"/>
+                          <path fill="#FBBC05" d="M5.28 14.29c-.25-.72-.38-1.49-.38-2.29s.13-1.57.38-2.29V6.58H1.25C.45 8.18 0 9.99 0 12s.45 3.82 1.25 5.42l4.03-3.13z"/>
+                          <path fill="#EA4335" d="M12 4.75c1.77 0 3.35.61 4.6 1.8l3.42-3.42C17.95 1.19 15.24 0 12 0 7.33 0 3.27 2.57 1.25 6.58l4.03 3.13c.95-2.83 3.6-4.96 6.72-4.96z"/>
+                        </svg>
+                        <span>Sign In with Google</span>
+                      </>
+                    )}
                   </button>
                 </div>
               )}
             </div>
           </div>
         </div>
+
+        {/* Diagnostic Alert for Authentication Errors */}
+        {authError && (
+          <div className="p-4 rounded-xl bg-amber-50 border border-amber-300 text-amber-950 text-xs space-y-2.5 no-print animate-in fade-in duration-150">
+            <div className="flex items-start justify-between gap-3">
+              <div className="flex items-start gap-2.5">
+                <AlertTriangle className="w-4 h-4 text-amber-600 shrink-0 mt-0.5" />
+                <div className="space-y-1">
+                  <div className="font-bold text-slate-900">Google Authentication Status</div>
+                  <p className="text-slate-700 leading-relaxed">{authError.message}</p>
+                </div>
+              </div>
+              <button
+                onClick={() => setAuthError(null)}
+                className="text-slate-400 hover:text-slate-600 text-base font-bold px-1.5 py-0.5 rounded cursor-pointer"
+                aria-label="Dismiss message"
+              >
+                ×
+              </button>
+            </div>
+
+            {authError.code === 'auth/unauthorized-domain' && authError.domain && (
+              <div className="p-3 bg-white/90 rounded-lg border border-amber-200 space-y-2 text-[11px] text-slate-700">
+                <div className="font-semibold text-slate-900">Required Firebase Console Step:</div>
+                <ol className="list-decimal list-inside space-y-1 text-slate-600">
+                  <li>
+                    Open{' '}
+                    <a
+                      href="https://console.firebase.google.com/project/repurpose-6bbab/authentication/settings"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-teal-800 underline font-medium inline-flex items-center gap-0.5"
+                    >
+                      Firebase Console &gt; Authentication &gt; Settings &gt; Authorized domains
+                      <ExternalLink className="w-3 h-3 inline ml-0.5" />
+                    </a>
+                  </li>
+                  <li>
+                    Click <span className="font-semibold text-slate-800">Add domain</span> and enter:{' '}
+                    <code className="px-1.5 py-0.5 rounded bg-slate-100 font-mono text-teal-800 font-bold">
+                      {authError.domain}
+                    </code>
+                  </li>
+                  <li>Click Save and retry signing in.</li>
+                </ol>
+              </div>
+            )}
+
+            {authError.code === 'auth/popup-blocked' && (
+              <div className="pt-1 flex items-center gap-2 flex-wrap">
+                <button
+                  onClick={handleGoogleRedirectSignIn}
+                  disabled={isSigningIn}
+                  className="px-3 py-1.5 rounded-lg bg-teal-800 hover:bg-teal-900 text-white font-medium text-xs flex items-center gap-1.5 transition-colors cursor-pointer"
+                >
+                  <LogIn className="w-3.5 h-3.5" />
+                  <span>Try Sign In with Page Redirect</span>
+                </button>
+                <span className="text-[11px] text-slate-500">
+                  (Navigates directly to Google without popup windows)
+                </span>
+              </div>
+            )}
+
+            <div className="flex items-center justify-between pt-1 border-t border-amber-200/60 text-[11px] text-slate-600">
+              <span>Your research notes and hypotheses are always safely saved locally on your device.</span>
+              <button
+                onClick={() => setAuthError(null)}
+                className="text-teal-800 hover:underline font-medium cursor-pointer"
+              >
+                Continue in Guest Mode
+              </button>
+            </div>
+          </div>
+        )}
 
         {/* Privacy Assurance & 30-Day Retention Notice */}
         <div className="p-4 rounded-xl bg-teal-50/70 border border-teal-200 text-xs text-teal-950 space-y-2 no-print">
