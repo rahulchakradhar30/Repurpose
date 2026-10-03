@@ -10,7 +10,7 @@ export function Footer() {
   const showCreatorDetails = pathname === '/' || pathname === '/about' || pathname === '/methodology';
 
   return (
-    <footer className="mt-auto border-t border-slate-100 py-2.5 sm:py-3 text-center text-[10px] text-slate-400 bg-white no-print">
+    <footer className="mt-auto border-t border-slate-100 pt-2.5 pb-16 sm:py-3 text-center text-[10px] text-slate-400 bg-white no-print">
       <div className="max-w-4xl mx-auto px-4 space-y-1.5">
         <div className="flex flex-wrap items-center justify-center gap-2 text-slate-500 font-medium text-[10px]">
           <Link href="/" className="hover:text-teal-800 transition-colors">
@@ -43,13 +43,13 @@ export function Footer() {
         </div>
 
         {showCreatorDetails && (
-          <div className="space-y-0 text-[10px] text-slate-400">
-            <p>Open-source tool prepared by P. Rahul Chakradhar</p>
-            <p>
+          <div className="space-y-0.5 text-[9.5px] sm:text-[10px] text-slate-400">
+            <p className="leading-tight">Open-source tool prepared by P. Rahul Chakradhar</p>
+            <p className="leading-tight">
               Contact:{' '}
               <a
                 href="mailto:rahulchakradhar30@outlook.com"
-                className="font-medium text-teal-800 hover:text-teal-900 hover:underline font-mono"
+                className="font-medium text-teal-800 hover:text-teal-900 hover:underline font-mono text-[9px] sm:text-[10px]"
               >
                 rahulchakradhar30@outlook.com
               </a>
