@@ -3,14 +3,24 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 
 // SpeechRecognition type definitions for standard & webkit implementations
+interface SpeechRecognitionAlternative {
+  transcript: string;
+  confidence: number;
+}
+
+interface SpeechRecognitionResult {
+  [index: number]: SpeechRecognitionAlternative;
+  length: number;
+  isFinal: boolean;
+}
+
+interface SpeechRecognitionResultList {
+  [index: number]: SpeechRecognitionResult;
+  length: number;
+}
+
 interface SpeechRecognitionEvent {
-  results: {
-    [index: number]: {
-      [index: number]: {
-        transcript: string;
-      };
-    };
-  };
+  results: SpeechRecognitionResultList;
 }
 
 interface SpeechRecognitionErrorEvent {
@@ -38,7 +48,7 @@ interface WindowWithSpeech extends Window {
 }
 
 interface VoiceSearchOptions {
-  onTranscript: (transcript: string) => void;
+  onTranscript: (transcript: string, alternatives?: string[]) => void;
   onError?: (errorMessage: string) => void;
   lang?: string;
 }
@@ -47,8 +57,12 @@ export function useVoiceSearch({ onTranscript, onError, lang = 'en-US' }: VoiceS
   const [isListening, setIsListening] = useState(false);
   const [isSupported, setIsSupported] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
-  const recognitionRef = useRef<SpeechRecognitionInstance | null>(null);
 
+  const recognitionRef = useRef<SpeechRecognitionInstance | null>(null);
+  const isListeningRef = useRef<boolean>(false);
+  const restartTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+
+  // Check browser support on client mount
   useEffect(() => {
     if (typeof window !== 'undefined') {
       const win = window as WindowWithSpeech;
@@ -57,18 +71,37 @@ export function useVoiceSearch({ onTranscript, onError, lang = 'en-US' }: VoiceS
     }
   }, []);
 
-  const stopListening = useCallback(() => {
+  // Safe and thorough cleanup of active recognition instance
+  const cleanupRecognition = useCallback(() => {
+    if (restartTimeoutRef.current) {
+      clearTimeout(restartTimeoutRef.current);
+      restartTimeoutRef.current = null;
+    }
+
     if (recognitionRef.current) {
       try {
-        recognitionRef.current.stop();
+        const inst = recognitionRef.current;
+        inst.onstart = null;
+        inst.onend = null;
+        inst.onerror = null;
+        inst.onresult = null;
+        inst.abort();
       } catch {
-        // Ignore errors if recognition already ended
+        // Ignore errors if recognition already aborted
       }
       recognitionRef.current = null;
     }
+
+    isListeningRef.current = false;
     setIsListening(false);
   }, []);
 
+  // Stop listening gracefully
+  const stopListening = useCallback(() => {
+    cleanupRecognition();
+  }, [cleanupRecognition]);
+
+  // Start speech recognition session
   const startListening = useCallback(() => {
     if (typeof window === 'undefined') return;
 
@@ -82,48 +115,64 @@ export function useVoiceSearch({ onTranscript, onError, lang = 'en-US' }: VoiceS
       return;
     }
 
-    if (isListening) {
-      stopListening();
-      return;
-    }
-
+    // Always cleanly reset any existing instance first
+    cleanupRecognition();
     setErrorMessage(null);
 
     try {
       const recognition = new SpeechRecognitionClass();
       recognition.lang = lang;
       recognition.interimResults = false;
-      recognition.maxAlternatives = 1;
+      recognition.maxAlternatives = 5;
       recognition.continuous = false;
 
       recognition.onstart = () => {
+        isListeningRef.current = true;
         setIsListening(true);
       };
 
       recognition.onresult = (event: SpeechRecognitionEvent) => {
-        const transcript = event.results?.[0]?.[0]?.transcript;
-        if (transcript) {
-          // Clean up speech artifacts like trailing punctuation
-          const cleaned = transcript.trim().replace(/[.,?!]+$/, '');
-          onTranscript(cleaned);
+        const result = event.results?.[0];
+        if (!result) return;
+
+        const mainTranscript = result[0]?.transcript?.trim().replace(/[.,?!]+$/, '') || '';
+        const alternatives: string[] = [];
+        for (let i = 0; i < result.length; i++) {
+          const alt = result[i]?.transcript?.trim().replace(/[.,?!]+$/, '');
+          if (alt && !alternatives.includes(alt)) {
+            alternatives.push(alt);
+          }
+        }
+
+        if (mainTranscript) {
+          onTranscript(mainTranscript, alternatives);
         }
       };
 
       recognition.onerror = (event: SpeechRecognitionErrorEvent) => {
-        let msg = 'Voice recognition error. Please try again.';
+        isListeningRef.current = false;
+        setIsListening(false);
+        recognitionRef.current = null;
+
+        // Aborted error occurs naturally during stop/restart; don't alert the user
+        if (event.error === 'aborted') {
+          return;
+        }
+
+        let msg = 'Voice recognition encountered an error. Please try again.';
         if (event.error === 'not-allowed' || event.error === 'permission-denied') {
-          msg = 'Microphone access was denied. Please allow microphone permissions in your browser.';
+          msg = 'Microphone access denied. Please allow microphone permissions in your browser.';
         } else if (event.error === 'no-speech') {
           msg = 'No speech detected. Please speak clearly into your microphone.';
         } else if (event.error === 'network') {
-          msg = 'Speech recognition network connection interrupted.';
+          msg = 'Speech recognition network interrupted.';
         }
         setErrorMessage(msg);
         onError?.(msg);
-        setIsListening(false);
       };
 
       recognition.onend = () => {
+        isListeningRef.current = false;
         setIsListening(false);
         recognitionRef.current = null;
       };
@@ -131,26 +180,77 @@ export function useVoiceSearch({ onTranscript, onError, lang = 'en-US' }: VoiceS
       recognitionRef.current = recognition;
       recognition.start();
     } catch (err: unknown) {
-      console.error('Failed to start voice recognition:', err);
-      const msg = err instanceof Error ? err.message : 'Could not activate microphone.';
-      setErrorMessage(msg);
-      onError?.(msg);
-      setIsListening(false);
-    }
-  }, [isListening, lang, onTranscript, onError, stopListening]);
+      // In case browser is still transitioning internal microphone state, schedule quick retry
+      cleanupRecognition();
+      restartTimeoutRef.current = setTimeout(() => {
+        try {
+          const retryRecognition = new SpeechRecognitionClass();
+          retryRecognition.lang = lang;
+          retryRecognition.interimResults = false;
+          retryRecognition.maxAlternatives = 5;
+          retryRecognition.continuous = false;
 
-  // Clean up recognition instance when unmounting
+          retryRecognition.onstart = () => {
+            isListeningRef.current = true;
+            setIsListening(true);
+          };
+
+          retryRecognition.onresult = (event: SpeechRecognitionEvent) => {
+            const result = event.results?.[0];
+            if (!result) return;
+            const mainTranscript = result[0]?.transcript?.trim().replace(/[.,?!]+$/, '') || '';
+            const alternatives: string[] = [];
+            for (let i = 0; i < result.length; i++) {
+              const alt = result[i]?.transcript?.trim().replace(/[.,?!]+$/, '');
+              if (alt && !alternatives.includes(alt)) alternatives.push(alt);
+            }
+            if (mainTranscript) onTranscript(mainTranscript, alternatives);
+          };
+
+          retryRecognition.onerror = (event: SpeechRecognitionErrorEvent) => {
+            isListeningRef.current = false;
+            setIsListening(false);
+            recognitionRef.current = null;
+            if (event.error !== 'aborted') {
+              setErrorMessage('Microphone failed to start. Please try again.');
+            }
+          };
+
+          retryRecognition.onend = () => {
+            isListeningRef.current = false;
+            setIsListening(false);
+            recognitionRef.current = null;
+          };
+
+          recognitionRef.current = retryRecognition;
+          retryRecognition.start();
+        } catch (retryErr: unknown) {
+          console.error('Failed to start voice recognition on retry:', retryErr);
+          const msg = retryErr instanceof Error ? retryErr.message : 'Could not activate microphone.';
+          setErrorMessage(msg);
+          onError?.(msg);
+          setIsListening(false);
+          isListeningRef.current = false;
+        }
+      }, 100);
+    }
+  }, [lang, onTranscript, onError, cleanupRecognition]);
+
+  // Unified toggle helper to avoid state desync or race conditions
+  const toggleListening = useCallback(() => {
+    if (isListeningRef.current) {
+      stopListening();
+    } else {
+      startListening();
+    }
+  }, [stopListening, startListening]);
+
+  // Clean up on component unmount
   useEffect(() => {
     return () => {
-      if (recognitionRef.current) {
-        try {
-          recognitionRef.current.abort();
-        } catch {
-          // Ignore
-        }
-      }
+      cleanupRecognition();
     };
-  }, []);
+  }, [cleanupRecognition]);
 
   return {
     isSupported,
@@ -158,6 +258,7 @@ export function useVoiceSearch({ onTranscript, onError, lang = 'en-US' }: VoiceS
     errorMessage,
     startListening,
     stopListening,
+    toggleListening,
     clearError: () => setErrorMessage(null),
   };
 }

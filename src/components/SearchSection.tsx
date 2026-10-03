@@ -1,8 +1,8 @@
 'use client';
 
 import { useState, useEffect, useRef, useCallback } from 'react';
-import { Search, ArrowRight, Loader2, X, Pill, Mic, AlertCircle } from 'lucide-react';
-import { searchDrugDirectory, DrugDirectoryEntry } from '@/lib/drugDirectory';
+import { Search, ArrowRight, Loader2, X, Pill, Mic, AlertCircle, Sparkles } from 'lucide-react';
+import { searchDrugDirectory, findFuzzyDrugCorrection, DrugDirectoryEntry } from '@/lib/drugDirectory';
 import { useVoiceSearch } from '@/hooks/useVoiceSearch';
 
 interface SearchSuggestionItem {
@@ -11,8 +11,10 @@ interface SearchSuggestionItem {
   brandNames?: string[];
   drugClass?: string;
   rxcui?: string;
-  matchedOn?: 'generic' | 'brand';
+  matchedOn?: 'generic' | 'brand' | 'phonetic' | 'fuzzy';
   matchedTerm?: string;
+  isFuzzyCorrection?: boolean;
+  similarityScore?: number;
   source?: 'directory' | 'rxnorm';
 }
 
@@ -59,6 +61,7 @@ export function SearchSection({
 }: SearchSectionProps) {
   const [query, setQuery] = useState(initialQuery);
   const [suggestions, setSuggestions] = useState<SearchSuggestionItem[]>([]);
+  const [didYouMean, setDidYouMean] = useState<DrugDirectoryEntry | null>(null);
   const [isAutocompleteLoading, setIsAutocompleteLoading] = useState(false);
   const [isOpen, setIsOpen] = useState(false);
   const [selectedIndex, setSelectedIndex] = useState(-1);
@@ -84,11 +87,13 @@ export function SearchSection({
       rxcui: item.rxcui,
       matchedOn: item.matchedOn || 'generic',
       matchedTerm: item.matchedTerm || item.name,
+      isFuzzyCorrection: item.isFuzzyCorrection,
+      similarityScore: item.similarityScore,
       source: 'directory' as const,
     }));
   }, []);
 
-  // Handle typing: immediate elimination on every keystroke
+  // Handle typing or voice transcription: immediate elimination & phonetic matching
   const handleInputChange = useCallback((newVal: string) => {
     setQuery(newVal);
     const trimmed = newVal.trim();
@@ -96,6 +101,7 @@ export function SearchSection({
     // Strict 3-character threshold: do not show dropdown for 1 or 2 characters
     if (trimmed.length < 3) {
       setSuggestions([]);
+      setDidYouMean(null);
       setIsOpen(false);
       setSelectedIndex(-1);
       return;
@@ -104,21 +110,35 @@ export function SearchSection({
     // Instant zero-latency prefix elimination for >= 3 characters (Google/YouTube style)
     const instant = getInstantDirectoryMatches(trimmed);
     setSuggestions(instant);
+
+    // Phonetic & spelling fuzzy match detection for mispronunciations/typos
+    const fuzzySuggestion = findFuzzyDrugCorrection(trimmed);
+    setDidYouMean(fuzzySuggestion);
+
     setIsOpen(true);
     setSelectedIndex(-1);
   }, [getInstantDirectoryMatches]);
 
-  // Voice search hook integration
+  // Voice search hook integration with multi-alternative analysis
   const {
     isSupported,
     isListening,
     errorMessage: voiceError,
-    startListening,
+    toggleListening,
     stopListening,
     clearError: clearVoiceError,
   } = useVoiceSearch({
-    onTranscript: (spokenText) => {
-      handleInputChange(spokenText);
+    onTranscript: (spokenText, alternatives = []) => {
+      // Analyze all candidate alternatives for phonetic drug alignment
+      let resolvedText = spokenText;
+      for (const alt of [spokenText, ...alternatives]) {
+        const fuzzy = findFuzzyDrugCorrection(alt);
+        if (fuzzy) {
+          resolvedText = fuzzy.matchedTerm || fuzzy.name;
+          break;
+        }
+      }
+      handleInputChange(resolvedText);
       inputRef.current?.focus();
     },
   });
@@ -185,6 +205,7 @@ export function SearchSection({
         const selected = suggestions[selectedIndex];
         const searchName = selected.name;
         setQuery(searchName);
+        setDidYouMean(null);
         setIsOpen(false);
         onSearch(searchName);
       } else if (query.trim()) {
@@ -199,6 +220,7 @@ export function SearchSection({
   const handleSelectSuggestion = (item: SearchSuggestionItem) => {
     const searchName = item.name;
     setQuery(searchName);
+    setDidYouMean(null);
     setIsOpen(false);
     onSearch(searchName);
   };
@@ -268,6 +290,7 @@ export function SearchSection({
                 onClick={() => {
                   setQuery('');
                   setSuggestions([]);
+                  setDidYouMean(null);
                   setIsOpen(false);
                   inputRef.current?.focus();
                 }}
@@ -282,11 +305,11 @@ export function SearchSection({
             {isSupported && (
               <button
                 type="button"
-                onClick={isListening ? stopListening : startListening}
+                onClick={toggleListening}
                 disabled={isLoading}
                 aria-label={isListening ? 'Stop listening' : 'Search drug by voice'}
                 aria-pressed={isListening}
-                title={isListening ? 'Listening... click to cancel' : 'Search by voice'}
+                title={isListening ? 'Listening... click to stop' : 'Search by voice'}
                 className={`p-1.5 rounded-md transition-all cursor-pointer relative ${
                   isListening
                     ? 'bg-red-50 text-red-600 border border-red-300 ring-2 ring-red-400/30'
@@ -348,7 +371,48 @@ export function SearchSection({
           </div>
         )}
 
-        {/* Live Autocomplete Dropdown with Prefix Elimination */}
+        {/* Did You Mean / Phonetic Match Suggestion Banner */}
+        {didYouMean && !isListening && (
+          <div className="mt-2.5 flex items-center justify-between gap-2 px-3.5 py-2 bg-teal-50/95 border border-teal-200 rounded-lg text-xs text-teal-900 shadow-xs animate-in fade-in duration-150">
+            <div className="flex items-center gap-2 truncate">
+              <Sparkles className="w-3.5 h-3.5 text-teal-700 shrink-0" />
+              <span className="text-slate-600 shrink-0">Is this the drug you are finding?</span>
+              <button
+                type="button"
+                onClick={() => {
+                  const targetName = didYouMean.matchedTerm || didYouMean.name;
+                  setQuery(targetName);
+                  setDidYouMean(null);
+                  setIsOpen(false);
+                  onSearch(targetName);
+                }}
+                className="font-semibold text-teal-900 underline hover:text-teal-950 cursor-pointer truncate"
+              >
+                {didYouMean.matchedTerm || didYouMean.name}
+              </button>
+              {didYouMean.drugClass && (
+                <span className="text-slate-500 hidden sm:inline truncate">
+                  ({didYouMean.drugClass})
+                </span>
+              )}
+            </div>
+            <button
+              type="button"
+              onClick={() => {
+                const targetName = didYouMean.matchedTerm || didYouMean.name;
+                setQuery(targetName);
+                setDidYouMean(null);
+                setIsOpen(false);
+                onSearch(targetName);
+              }}
+              className="px-2.5 py-1 bg-teal-800 hover:bg-teal-900 text-white rounded text-[11px] font-medium transition-colors cursor-pointer shrink-0"
+            >
+              Search this drug
+            </button>
+          </div>
+        )}
+
+        {/* Live Autocomplete Dropdown with Prefix Elimination & Closest Matches */}
         {showDropdown && (
           <div 
             role="listbox"
@@ -356,19 +420,22 @@ export function SearchSection({
             className="absolute top-full left-0 right-0 mt-1 bg-white border border-slate-200 rounded-lg shadow-xl z-50 overflow-hidden divide-y divide-slate-100 max-h-80 overflow-y-auto"
           >
             <div className="px-3.5 py-1.5 bg-slate-50 text-[11px] font-medium text-slate-500 flex justify-between items-center border-b border-slate-100">
-              <span className="flex items-center gap-1.5">
-                <Pill className="w-3 h-3 text-teal-600" />
+              <span className="flex items-center gap-1.5 truncate">
+                <Pill className="w-3 h-3 text-teal-600 shrink-0" />
                 {suggestions.length > 0
-                  ? `Matching drugs (${suggestions.length}) · type more to narrow`
+                  ? suggestions.some((s) => s.isFuzzyCorrection)
+                    ? `Closest matches for "${trimmedQuery}" · Is this the drug you are finding?`
+                    : `Matching drugs (${suggestions.length}) · type more to narrow`
                   : `No exact matches for "${trimmedQuery}"`}
               </span>
-              {isAutocompleteLoading && <Loader2 className="w-3 h-3 animate-spin text-teal-700" />}
+              {isAutocompleteLoading && <Loader2 className="w-3 h-3 animate-spin text-teal-700 shrink-0 ml-2" />}
             </div>
 
             {suggestions.length > 0 ? (
               suggestions.map((item, idx) => {
                 const isSelected = selectedIndex === idx;
                 const isBrand = item.matchedOn === 'brand';
+                const isFuzzy = Boolean(item.isFuzzyCorrection);
 
                 return (
                   <button
@@ -385,11 +452,20 @@ export function SearchSection({
                     <div className="flex flex-col min-w-0 pr-2">
                       <div className="flex items-center gap-2 truncate">
                         <span className="truncate text-slate-900 font-medium">
-                          <HighlightMatchedText text={item.name} query={trimmedQuery} />
+                          {isFuzzy ? (
+                            <span>{item.name}</span>
+                          ) : (
+                            <HighlightMatchedText text={item.name} query={trimmedQuery} />
+                          )}
                         </span>
                         {isBrand && item.genericName && (
                           <span className="text-[11px] text-slate-500 shrink-0 font-normal">
                             (generic: {item.genericName})
+                          </span>
+                        )}
+                        {isFuzzy && (
+                          <span className="text-[10px] font-medium bg-amber-100 text-amber-900 px-1.5 py-0.5 rounded border border-amber-200 shrink-0">
+                            Closest match
                           </span>
                         )}
                       </div>

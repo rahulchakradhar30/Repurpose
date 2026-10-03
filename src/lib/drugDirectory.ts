@@ -10,8 +10,10 @@ export interface DrugDirectoryEntry {
   brandNames: string[];
   drugClass: string;
   rxcui?: string;
-  matchedOn?: 'generic' | 'brand';
+  matchedOn?: 'generic' | 'brand' | 'phonetic' | 'fuzzy';
   matchedTerm?: string;
+  isFuzzyCorrection?: boolean;
+  similarityScore?: number;
 }
 
 export const DRUG_DIRECTORY: DrugDirectoryEntry[] = [
@@ -393,9 +395,153 @@ export const DRUG_DIRECTORY: DrugDirectoryEntry[] = [
 ];
 
 /**
- * Searches the drug directory with strict elimination matching.
+ * Calculates Levenshtein edit distance between two strings
+ */
+export function levenshteinDistance(a: string, b: string): number {
+  const m = a.length;
+  const n = b.length;
+  const dp: number[][] = Array.from({ length: m + 1 }, () => new Array(n + 1).fill(0));
+
+  for (let i = 0; i <= m; i++) dp[i][0] = i;
+  for (let j = 0; j <= n; j++) dp[0][j] = j;
+
+  for (let i = 1; i <= m; i++) {
+    for (let j = 1; j <= n; j++) {
+      const cost = a[i - 1] === b[j - 1] ? 0 : 1;
+      dp[i][j] = Math.min(
+        dp[i - 1][j] + 1,      // deletion
+        dp[i][j - 1] + 1,      // insertion
+        dp[i - 1][j - 1] + cost // substitution
+      );
+    }
+  }
+
+  return dp[m][n];
+}
+
+/**
+ * Phonetic normalization tuned for biomedical and pharmaceutical nomenclature.
+ * Maps common homophones, Latin/Greek diphthongs, and consonant variants.
+ */
+export function normalizePhonetic(s: string): string {
+  return s
+    .toLowerCase()
+    .trim()
+    .replace(/[^a-z0-9]/g, '')
+    .replace(/ph/g, 'f')
+    .replace(/th/g, 't')
+    .replace(/rh/g, 'r')
+    .replace(/ae|oe/g, 'e')
+    .replace(/c(?=[eiy])/g, 's')
+    .replace(/[cq]/g, 'k')
+    .replace(/x/g, 'ks')
+    .replace(/z/g, 's')
+    .replace(/y/g, 'i')
+    .replace(/(.)\1+/g, '$1'); // Collapse repeated consonants
+}
+
+/**
+ * Calculates normalized similarity ratio between 0.0 and 1.0
+ */
+export function calculateSimilarity(a: string, b: string): number {
+  const maxLen = Math.max(a.length, b.length);
+  if (maxLen === 0) return 1.0;
+  const dist = levenshteinDistance(a, b);
+  return Math.max(0, 1 - dist / maxLen);
+}
+
+/**
+ * Identifies high-confidence close matches when a user has a spelling
+ * or voice pronunciation typo (e.g. "metformen" -> Metformin, "talidomide" -> Thalidomide).
+ */
+export function findFuzzyDrugCorrection(rawQuery: string): DrugDirectoryEntry | null {
+  const query = (rawQuery || '').trim().toLowerCase();
+  if (query.length < 3) return null;
+
+  const qPhonetic = normalizePhonetic(query);
+
+  let bestEntry: DrugDirectoryEntry | null = null;
+  let bestScore = 0;
+  let bestMatchedTerm = '';
+  let bestMatchedOn: 'generic' | 'brand' | 'phonetic' | 'fuzzy' = 'fuzzy';
+
+  for (const entry of DRUG_DIRECTORY) {
+    const genericLower = entry.genericName.toLowerCase();
+    const gPhonetic = normalizePhonetic(genericLower);
+
+    // If query is an exact generic match, no correction needed
+    if (genericLower === query) {
+      return null;
+    }
+
+    // Check generic phonetic match
+    if (qPhonetic === gPhonetic) {
+      return {
+        ...entry,
+        matchedOn: 'phonetic',
+        matchedTerm: entry.genericName,
+        isFuzzyCorrection: true,
+        similarityScore: 0.96,
+      };
+    }
+
+    // Check generic edit distance similarity
+    const genericSim = calculateSimilarity(query, genericLower);
+    const genericDist = levenshteinDistance(query, genericLower);
+
+    if ((genericDist <= 2 || genericSim >= 0.72) && genericSim > bestScore) {
+      bestScore = genericSim;
+      bestEntry = entry;
+      bestMatchedTerm = entry.genericName;
+      bestMatchedOn = 'fuzzy';
+    }
+
+    // Check all brand names
+    for (const brand of entry.brandNames) {
+      const brandLower = brand.toLowerCase();
+      if (brandLower === query) {
+        return null; // Exact brand match
+      }
+
+      const bPhonetic = normalizePhonetic(brandLower);
+      if (qPhonetic === bPhonetic) {
+        return {
+          ...entry,
+          matchedOn: 'brand',
+          matchedTerm: brand,
+          isFuzzyCorrection: true,
+          similarityScore: 0.95,
+        };
+      }
+
+      const brandSim = calculateSimilarity(query, brandLower);
+      const brandDist = levenshteinDistance(query, brandLower);
+      if ((brandDist <= 2 || brandSim >= 0.72) && brandSim > bestScore) {
+        bestScore = brandSim;
+        bestEntry = entry;
+        bestMatchedTerm = brand;
+        bestMatchedOn = 'brand';
+      }
+    }
+  }
+
+  if (bestEntry && bestScore >= 0.72) {
+    return {
+      ...bestEntry,
+      matchedOn: bestMatchedOn,
+      matchedTerm: bestMatchedTerm,
+      isFuzzyCorrection: true,
+      similarityScore: bestScore,
+    };
+  }
+
+  return null;
+}
+
+/**
+ * Searches the drug directory with strict progressive elimination matching,
+ * backed by phonetic & fuzzy correction fallback for spelling and voice errors.
  * Requires at least 3 characters.
- * Matches starting letters of generic name or brand name (Google/YouTube search style).
  */
 export function searchDrugDirectory(rawQuery: string, maxResults = 8): DrugDirectoryEntry[] {
   const query = (rawQuery || '').trim().toLowerCase();
@@ -408,7 +554,6 @@ export function searchDrugDirectory(rawQuery: string, maxResults = 8): DrugDirec
   const exactPrefixMatches: DrugDirectoryEntry[] = [];
   const brandPrefixMatches: DrugDirectoryEntry[] = [];
   const wordPrefixMatches: DrugDirectoryEntry[] = [];
-
   const seenKeys = new Set<string>();
 
   for (const entry of DRUG_DIRECTORY) {
@@ -463,12 +608,77 @@ export function searchDrugDirectory(rawQuery: string, maxResults = 8): DrugDirec
     }
   }
 
-  // Combine results with prioritized ranking (exact prefix > brand prefix > word prefix)
-  const combined = [
+  const combinedPrefix = [
     ...exactPrefixMatches.sort((a, b) => a.name.localeCompare(b.name)),
     ...brandPrefixMatches.sort((a, b) => a.name.localeCompare(b.name)),
     ...wordPrefixMatches.sort((a, b) => a.name.localeCompare(b.name)),
   ];
 
-  return combined.slice(0, maxResults);
+  // If we have prefix matches, return them
+  if (combinedPrefix.length > 0) {
+    return combinedPrefix.slice(0, maxResults);
+  }
+
+  // If NO prefix matches exist, run fuzzy/phonetic search for typos & pronunciation errors
+  const qPhonetic = normalizePhonetic(query);
+  const fuzzyScored: Array<{ entry: DrugDirectoryEntry; score: number }> = [];
+
+  for (const entry of DRUG_DIRECTORY) {
+    const genericLower = entry.genericName.toLowerCase();
+    const gPhonetic = normalizePhonetic(genericLower);
+
+    let matchScore = 0;
+    let matchedTerm = entry.genericName;
+    let matchedOn: 'generic' | 'brand' | 'phonetic' | 'fuzzy' = 'fuzzy';
+
+    if (qPhonetic === gPhonetic) {
+      matchScore = 0.95;
+      matchedOn = 'phonetic';
+    } else {
+      const genericSim = calculateSimilarity(query, genericLower);
+      const genericDist = levenshteinDistance(query, genericLower);
+      if (genericDist <= 2 || genericSim >= 0.70) {
+        matchScore = genericSim;
+      }
+    }
+
+    // Also check brand names for fuzzy similarity
+    for (const brand of entry.brandNames) {
+      const brandLower = brand.toLowerCase();
+      const bPhonetic = normalizePhonetic(brandLower);
+      if (qPhonetic === bPhonetic) {
+        if (0.94 > matchScore) {
+          matchScore = 0.94;
+          matchedTerm = brand;
+          matchedOn = 'brand';
+        }
+      } else {
+        const brandSim = calculateSimilarity(query, brandLower);
+        const brandDist = levenshteinDistance(query, brandLower);
+        if ((brandDist <= 2 || brandSim >= 0.70) && brandSim > matchScore) {
+          matchScore = brandSim;
+          matchedTerm = brand;
+          matchedOn = 'brand';
+        }
+      }
+    }
+
+    if (matchScore >= 0.70) {
+      fuzzyScored.push({
+        entry: {
+          ...entry,
+          matchedOn,
+          matchedTerm,
+          isFuzzyCorrection: true,
+          similarityScore: matchScore,
+        },
+        score: matchScore,
+      });
+    }
+  }
+
+  // Sort fuzzy candidates by highest similarity score
+  fuzzyScored.sort((a, b) => b.score - a.score);
+  return fuzzyScored.map((s) => s.entry).slice(0, maxResults);
 }
+

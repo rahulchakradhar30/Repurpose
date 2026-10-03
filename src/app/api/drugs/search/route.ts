@@ -9,8 +9,10 @@ export interface SearchSuggestionItem {
   brandNames?: string[];
   drugClass?: string;
   rxcui?: string;
-  matchedOn?: 'generic' | 'brand';
+  matchedOn?: 'generic' | 'brand' | 'phonetic' | 'fuzzy';
   matchedTerm?: string;
+  isFuzzyCorrection?: boolean;
+  similarityScore?: number;
   source: 'directory' | 'rxnorm';
 }
 
@@ -41,7 +43,7 @@ export async function GET(request: NextRequest) {
   }
 
   try {
-    // 1. Instant local directory prefix elimination matching
+    // 1. Instant local directory prefix elimination matching & fuzzy fallback
     const dirResults = searchDrugDirectory(query, 8);
     const seenNames = new Set<string>();
 
@@ -58,6 +60,8 @@ export async function GET(request: NextRequest) {
         rxcui: item.rxcui,
         matchedOn: item.matchedOn || 'generic',
         matchedTerm: item.matchedTerm || item.name,
+        isFuzzyCorrection: item.isFuzzyCorrection,
+        similarityScore: item.similarityScore,
         source: 'directory' as const,
       };
     });
