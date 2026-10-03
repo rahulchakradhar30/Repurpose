@@ -21,8 +21,9 @@ import {
   ArrowRight
 } from 'lucide-react';
 import Link from 'next/link';
-import { generateRIS, generateCSV, downloadFile } from '@/lib/export';
 import { RepurposeCompass } from './RepurposeCompass';
+import { SaveToNotebookButton } from './SaveToNotebookButton';
+import { PrintSummaryButton } from './PrintSummaryButton';
 
 interface EvidenceDetailModalProps {
   candidate: RepurposingCandidate;
@@ -82,17 +83,6 @@ export function EvidenceDetailModal({
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [onClose]);
 
-  const handleExportRIS = () => {
-    const risContent = generateRIS(drug, candidate);
-    const safeCond = candidate.condition.toLowerCase().replace(/[^a-z0-9]/g, '_');
-    downloadFile(risContent, `${drug.genericName}_${safeCond}_citations.ris`, 'application/x-research-info-systems');
-  };
-
-  const handleExportCSV = () => {
-    const csvContent = generateCSV(drug, [candidate]);
-    const safeCond = candidate.condition.toLowerCase().replace(/[^a-z0-9]/g, '_');
-    downloadFile(csvContent, `${drug.genericName}_${safeCond}_evidence.csv`, 'text/csv;charset=utf-8;');
-  };
 
   const handleCopyLink = async () => {
     if (typeof window === 'undefined') return;
@@ -165,23 +155,8 @@ export function EvidenceDetailModal({
               <ArrowRight className="w-3.5 h-3.5" />
             </Link>
 
-            <button
-              onClick={handleExportRIS}
-              className="flex items-center gap-1 px-2.5 py-1.5 bg-white hover:bg-slate-100 text-slate-700 border border-slate-300 rounded font-medium transition-colors cursor-pointer shadow-2xs"
-              title="Export citations for Zotero, Mendeley, EndNote"
-            >
-              <FileCode className="w-3.5 h-3.5 text-slate-500" />
-              <span>Export RIS</span>
-            </button>
-
-            <button
-              onClick={handleExportCSV}
-              className="flex items-center gap-1 px-2.5 py-1.5 bg-white hover:bg-slate-100 text-slate-700 border border-slate-300 rounded font-medium transition-colors cursor-pointer shadow-2xs"
-              title="Export spreadsheet of trials and citations"
-            >
-              <FileSpreadsheet className="w-3.5 h-3.5 text-slate-500" />
-              <span>Export CSV</span>
-            </button>
+            <SaveToNotebookButton drug={drug} candidate={candidate} showViewLink={false} />
+            <PrintSummaryButton label="Print Summary" />
 
             <button
               onClick={handleCopyLink}

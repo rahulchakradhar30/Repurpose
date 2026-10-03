@@ -23,6 +23,8 @@ import {
 } from '@/lib/seo';
 import { CopyPageLinkButton } from '@/components/CopyPageLinkButton';
 import { CompareDrugButton } from '@/components/CompareDrugButton';
+import { SaveToNotebookButton } from '@/components/SaveToNotebookButton';
+import { PrintSummaryButton } from '@/components/PrintSummaryButton';
 
 interface PageProps {
   params: Promise<{ slug: string }>;
@@ -120,6 +122,8 @@ export default async function DrugPage({ params }: PageProps) {
           </nav>
           <div className="flex items-center gap-2 flex-wrap">
             <CompareDrugButton drug={drug} candidates={guide.candidates} />
+            <SaveToNotebookButton drug={drug} candidate={guide.candidates[0]} showViewLink={true} />
+            <PrintSummaryButton label="Print Summary" />
             <CopyPageLinkButton label="Copy dossier link" />
           </div>
         </div>

@@ -15,27 +15,22 @@ import {
   ShieldCheck, 
   Plus, 
   ArrowLeft, 
-  Search 
+  Search,
+  Clock,
+  Printer
 } from 'lucide-react';
 import { 
   subscribeToAuth, 
   signInWithGoogle, 
   signOutUser 
 } from '@/lib/firebase/client';
-
-interface NotebookDossierItem {
-  id: string; // drugSlug__conditionSlug
-  drug: string;
-  condition: string;
-  drugSlug: string;
-  conditionSlug: string;
-  score: number;
-  state: string;
-  savedAt: string;
-  notes?: string;
-  tags?: string[];
-  checklist?: Record<string, boolean>;
-}
+import { 
+  getNotebookItems, 
+  saveNotebookItems, 
+  subscribeNotebookItems, 
+  NotebookDossierItem 
+} from '@/lib/notebookStorage';
+import { PrintSummaryButton } from '@/components/PrintSummaryButton';
 
 const DEFAULT_CHECKLIST_TEMPLATE = [
   { id: 'trials', label: 'Review full NCT clinical trial records & design parameters' },
@@ -44,7 +39,7 @@ const DEFAULT_CHECKLIST_TEMPLATE = [
   { id: 'mechanism', label: 'Verify target & pathway rationale consistency' },
   { id: 'ontology', label: 'Confirm canonical disease ontology normalization' },
   { id: 'compare', label: 'Run side-by-side comparison in Compare Workspace' },
-  { id: 'export', label: 'Export citation bibliography (RIS/CSV) for literature review' },
+  { id: 'export', label: 'Print or export dossier summary (PDF) for literature review archive' },
 ];
 
 export default function NotebookPage() {
@@ -63,31 +58,27 @@ export default function NotebookPage() {
     return () => unsubscribe();
   }, []);
 
-  // Load from local storage
+  // Load from notebook storage (automatically purges items > 30 days old)
   useEffect(() => {
-    try {
-      const stored = localStorage.getItem('repurpose_saved_dossiers');
-      if (stored) {
-        const parsed = JSON.parse(stored);
-        setItems(parsed);
-        if (parsed.length > 0 && !activeItemId) {
-          setActiveItemId(parsed[0].id);
-        }
-      }
-    } catch (e) {
-      console.error('Failed to load notebook dossiers', e);
+    const loaded = getNotebookItems();
+    setItems(loaded);
+    if (loaded.length > 0 && !activeItemId) {
+      setActiveItemId(loaded[0].id);
     }
+
+    const unsub = subscribeNotebookItems((updated) => {
+      setItems(updated);
+      if (updated.length > 0 && (!activeItemId || !updated.some(u => u.id === activeItemId))) {
+        setActiveItemId(updated[0].id);
+      }
+    });
+    return () => unsub();
   }, [activeItemId]);
 
   const persistItems = (updated: NotebookDossierItem[]) => {
-    setItems(updated);
-    try {
-      localStorage.setItem('repurpose_saved_dossiers', JSON.stringify(updated));
-      setSaveStatus('Saved');
-      setTimeout(() => setSaveStatus(null), 2000);
-    } catch (e) {
-      console.error('Failed to persist items', e);
-    }
+    saveNotebookItems(updated);
+    setSaveStatus('Saved');
+    setTimeout(() => setSaveStatus(null), 2000);
   };
 
   const activeItem = items.find(i => i.id === activeItemId) || items[0] || null;
@@ -141,8 +132,8 @@ export default function NotebookPage() {
   };
 
   const handleDeleteAllData = () => {
-    if (!confirm('WARNING: This will permanently delete all your saved research dossiers, private notes, tags, and checklist states from this device. Proceed?')) return;
-    localStorage.removeItem('repurpose_saved_dossiers');
+    if (!confirm('WARNING: This will permanently delete all your saved research dossiers, private notes, tags, and checklist states. Proceed?')) return;
+    saveNotebookItems([]);
     setItems([]);
     setActiveItemId(null);
   };
@@ -161,7 +152,7 @@ export default function NotebookPage() {
       <main className="max-w-6xl mx-auto px-4 sm:px-6 py-6 sm:py-8 space-y-6 flex-1 w-full">
         {/* Navigation Breadcrumbs & Header */}
         <div className="space-y-3">
-          <nav aria-label="Breadcrumbs" className="flex items-center gap-1.5 text-xs text-slate-500">
+          <nav aria-label="Breadcrumbs" className="flex items-center gap-1.5 text-xs text-slate-500 no-print">
             <Link href="/" className="hover:text-teal-800 transition-colors flex items-center gap-1">
               <ArrowLeft className="w-3.5 h-3.5" />
               <span>Workspace</span>
@@ -184,17 +175,19 @@ export default function NotebookPage() {
               </p>
             </div>
 
-            {/* User Auth controls */}
-            <div className="flex items-center gap-3 shrink-0">
+            {/* User Auth controls & Print Notebook */}
+            <div className="flex items-center gap-2.5 shrink-0 flex-wrap no-print">
+              <PrintSummaryButton label="Print Notebook (PDF)" />
+
               {user && !user.isAnonymous ? (
                 <div className="flex items-center gap-2">
                   <div className="text-right text-xs">
                     <div className="font-semibold text-slate-800">{user.displayName || user.email}</div>
-                    <div className="text-slate-500 font-mono text-[10px]">Cloud Synced</div>
+                    <div className="text-teal-700 font-mono text-[10px]">Cloud Synced</div>
                   </div>
                   <button
                     onClick={() => signOutUser()}
-                    className="p-2 rounded-lg border border-slate-300 bg-white hover:bg-slate-50 text-slate-700 text-xs transition-colors shadow-xs"
+                    className="p-2 rounded-lg border border-slate-300 bg-white hover:bg-slate-50 text-slate-700 text-xs transition-colors shadow-xs cursor-pointer"
                     title="Sign out"
                   >
                     <LogOut className="w-4 h-4" />
@@ -202,13 +195,18 @@ export default function NotebookPage() {
                 </div>
               ) : (
                 <div className="flex items-center gap-2">
-                  <span className="text-xs text-slate-500 hidden sm:inline">Guest Mode (Local Storage)</span>
                   <button
-                    onClick={() => signInWithGoogle()}
-                    className="px-3 py-1.5 rounded-lg border border-teal-300 bg-teal-50 hover:bg-teal-100 text-teal-800 text-xs font-medium flex items-center gap-1.5 transition-colors shadow-xs"
+                    onClick={async () => {
+                      try {
+                        await signInWithGoogle();
+                      } catch (err) {
+                        console.error('Sign in error:', err);
+                      }
+                    }}
+                    className="px-3 py-1.5 rounded-lg border border-teal-300 bg-teal-50 hover:bg-teal-100 text-teal-800 text-xs font-semibold flex items-center gap-1.5 transition-colors shadow-xs cursor-pointer"
                   >
                     <LogIn className="w-3.5 h-3.5" />
-                    <span>Sign In for Cloud Sync</span>
+                    <span>Sign In with Google</span>
                   </button>
                 </div>
               )}
@@ -216,12 +214,20 @@ export default function NotebookPage() {
           </div>
         </div>
 
-        {/* Privacy Assurance Banner */}
-        <div className="p-4 rounded-xl bg-teal-50 border border-teal-200 text-xs text-teal-950 flex items-start gap-3">
-          <ShieldCheck className="w-4 h-4 text-teal-700 shrink-0 mt-0.5" />
-          <p className="leading-relaxed">
-            <span className="text-teal-950 font-semibold">Owner-Only Privacy:</span> Your private notes, custom tags, and checklist statuses are stored strictly in your authenticated Firestore vault or device local storage. They are never shared publicly, aggregated into public evidence scores, or exported without explicit action.
-          </p>
+        {/* Privacy Assurance & 30-Day Retention Notice */}
+        <div className="p-4 rounded-xl bg-teal-50/70 border border-teal-200 text-xs text-teal-950 space-y-2 no-print">
+          <div className="flex items-start gap-2.5">
+            <ShieldCheck className="w-4 h-4 text-teal-700 shrink-0 mt-0.5" />
+            <p className="leading-relaxed">
+              <span className="text-teal-950 font-bold">Strict Research Privacy:</span> Your private notes, custom tags, and checklist dossiers are strictly confidential, locked, and protected with secure end-to-end access controls. Your research data is never shared with third parties or used for tracking.
+            </p>
+          </div>
+          <div className="flex items-start gap-2.5 pt-1.5 border-t border-teal-200/60 text-slate-700 text-[11px]">
+            <Clock className="w-3.5 h-3.5 text-teal-700 shrink-0 mt-0.5" />
+            <p className="leading-relaxed">
+              <span className="font-semibold text-slate-900">30-Day Data Retention Policy:</span> To protect researcher confidentiality, notebook records and saved dossiers are retained for 30 days and then automatically cleared from all databases and storage. Please use the <strong>Print / Save PDF</strong> button to download or print your research dossiers for permanent local archiving.
+            </p>
+          </div>
         </div>
 
         {items.length === 0 ? (
@@ -234,7 +240,7 @@ export default function NotebookPage() {
             <div className="pt-2">
               <Link
                 href="/"
-                className="px-4 py-2 rounded-lg bg-teal-700 hover:bg-teal-800 text-white text-xs font-semibold inline-flex items-center gap-2 transition-colors shadow-xs"
+                className="px-4 py-2 rounded-lg bg-teal-800 hover:bg-teal-900 text-white text-xs font-semibold inline-flex items-center gap-2 transition-colors shadow-xs"
               >
                 <span>Explore Drug Hypotheses</span>
               </Link>
@@ -243,7 +249,7 @@ export default function NotebookPage() {
         ) : (
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
             {/* LEFT COLUMN: Saved Dossier List */}
-            <div className="lg:col-span-4 space-y-3">
+            <div className="lg:col-span-4 space-y-3 no-print">
               <div className="relative">
                 <Search className="w-4 h-4 text-slate-400 absolute left-3 top-2.5" />
                 <input
@@ -288,7 +294,7 @@ export default function NotebookPage() {
               <div className="pt-4 border-t border-slate-200">
                 <button
                   onClick={handleDeleteAllData}
-                  className="w-full py-2 px-3 rounded-lg border border-rose-200 bg-rose-50 hover:bg-rose-100 text-rose-800 text-xs font-medium flex items-center justify-center gap-1.5 transition-colors"
+                  className="w-full py-2 px-3 rounded-lg border border-rose-200 bg-rose-50 hover:bg-rose-100 text-rose-800 text-xs font-medium flex items-center justify-center gap-1.5 transition-colors cursor-pointer"
                 >
                   <Trash2 className="w-3.5 h-3.5" />
                   <span>Clear All Notebook Data</span>
@@ -311,7 +317,9 @@ export default function NotebookPage() {
                       </h2>
                     </div>
 
-                    <div className="flex items-center gap-2">
+                    <div className="flex items-center gap-2 no-print flex-wrap">
+                      <PrintSummaryButton label="Print Dossier (PDF)" />
+
                       <Link
                         href={`/evidence/${activeItem.drugSlug}/${activeItem.conditionSlug}`}
                         className="px-3 py-1.5 rounded-lg border border-teal-300 bg-teal-50 hover:bg-teal-100 text-teal-800 text-xs font-medium flex items-center gap-1 transition-colors shadow-xs"
@@ -322,7 +330,7 @@ export default function NotebookPage() {
 
                       <button
                         onClick={() => handleDeleteItem(activeItem.id)}
-                        className="p-1.5 rounded-lg border border-slate-300 bg-white hover:bg-rose-50 hover:text-rose-700 text-slate-500 transition-colors shadow-xs"
+                        className="p-1.5 rounded-lg border border-slate-300 bg-white hover:bg-rose-50 hover:text-rose-700 text-slate-500 transition-colors shadow-xs cursor-pointer"
                         title="Delete from notebook"
                       >
                         <Trash2 className="w-4 h-4" />
@@ -356,75 +364,79 @@ export default function NotebookPage() {
                         <span>#{t}</span>
                         <button
                           onClick={() => handleRemoveTag(t)}
-                          className="text-teal-600 hover:text-rose-600"
+                          className="text-teal-600 hover:text-rose-600 no-print cursor-pointer"
+                          aria-label={`Remove tag ${t}`}
                         >
                           ×
                         </button>
                       </span>
                     ))}
+                  </div>
 
-                    <div className="flex items-center gap-1">
-                      <input
-                        type="text"
-                        value={newTagInput}
-                        onChange={(e) => setNewTagInput(e.target.value)}
-                        onKeyDown={(e) => e.key === 'Enter' && handleAddTag()}
-                        placeholder="Add tag..."
-                        className="px-2 py-1 rounded bg-slate-50 border border-slate-300 text-xs text-slate-900 focus:outline-none focus:border-teal-600 w-28"
-                      />
-                      <button
-                        onClick={handleAddTag}
-                        className="p-1 rounded bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-200"
-                        title="Add tag"
-                      >
-                        <Plus className="w-3.5 h-3.5" />
-                      </button>
-                    </div>
+                  <div className="flex items-center gap-2 pt-1 no-print">
+                    <input
+                      type="text"
+                      value={newTagInput}
+                      onChange={(e) => setNewTagInput(e.target.value)}
+                      onKeyDown={(e) => e.key === 'Enter' && handleAddTag()}
+                      placeholder="Add tag (e.g. Oncology, High-Priority, Urgent)..."
+                      className="px-3 py-1.5 rounded-lg border border-slate-300 text-xs text-slate-800 focus:outline-none focus:border-teal-600 w-64 shadow-2xs"
+                    />
+                    <button
+                      onClick={handleAddTag}
+                      className="px-3 py-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold flex items-center gap-1 transition-colors cursor-pointer"
+                    >
+                      <Plus className="w-3.5 h-3.5" />
+                      <span>Add</span>
+                    </button>
                   </div>
                 </div>
 
-                {/* Private Notes */}
+                {/* Private Notes Section */}
                 <div className="p-5 sm:p-6 rounded-xl bg-white border border-slate-200 shadow-xs space-y-3">
                   <h3 className="text-xs font-bold text-slate-900 uppercase tracking-wider flex items-center gap-1.5">
                     <FileText className="w-3.5 h-3.5 text-teal-700" />
-                    Private Research Notes
+                    Private Investigator Notes
                   </h3>
+                  <p className="text-xs text-slate-500">
+                    Your notes are locked and visible only to you. Remember to download or print your PDF summary to keep notes beyond the 30-day retention window.
+                  </p>
                   <textarea
-                    rows={5}
+                    rows={6}
                     value={activeItem.notes || ''}
                     onChange={(e) => handleUpdateNotes(e.target.value)}
-                    placeholder="Write hypothesis notes, clinical trial observations, investigator questions, or literature synthesis..."
-                    className="w-full p-3 rounded-lg bg-slate-50 border border-slate-300 text-xs text-slate-900 placeholder-slate-400 focus:outline-none focus:border-teal-600 leading-relaxed"
+                    placeholder="Enter hypotheses notes, dosing considerations, laboratory observations, or mechanism notes here..."
+                    className="w-full p-3.5 rounded-lg border border-slate-300 text-xs sm:text-sm text-slate-800 placeholder-slate-400 focus:outline-none focus:border-teal-600 font-sans leading-relaxed shadow-2xs"
                   />
-                  <div className="text-[11px] text-slate-500">
-                    Auto-saved privately to your research profile.
-                  </div>
                 </div>
 
-                {/* Personal Research Checklist */}
+                {/* Evidence Verification Checklist */}
                 <div className="p-5 sm:p-6 rounded-xl bg-white border border-slate-200 shadow-xs space-y-3">
                   <h3 className="text-xs font-bold text-slate-900 uppercase tracking-wider flex items-center gap-1.5">
                     <CheckSquare className="w-3.5 h-3.5 text-teal-700" />
-                    Personal Research Verification Checklist
+                    Systematic Investigation Checklist
                   </h3>
-
                   <div className="space-y-2">
                     {DEFAULT_CHECKLIST_TEMPLATE.map((step) => {
-                      const isChecked = activeItem.checklist?.[step.id] || false;
+                      const isChecked = !!(activeItem.checklist && activeItem.checklist[step.id]);
                       return (
                         <div
                           key={step.id}
                           onClick={() => handleToggleChecklist(step.id)}
-                          className={`p-3 rounded-lg border cursor-pointer transition-all text-xs flex items-center gap-3 ${
+                          className={`flex items-start gap-2.5 p-2.5 rounded-lg border cursor-pointer transition-colors text-xs ${
                             isChecked
-                              ? 'bg-teal-50/60 border-teal-200 text-slate-600'
-                              : 'bg-slate-50 border-slate-200 text-slate-800 hover:border-slate-300'
+                              ? 'bg-teal-50/50 border-teal-200 text-teal-950'
+                              : 'bg-slate-50 border-slate-200 text-slate-700 hover:bg-white'
                           }`}
                         >
-                          <div className="shrink-0 text-teal-700">
-                            {isChecked ? <CheckSquare className="w-4 h-4 text-teal-700" /> : <Square className="w-4 h-4 text-slate-400" />}
+                          <div className="mt-0.5 shrink-0 text-teal-700">
+                            {isChecked ? (
+                              <CheckSquare className="w-4 h-4 text-teal-700" />
+                            ) : (
+                              <Square className="w-4 h-4 text-slate-400" />
+                            )}
                           </div>
-                          <span className={isChecked ? 'line-through text-slate-400' : 'text-slate-900 font-medium'}>
+                          <span className={`leading-relaxed ${isChecked ? 'line-through text-slate-500' : 'font-medium'}`}>
                             {step.label}
                           </span>
                         </div>

@@ -110,20 +110,28 @@ export default function AboutPage() {
             </div>
           </section>
 
-          {/* Privacy & Zero-Tracking Guarantee */}
+          {/* Privacy & Confidentiality Guarantee */}
           <section className="mb-8 p-6 rounded-xl bg-white border border-slate-200 shadow-xs space-y-3">
             <h2 className="text-xl font-bold text-slate-900 tracking-tight flex items-center gap-2">
               <Lock className="w-5 h-5 text-teal-700" />
-              Privacy Architecture & Zero-Data Retention
+              Privacy Architecture, Authentication &amp; 30-Day Retention Policy
             </h2>
             <p className="text-sm sm:text-base text-slate-700 leading-relaxed">
-              We believe research tools should respect investigator privacy without tracking queries or demanding personal information:
+              We believe research tools should uphold absolute investigator confidentiality while enabling secure hypothesis organization:
             </p>
-            <ul className="text-xs sm:text-sm text-slate-700 space-y-2 list-disc pl-5">
-              <li><strong className="text-slate-900">No User Accounts or Logins:</strong> Repurpose is entirely open and read-only. No sign-up, password, or profile is required or supported.</li>
-              <li><strong className="text-slate-900">No Tracking Cookies or Ad Pixels:</strong> We do not deploy third-party trackers, advertising beacons, or behavioural profiling scripts.</li>
-              <li><strong className="text-slate-900">URL Sharing Without Storing Queries:</strong> When you copy a link to share research, the state is conveyed safely through the URL route without storing user sessions on a server.</li>
-              <li><strong className="text-slate-900">Source API Confidentiality:</strong> Queries dispatched to government APIs (RxNorm, openFDA, PubChem, ClinicalTrials.gov) contain only the public compound identifier being researched.</li>
+            <ul className="text-xs sm:text-sm text-slate-700 space-y-2.5 list-disc pl-5">
+              <li>
+                <strong className="text-slate-900">Confidential Google Authentication:</strong> We support optional Google sign-in exclusively to sync your private Research Notebook across devices. Your login credentials, email address, and saved research notes are strictly private and are <strong>never shared or sold</strong> to any third parties or advertisers.
+              </li>
+              <li>
+                <strong className="text-slate-900">Mandatory 30-Day Auto-Purge Policy:</strong> To protect researcher privacy and data safety, all notebook records and saved research dossiers are automatically purged and permanently removed from our databases and cloud storage after 30 days. Investigators must use the <strong>Print / Save PDF</strong> button to preserve their dossiers locally.
+              </li>
+              <li>
+                <strong className="text-slate-900">Zero Commercial Tracking:</strong> We do not deploy third-party advertising beacons, commercial trackers, or marketing profiling scripts.
+              </li>
+              <li>
+                <strong className="text-slate-900">Source API Confidentiality:</strong> Queries dispatched to biomedical databases (RxNorm, openFDA, PubChem, ClinicalTrials.gov, PubMed) contain only the public compound identifier being researched without personal identifiers.
+              </li>
             </ul>
           </section>
 

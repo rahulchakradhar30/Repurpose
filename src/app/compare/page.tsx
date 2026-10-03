@@ -5,16 +5,14 @@ import Link from 'next/link';
 import { 
   Scale, 
   Trash2, 
-  Download, 
   Printer, 
   ArrowLeft, 
   CheckCircle2, 
-  ExternalLink,
-  Info,
-  Search,
-  RotateCcw
+  ExternalLink, 
+  Info, 
+  Search, 
+  RotateCcw 
 } from 'lucide-react';
-import { exportComparisonToCSV, triggerFileDownload } from '@/lib/exportUtils';
 import { RepurposingCandidate } from '@/types';
 import { 
   getCompareItems, 
@@ -95,15 +93,6 @@ export default function ComparePage() {
     clearCompareItems();
   };
 
-  const handleExportCSV = () => {
-    const csvContent = exportComparisonToCSV(
-      selectedCandidates.map(c => ({
-        drug: c.drug,
-        candidate: getValidCandidate(c),
-      }))
-    );
-    triggerFileDownload(csvContent, 'repurpose_hypotheses_comparison.csv', 'text/csv;charset=utf-8;');
-  };
 
   const handlePrint = () => {
     if (typeof window !== 'undefined') {
@@ -151,14 +140,6 @@ export default function ComparePage() {
                 </button>
               )}
 
-              <button
-                onClick={handleExportCSV}
-                disabled={selectedCandidates.length === 0}
-                className="px-3 py-1.5 rounded-lg border border-slate-300 bg-white hover:bg-slate-50 disabled:opacity-50 text-slate-700 text-xs font-medium inline-flex items-center gap-1.5 transition-colors shadow-xs cursor-pointer"
-              >
-                <Download className="w-3.5 h-3.5 text-teal-700" />
-                <span>Export CSV</span>
-              </button>
 
               <button
                 onClick={handlePrint}

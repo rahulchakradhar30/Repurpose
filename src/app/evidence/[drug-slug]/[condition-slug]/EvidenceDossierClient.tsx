@@ -21,7 +21,7 @@ import {
 } from 'lucide-react';
 import { EvidenceDossierData } from '@/lib/evidenceDossier';
 import { RepurposeCompass } from '@/components/RepurposeCompass';
-import { exportToRIS, exportCitationsToCSV, triggerFileDownload } from '@/lib/exportUtils';
+import { PrintSummaryButton } from '@/components/PrintSummaryButton';
 
 interface EvidenceDossierClientProps {
   dossier: EvidenceDossierData;
@@ -81,18 +81,6 @@ export function EvidenceDossierClient({ dossier }: EvidenceDossierClientProps) {
     }
   };
 
-  const handleExportRIS = () => {
-    const risContent = exportToRIS(candidate.citations || [], drug.genericName, candidate.condition);
-    const filename = `${drugSlug}_${conditionSlug}_citations.ris`;
-    triggerFileDownload(risContent, filename, 'application/x-research-info-systems;charset=utf-8;');
-  };
-
-  const handleExportCSV = () => {
-    const csvContent = exportCitationsToCSV(candidate.citations || [], drug.genericName, candidate.condition);
-    const filename = `${drugSlug}_${conditionSlug}_citations.csv`;
-    triggerFileDownload(csvContent, filename, 'text/csv;charset=utf-8;');
-  };
-
   const trials = candidate.clinicalTrials || [];
   const citations = candidate.citations || [];
 
@@ -117,7 +105,7 @@ export function EvidenceDossierClient({ dossier }: EvidenceDossierClientProps) {
           <div className="flex items-center gap-2">
             <button
               onClick={handleToggleSave}
-              className={`px-3 py-1.5 rounded-lg border text-xs font-medium flex items-center gap-1.5 transition-colors ${
+              className={`px-3 py-1.5 rounded-lg border text-xs font-medium flex items-center gap-1.5 transition-colors cursor-pointer ${
                 isSaved 
                   ? 'bg-teal-50 text-teal-800 border-teal-300' 
                   : 'bg-white text-slate-700 border-slate-300 hover:bg-slate-50'
@@ -127,9 +115,11 @@ export function EvidenceDossierClient({ dossier }: EvidenceDossierClientProps) {
               <span>{isSaved ? 'Saved in Notebook' : 'Save Dossier'}</span>
             </button>
 
+            <PrintSummaryButton label="Print Summary" />
+
             <button
               onClick={handleCopyLink}
-              className="px-3 py-1.5 rounded-lg border border-slate-300 bg-white text-slate-700 hover:bg-slate-50 text-xs font-medium flex items-center gap-1.5 transition-colors"
+              className="px-3 py-1.5 rounded-lg border border-slate-300 bg-white text-slate-700 hover:bg-slate-50 text-xs font-medium flex items-center gap-1.5 transition-colors cursor-pointer"
             >
               {copied ? <Check className="w-3.5 h-3.5 text-teal-700" /> : <Share2 className="w-3.5 h-3.5" />}
               <span>{copied ? 'Copied Link' : 'Share'}</span>
@@ -343,25 +333,9 @@ export function EvidenceDossierClient({ dossier }: EvidenceDossierClientProps) {
               </p>
             </div>
 
-            {/* Citation Export Action Buttons */}
+            {/* Citation Action Button */}
             <div className="flex items-center gap-2">
-              <button
-                onClick={handleExportRIS}
-                className="px-3 py-1.5 rounded-lg border border-slate-300 bg-white hover:bg-slate-50 text-slate-700 text-xs font-medium inline-flex items-center gap-1.5 transition-colors shadow-xs"
-                title="Download citations in RIS format for EndNote, Zotero, or Mendeley"
-              >
-                <Download className="w-3.5 h-3.5 text-teal-700" />
-                <span>Export RIS</span>
-              </button>
-
-              <button
-                onClick={handleExportCSV}
-                className="px-3 py-1.5 rounded-lg border border-slate-300 bg-white hover:bg-slate-50 text-slate-700 text-xs font-medium inline-flex items-center gap-1.5 transition-colors shadow-xs"
-                title="Download citations table as CSV"
-              >
-                <FileSpreadsheet className="w-3.5 h-3.5 text-emerald-700" />
-                <span>Export CSV</span>
-              </button>
+              <PrintSummaryButton label="Print Citations (PDF)" />
             </div>
           </div>
 

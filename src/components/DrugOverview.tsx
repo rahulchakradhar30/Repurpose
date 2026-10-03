@@ -5,6 +5,8 @@ import { ExternalLink, ShieldAlert, CheckCircle2, FileText, Share2, Check, Alert
 import { DrugConcept, RepurposingCandidate } from '@/types';
 import { filterDistinctBrandNames } from '@/lib/normalization';
 import { CompareDrugButton } from './CompareDrugButton';
+import { SaveToNotebookButton } from './SaveToNotebookButton';
+import { PrintSummaryButton } from './PrintSummaryButton';
 
 interface DrugOverviewProps {
   drug: DrugConcept;
@@ -100,9 +102,11 @@ export function DrugOverview({ drug, candidates = [] }: DrugOverviewProps) {
           )}
         </div>
 
-        {/* Action Buttons: Compare & Copy Link */}
+        {/* Action Buttons: Compare, Save, Print Summary, Copy Link */}
         <div className="flex items-center gap-2 self-start flex-wrap">
           <CompareDrugButton drug={drug} candidates={candidates} />
+          <SaveToNotebookButton drug={drug} candidate={candidates[0]} showViewLink={true} />
+          <PrintSummaryButton label="Print Summary" />
 
           <button
             onClick={handleCopyLink}

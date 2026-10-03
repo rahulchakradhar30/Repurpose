@@ -171,14 +171,28 @@ export async function saveDrugResearch(userId: string, item: Omit<SavedResearchI
 }
 
 export async function fetchUserSavedDrugs(userId: string): Promise<SavedResearchItem[]> {
+  const maxAgeMs = 30 * 24 * 60 * 60 * 1000;
+  const now = Date.now();
+
   if (db && isFirebaseConfigured) {
     try {
       const q = query(collection(db, 'users', userId, 'saved_drugs'), orderBy('lastUpdated', 'desc'));
       const snap = await getDocs(q);
       const items: SavedResearchItem[] = [];
-      snap.forEach(docSnap => {
-        items.push(docSnap.data() as SavedResearchItem);
-      });
+      for (const docSnap of snap.docs) {
+        const data = docSnap.data() as SavedResearchItem;
+        const savedTime = new Date(data.savedAt).getTime();
+        // If older than 30 days, purge from database
+        if (!isNaN(savedTime) && now - savedTime > maxAgeMs) {
+          try {
+            await deleteDoc(docSnap.ref);
+          } catch {
+            // ignore cleanup errors
+          }
+        } else {
+          items.push(data);
+        }
+      }
       return items;
     } catch (err) {
       console.warn('Firestore read error, falling back to local:', err);
@@ -188,7 +202,16 @@ export async function fetchUserSavedDrugs(userId: string): Promise<SavedResearch
   if (typeof window !== 'undefined') {
     try {
       const stored = localStorage.getItem(LOCAL_SAVED_KEY);
-      return stored ? JSON.parse(stored) : [];
+      if (!stored) return [];
+      const parsed: SavedResearchItem[] = JSON.parse(stored);
+      const active = parsed.filter(item => {
+        const itemTime = new Date(item.savedAt).getTime();
+        return isNaN(itemTime) || now - itemTime <= maxAgeMs;
+      });
+      if (active.length !== parsed.length) {
+        localStorage.setItem(LOCAL_SAVED_KEY, JSON.stringify(active));
+      }
+      return active;
     } catch {
       return [];
     }
