@@ -11,7 +11,7 @@ import {
   DrugResearchSnapshot, 
   RepurposingCandidate 
 } from '@/types';
-import { AlertCircle, Loader2, BookOpen } from 'lucide-react';
+import { AlertCircle, Loader2, BookOpen, Scale, BookMarked, Compass, Database } from 'lucide-react';
 import { generateHomeJsonLd } from '@/lib/seo';
 
 function HomeContent() {
@@ -161,53 +161,37 @@ function HomeContent() {
                       <BookOpen className="w-4 h-4 text-teal-700" />
                       Research Workspace, Comparison & Verification Tools
                     </h2>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
                       <Link
                         href="/compare"
-                        className="p-4 rounded-lg bg-white border border-slate-200 hover:border-slate-300 transition-colors"
+                        className="flex flex-col sm:flex-row items-center justify-center gap-2 p-3 sm:py-3.5 rounded-lg bg-white border border-slate-200 hover:border-teal-600 hover:text-teal-800 text-slate-800 text-xs sm:text-sm font-semibold transition-all shadow-xs group text-center sm:text-left"
                       >
-                        <h3 className="text-sm font-semibold text-slate-900 mb-1">
-                          Compare Workspace
-                        </h3>
-                        <p className="text-xs text-slate-600 leading-relaxed">
-                          Side-by-side comparison of up to 3 candidate hypotheses with CSV and printable exports.
-                        </p>
+                        <Scale className="w-4 h-4 text-teal-700 group-hover:scale-110 transition-transform shrink-0" />
+                        <span>Compare Workspace</span>
                       </Link>
 
                       <Link
                         href="/notebook"
-                        className="p-4 rounded-lg bg-white border border-slate-200 hover:border-slate-300 transition-colors"
+                        className="flex flex-col sm:flex-row items-center justify-center gap-2 p-3 sm:py-3.5 rounded-lg bg-white border border-slate-200 hover:border-teal-600 hover:text-teal-800 text-slate-800 text-xs sm:text-sm font-semibold transition-all shadow-xs group text-center sm:text-left"
                       >
-                        <h3 className="text-sm font-semibold text-slate-900 mb-1">
-                          Research Notebook
-                        </h3>
-                        <p className="text-xs text-slate-600 leading-relaxed">
-                          Private saved dossiers, custom tags, study checklists, and citation collections.
-                        </p>
+                        <BookMarked className="w-4 h-4 text-teal-700 group-hover:scale-110 transition-transform shrink-0" />
+                        <span>Research Notebook</span>
                       </Link>
 
                       <Link
                         href="/methodology"
-                        className="p-4 rounded-lg bg-white border border-slate-200 hover:border-slate-300 transition-colors"
+                        className="flex flex-col sm:flex-row items-center justify-center gap-2 p-3 sm:py-3.5 rounded-lg bg-white border border-slate-200 hover:border-teal-600 hover:text-teal-800 text-slate-800 text-xs sm:text-sm font-semibold transition-all shadow-xs group text-center sm:text-left"
                       >
-                        <h3 className="text-sm font-semibold text-slate-900 mb-1">
-                          Repurpose Compass™
-                        </h3>
-                        <p className="text-xs text-slate-600 leading-relaxed">
-                          Transparent 0–100 Research Readiness scoring, conflict detection, and provenance timelines.
-                        </p>
+                        <Compass className="w-4 h-4 text-teal-700 group-hover:scale-110 transition-transform shrink-0" />
+                        <span>Repurpose Compass™</span>
                       </Link>
 
                       <Link
                         href="/sources"
-                        className="p-4 rounded-lg bg-white border border-slate-200 hover:border-slate-300 transition-colors"
+                        className="flex flex-col sm:flex-row items-center justify-center gap-2 p-3 sm:py-3.5 rounded-lg bg-white border border-slate-200 hover:border-teal-600 hover:text-teal-800 text-slate-800 text-xs sm:text-sm font-semibold transition-all shadow-xs group text-center sm:text-left"
                       >
-                        <h3 className="text-sm font-semibold text-slate-900 mb-1">
-                          Data Source Registry
-                        </h3>
-                        <p className="text-xs text-slate-600 leading-relaxed">
-                          Licensing boundaries and direct APIs: RxNorm, openFDA, PubChem, ClinicalTrials.gov, PubMed.
-                        </p>
+                        <Database className="w-4 h-4 text-teal-700 group-hover:scale-110 transition-transform shrink-0" />
+                        <span>Data Source Registry</span>
                       </Link>
                     </div>
                   </section>

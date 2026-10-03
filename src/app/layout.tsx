@@ -1,7 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import { Noto_Serif, Noto_Sans, IBM_Plex_Mono } from "next/font/google";
 import { getSiteUrl, SITE_NAME, SITE_TAGLINE, SITE_DESCRIPTION } from "@/lib/seo";
-import { DisclaimerBanner } from "@/components/DisclaimerBanner";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 import "./globals.css";
@@ -123,7 +122,6 @@ export default function RootLayout({
         <link rel="icon" href="/icon.svg" type="image/svg+xml" />
       </head>
       <body className="min-h-full flex flex-col bg-slate-50 text-slate-900 selection:bg-teal-100 selection:text-teal-900">
-        <DisclaimerBanner />
         <Header />
         <div className="flex-1 flex flex-col">
           {children}
