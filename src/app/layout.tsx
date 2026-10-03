@@ -2,7 +2,6 @@ import type { Metadata, Viewport } from "next";
 import { Noto_Serif, Noto_Sans, IBM_Plex_Mono } from "next/font/google";
 import { getSiteUrl, SITE_NAME, SITE_TAGLINE, SITE_DESCRIPTION } from "@/lib/seo";
 import { Header } from "@/components/Header";
-import { Footer } from "@/components/Footer";
 import "./globals.css";
 
 const notoSerif = Noto_Serif({
@@ -130,7 +129,6 @@ export default function RootLayout({
         <div className="flex-1 flex flex-col">
           {children}
         </div>
-        <Footer />
       </body>
     </html>
   );
