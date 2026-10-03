@@ -9,6 +9,14 @@ service cloud.firestore {
         allow read, write, delete: if request.auth != null && request.auth.uid == userId;
       }
 
+      match /notebook_items/{itemId} {
+        allow read, write, delete: if request.auth != null && request.auth.uid == userId;
+      }
+
+      match /citation_collections/{colId} {
+        allow read, write, delete: if request.auth != null && request.auth.uid == userId;
+      }
+
       match /searches/{searchId} {
         allow read, write, delete: if request.auth != null && request.auth.uid == userId;
       }

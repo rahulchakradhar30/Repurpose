@@ -167,18 +167,30 @@ function HomeContent() {
                   <section aria-labelledby="educational-hub-heading" className="max-w-4xl mx-auto pt-4">
                     <h2 id="educational-hub-heading" className="text-base font-bold text-slate-900 mb-3 flex items-center gap-2">
                       <BookOpen className="w-4 h-4 text-teal-700" />
-                      Educational Resources & Verification Methodology
+                      Research Workspace, Comparison & Verification Tools
                     </h2>
-                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
                       <Link
-                        href="/what-is-drug-repurposing"
+                        href="/compare"
                         className="p-4 rounded-lg bg-white border border-slate-200 hover:border-slate-300 transition-colors"
                       >
                         <h3 className="text-sm font-semibold text-slate-900 mb-1">
-                          What is Drug Repurposing?
+                          Compare Workspace
                         </h3>
                         <p className="text-xs text-slate-600 leading-relaxed">
-                          Principles of off-target pharmacology, regulatory phases, and why clinical trials are essential.
+                          Side-by-side comparison of up to 3 candidate hypotheses with CSV and printable exports.
+                        </p>
+                      </Link>
+
+                      <Link
+                        href="/notebook"
+                        className="p-4 rounded-lg bg-white border border-slate-200 hover:border-slate-300 transition-colors"
+                      >
+                        <h3 className="text-sm font-semibold text-slate-900 mb-1">
+                          Research Notebook
+                        </h3>
+                        <p className="text-xs text-slate-600 leading-relaxed">
+                          Private saved dossiers, custom tags, study checklists, and citation collections.
                         </p>
                       </Link>
 
@@ -187,10 +199,10 @@ function HomeContent() {
                         className="p-4 rounded-lg bg-white border border-slate-200 hover:border-slate-300 transition-colors"
                       >
                         <h3 className="text-sm font-semibold text-slate-900 mb-1">
-                          Evidence Scoring System
+                          Repurpose Compass™
                         </h3>
                         <p className="text-xs text-slate-600 leading-relaxed">
-                          Understand how clinical trials, human data, and mechanistic plausibility are weighted.
+                          Transparent 0–100 Research Readiness scoring, conflict detection, and provenance timelines.
                         </p>
                       </Link>
 
@@ -199,10 +211,10 @@ function HomeContent() {
                         className="p-4 rounded-lg bg-white border border-slate-200 hover:border-slate-300 transition-colors"
                       >
                         <h3 className="text-sm font-semibold text-slate-900 mb-1">
-                          Open Biomedical Registries
+                          Data Source Registry
                         </h3>
                         <p className="text-xs text-slate-600 leading-relaxed">
-                          How Repurpose integrates RxNorm, openFDA, PubChem, ClinicalTrials.gov, and PubMed.
+                          Licensing boundaries and direct APIs: RxNorm, openFDA, PubChem, ClinicalTrials.gov, PubMed.
                         </p>
                       </Link>
                     </div>
@@ -216,8 +228,16 @@ function HomeContent() {
         <footer className="w-full border-t border-slate-200 bg-white py-5 px-4 text-center text-xs text-slate-600 mb-14 md:mb-0">
           <div className="max-w-5xl mx-auto space-y-2">
             <div className="flex flex-wrap justify-center items-center gap-x-4 gap-y-1 text-slate-500">
+              <Link href="/compare" className="hover:text-slate-800 transition-colors font-medium">
+                Compare
+              </Link>
+              <span>·</span>
+              <Link href="/notebook" className="hover:text-slate-800 transition-colors font-medium">
+                Notebook
+              </Link>
+              <span>·</span>
               <Link href="/what-is-drug-repurposing" className="hover:text-slate-800 transition-colors">
-                What is Drug Repurposing?
+                Guide
               </Link>
               <span>·</span>
               <Link href="/methodology" className="hover:text-slate-800 transition-colors">

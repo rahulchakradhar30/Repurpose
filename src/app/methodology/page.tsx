@@ -5,24 +5,31 @@ import { Header } from '@/components/Header';
 import { 
   getAbsoluteUrl, 
   generateArticleJsonLd, 
-  generateBreadcrumbJsonLd, 
-  CREATOR_ATTRIBUTION 
+  generateBreadcrumbJsonLd 
 } from '@/lib/seo';
 import { 
   Scale, 
   ShieldAlert, 
   Calendar, 
   User, 
-  Cpu, 
-  ArrowRight 
+  Compass, 
+  AlertTriangle, 
+  Activity, 
+  BookOpen, 
+  Microscope, 
+  Layers, 
+  CheckCircle2, 
+  ArrowRight,
+  Clock,
+  FileCheck
 } from 'lucide-react';
 
-const PAGE_TITLE = 'Evidence Scoring Methodology & Uncertainty Framework';
+const PAGE_TITLE = 'Repurpose Compass™ & Research Readiness Scoring Methodology';
 const PAGE_DESCRIPTION =
-  'Transparent, deterministic 100-point biomedical evidence scoring methodology for evaluating drug repurposing candidates across clinical trials, literature, mechanism, and safety.';
+  'Transparent, deterministic 100-point Research Readiness Score breakdown, 8 research states, contradiction detection, and provenance tracking for drug repurposing hypotheses.';
 const PAGE_PATH = '/methodology';
 const DATE_PUBLISHED = '2026-10-02';
-const DATE_MODIFIED = '2026-10-02';
+const DATE_MODIFIED = '2026-10-03';
 
 export const metadata: Metadata = {
   title: PAGE_TITLE,
@@ -58,7 +65,7 @@ export default function MethodologyPage() {
   ]);
 
   return (
-    <div className="min-h-screen bg-slate-50 flex flex-col text-slate-900 pb-16 md:pb-6">
+    <div className="min-h-screen bg-slate-950 text-slate-100 flex flex-col pb-16 md:pb-6">
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(articleJsonLd) }}
@@ -73,228 +80,234 @@ export default function MethodologyPage() {
 
       <main className="flex-1 w-full max-w-4xl mx-auto px-4 py-6 sm:py-10 space-y-8">
         {/* Breadcrumb Navigation */}
-        <nav aria-label="Breadcrumbs" className="text-xs text-slate-500 flex items-center gap-1.5">
-          <Link href="/" className="hover:text-teal-800">
+        <nav aria-label="Breadcrumbs" className="text-xs text-slate-400 flex items-center gap-1.5">
+          <Link href="/" className="hover:text-slate-200">
             Home
           </Link>
           <span>/</span>
-          <span className="text-slate-800 font-medium">Methodology</span>
+          <span className="text-slate-200 font-medium">Methodology</span>
         </nav>
 
         {/* Page Header */}
-        <header className="border-b border-slate-200 pb-6 space-y-3">
-          <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded text-[11px] font-semibold uppercase tracking-wider text-teal-800 bg-teal-50 border border-teal-200">
-            <Scale className="w-3.5 h-3.5" />
-            <span>Deterministic Scoring Algorithm</span>
+        <header className="border-b border-slate-800 pb-6 space-y-3">
+          <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded text-[11px] font-semibold uppercase tracking-wider text-indigo-400 bg-indigo-500/10 border border-indigo-500/30">
+            <Compass className="w-3.5 h-3.5" />
+            <span>Repurpose Compass™ Architecture</span>
           </div>
 
-          <h1 className="text-2xl sm:text-4xl font-bold tracking-tight text-slate-900 leading-tight">
-            Evidence Scoring Methodology & Evaluation Principles
+          <h1 className="text-2xl sm:text-4xl font-extrabold tracking-tight text-slate-100 leading-tight">
+            Research Readiness Scoring & Repurpose Compass™ Methodology
           </h1>
 
-          <p className="text-sm sm:text-base text-slate-600 leading-relaxed max-w-3xl">
-            How Repurpose quantitatively and transparently grades repurposing candidates out of 100 points, detects clinical trials attrition, accounts for FDA boxed warnings, and enforces uncertainty handling.
+          <p className="text-sm sm:text-base text-slate-300 leading-relaxed max-w-3xl">
+            Repurpose is positioned as an open-source evidence workspace for investigating drug-repurposing hypotheses through transparent clinical, biological, regulatory, safety, and literature evidence.
           </p>
 
-          <div className="pt-2 flex flex-wrap items-center gap-4 text-xs text-slate-500">
+          <div className="pt-2 flex flex-wrap items-center gap-4 text-xs text-slate-400">
             <span className="flex items-center gap-1">
-              <User className="w-3.5 h-3.5" />
-              <span>Prepared by {CREATOR_ATTRIBUTION.name}</span>
+              <Calendar className="w-3.5 h-3.5 text-slate-500" />
+              <span>Specification Updated: October 3, 2026</span>
             </span>
             <span className="flex items-center gap-1">
-              <Calendar className="w-3.5 h-3.5" />
-              <span>Last reviewed: {DATE_MODIFIED}</span>
+              <Compass className="w-3.5 h-3.5 text-indigo-400" />
+              <span>System: Repurpose Compass v2</span>
             </span>
           </div>
         </header>
 
-        {/* Clinical Disclaimer Notice */}
-        <section aria-label="Methodological Notice" className="bg-amber-50 border border-amber-200 rounded-lg p-4 sm:p-5">
-          <div className="flex items-start gap-3">
-            <ShieldAlert className="w-5 h-5 text-amber-800 shrink-0 mt-0.5" />
-            <div className="text-xs sm:text-sm text-amber-950 space-y-1">
-              <h2 className="font-bold text-amber-900">Score Interpretation Notice</h2>
+        {/* Fundamental Safeguards Alert */}
+        <section aria-label="Research Scope Safeguards">
+          <div className="bg-amber-950/20 border border-amber-900/50 rounded-xl p-5 flex items-start gap-3.5">
+            <ShieldAlert className="w-6 h-6 text-amber-400 shrink-0 mt-0.5" />
+            <div className="space-y-1.5 text-xs sm:text-sm text-amber-200">
+              <h2 className="font-bold text-amber-100 text-sm sm:text-base">
+                Core Positioning & Scoring Safeguards
+              </h2>
               <p className="leading-relaxed">
-                The Repurpose Evidence Score is a measure of <strong>evidence maturity, trial registration, and literature volume</strong>. 
-                A high score does NOT signify that an off-label drug is safe, recommended, or clinically effective. 
-                Candidates with high scores may still fail late-stage Phase 3 confirmatory trials.
+                The <strong>Research Readiness Score</strong> measures the clinical maturity, literature documentation, biological plausibility, and source reproducibility of an investigational repurposing hypothesis. It is <strong>NOT</strong> an efficacy score, clinical approval probability, safety rating, or prescribing recommendation.
               </p>
+              <ul className="list-disc pl-5 space-y-1 text-xs text-amber-300/90 pt-1">
+                <li>A candidate with 0 published citations is permanently capped at max 55/100 and will never be labeled &quot;High readiness&quot;.</li>
+                <li>Trial existence is strictly separated from published outcome evidence. Registered interventional trials without peer-reviewed results receive transparent disclosure.</li>
+                <li>Prematurely terminated, withdrawn, or suspended trials trigger immediate visual warnings and deduct readiness points.</li>
+              </ul>
             </div>
           </div>
         </section>
 
-        {/* The 5 Pillars of Evidence Scoring */}
-        <section aria-labelledby="five-pillars-heading" className="space-y-4">
-          <h2 id="five-pillars-heading" className="text-lg sm:text-xl font-bold text-slate-900">
-            The 5 Pillars of the 100-Point Evidence Model
+        {/* 1. THE 8 RESEARCH STATES */}
+        <section className="space-y-4">
+          <h2 className="text-lg sm:text-xl font-bold text-slate-100 flex items-center gap-2">
+            <Compass className="w-5 h-5 text-indigo-400" />
+            The 8 Standardized Research States
           </h2>
-          <p className="text-xs sm:text-sm text-slate-600">
-            Every candidate condition identified in registered biomedical trials is evaluated across five distinct evidentiary dimensions:
+          <p className="text-xs sm:text-sm text-slate-400">
+            Every candidate condition pair is mapped to exactly one of eight distinct states:
           </p>
 
-          <div className="space-y-4">
-            {/* Pillar 1 */}
-            <div className="bg-white border border-slate-200 rounded-lg p-5 shadow-xs">
-              <div className="flex items-baseline justify-between mb-2">
-                <h3 className="font-bold text-slate-900 text-base">
-                  1. Clinical Trial Evidence (0 – 40 Points)
-                </h3>
-                <span className="font-mono text-xs font-bold text-teal-800 bg-teal-50 px-2 py-0.5 rounded border border-teal-200">
-                  Weight: 40%
-                </span>
-              </div>
-              <p className="text-xs sm:text-sm text-slate-700 leading-relaxed mb-3">
-                Scored directly from interventional study protocols verified in the ClinicalTrials.gov API v2.
-              </p>
-              <ul className="text-xs text-slate-600 space-y-1.5 pl-4 list-disc">
-                <li><strong>Phase 4 Completed:</strong> 40 points (post-marketing randomized surveillance). Active: 36 points.</li>
-                <li><strong>Phase 3 Completed:</strong> 35 points (large-scale randomized confirmatory). Active / Recruiting: 28–32 points.</li>
-                <li><strong>Phase 2 Completed:</strong> 26 points (preliminary efficacy & dose finding). Active: 18–22 points.</li>
-                <li><strong>Phase 1:</strong> 10–14 points (safety and pharmacokinetics only).</li>
-                <li><strong>Early Phase 1 / Pilot:</strong> 6–8 points.</li>
-                <li>
-                  <strong className="text-red-700">Premature Termination Penalty:</strong> If all identified clinical trials were terminated, withdrawn, or suspended, the score is capped at 4 points with an explicit &ldquo;Trial stopped&rdquo; caution flag.
-                </li>
-              </ul>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-xs">
+            <div className="p-3.5 rounded-lg bg-slate-900/70 border border-emerald-900/40 space-y-1">
+              <span className="font-bold text-emerald-400">1. Approved indication</span>
+              <p className="text-slate-300">Formally authorized on official regulatory drug label for this therapeutic condition.</p>
             </div>
-
-            {/* Pillar 2 */}
-            <div className="bg-white border border-slate-200 rounded-lg p-5 shadow-xs">
-              <div className="flex items-baseline justify-between mb-2">
-                <h3 className="font-bold text-slate-900 text-base">
-                  2. Human / Observational Evidence (0 – 20 Points)
-                </h3>
-                <span className="font-mono text-xs font-bold text-teal-800 bg-teal-50 px-2 py-0.5 rounded border border-teal-200">
-                  Weight: 20%
-                </span>
-              </div>
-              <p className="text-xs sm:text-sm text-slate-700 leading-relaxed mb-3">
-                Evaluates peer-reviewed observational studies, real-world cohort data, and case series indexed in NCBI PubMed.
-              </p>
-              <ul className="text-xs text-slate-600 space-y-1.5 pl-4 list-disc">
-                <li><strong>4+ Indexed PubMed Citations:</strong> 20 points (robust literature footprint).</li>
-                <li><strong>3 Indexed Citations:</strong> 16 points.</li>
-                <li><strong>2 Indexed Citations:</strong> 12 points.</li>
-                <li><strong>1 Indexed Citation:</strong> 7 points (single report limitation flag).</li>
-                <li><strong>0 Indexed Citations:</strong> 0 points with &ldquo;Human evidence unavailable&rdquo; uncertainty badge.</li>
-              </ul>
+            <div className="p-3.5 rounded-lg bg-slate-900/70 border border-indigo-900/40 space-y-1">
+              <span className="font-bold text-indigo-400">2. Off-label evidence</span>
+              <p className="text-slate-300">Documented in peer-reviewed observational or clinical literature outside authorized label indications.</p>
             </div>
-
-            {/* Pillar 3 */}
-            <div className="bg-white border border-slate-200 rounded-lg p-5 shadow-xs">
-              <div className="flex items-baseline justify-between mb-2">
-                <h3 className="font-bold text-slate-900 text-base">
-                  3. Mechanistic & Target Plausibility (0 – 20 Points)
-                </h3>
-                <span className="font-mono text-xs font-bold text-teal-800 bg-teal-50 px-2 py-0.5 rounded border border-teal-200">
-                  Weight: 20%
-                </span>
-              </div>
-              <p className="text-xs sm:text-sm text-slate-700 leading-relaxed mb-3">
-                Grades biochemical target interaction, receptor binding profile, and documented biological rationale linking drug pharmacology to disease pathophysiology.
-              </p>
-              <ul className="text-xs text-slate-600 space-y-1.5 pl-4 list-disc">
-                <li><strong>Well-Characterized Pathway Engagement:</strong> 20 points (documented primary receptor or enzyme target aligned with disease mechanism).</li>
-                <li><strong>Secondary / Hypothesized Pathway:</strong> 14 points (biological rationale documented).</li>
-                <li><strong>Uncharacterized / Inferred:</strong> 5 points with uncertainty badge.</li>
-              </ul>
+            <div className="p-3.5 rounded-lg bg-slate-900/70 border border-blue-900/40 space-y-1">
+              <span className="font-bold text-blue-400">3. Investigational</span>
+              <p className="text-slate-300">Registered in active or completed interventional clinical trials on ClinicalTrials.gov.</p>
             </div>
-
-            {/* Pillar 4 */}
-            <div className="bg-white border border-slate-200 rounded-lg p-5 shadow-xs">
-              <div className="flex items-baseline justify-between mb-2">
-                <h3 className="font-bold text-slate-900 text-base">
-                  4. Reproducibility & Publication Signals (0 – 10 Points)
-                </h3>
-                <span className="font-mono text-xs font-bold text-teal-800 bg-teal-50 px-2 py-0.5 rounded border border-teal-200">
-                  Weight: 10%
-                </span>
-              </div>
-              <p className="text-xs sm:text-sm text-slate-700 leading-relaxed mb-3">
-                Assesses whether findings have been replicated by independent organizations or remain isolated to a single institution.
-              </p>
-              <ul className="text-xs text-slate-600 space-y-1.5 pl-4 list-disc">
-                <li><strong>Multiple Independent Study Sponsors (2+ distinct organizations):</strong> 10 points.</li>
-                <li><strong>Single Organization / Single Academic Group:</strong> 6 points.</li>
-                <li><strong>No Cross-Institutional Replication:</strong> 2 points with flag.</li>
-              </ul>
+            <div className="p-3.5 rounded-lg bg-slate-900/70 border border-purple-900/40 space-y-1">
+              <span className="font-bold text-purple-400">4. Preclinical</span>
+              <p className="text-slate-300">In vitro, in vivo, or target binding pathway mechanisms documented without registered human trials.</p>
             </div>
-
-            {/* Pillar 5 */}
-            <div className="bg-white border border-slate-200 rounded-lg p-5 shadow-xs">
-              <div className="flex items-baseline justify-between mb-2">
-                <h3 className="font-bold text-slate-900 text-base">
-                  5. Safety & Contraindication Compatibility (0 – 10 Points)
-                </h3>
-                <span className="font-mono text-xs font-bold text-teal-800 bg-teal-50 px-2 py-0.5 rounded border border-teal-200">
-                  Weight: 10%
-                </span>
-              </div>
-              <p className="text-xs sm:text-sm text-slate-700 leading-relaxed mb-3">
-                Cross-checked against official FDA structured product labeling (boxed warnings and contraindications).
-              </p>
-              <ul className="text-xs text-slate-600 space-y-1.5 pl-4 list-disc">
-                <li><strong>Compatible Profile:</strong> 10 points (no overlap with target disease pathology).</li>
-                <li><strong>Precautionary Warning Overlap:</strong> 5 points (specific monitoring required).</li>
-                <li>
-                  <strong className="text-red-700">Direct Contraindication Collision:</strong> Reduced to 1 point with high-risk alert (e.g., drug explicitly contraindicated in renal failure being explored in kidney disease).
-                </li>
-              </ul>
+            <div className="p-3.5 rounded-lg bg-slate-900/70 border border-amber-900/40 space-y-1">
+              <span className="font-bold text-amber-400">5. Insufficient evidence</span>
+              <p className="text-slate-300">Minimal or preliminary signals; lacks verified human trials or replicated literature.</p>
+            </div>
+            <div className="p-3.5 rounded-lg bg-slate-900/70 border border-rose-900/40 space-y-1">
+              <span className="font-bold text-rose-400">6. Conflicting evidence</span>
+              <p className="text-slate-300">Mixed, inconclusive, or opposing outcomes identified across trials and literature.</p>
+            </div>
+            <div className="p-3.5 rounded-lg bg-slate-900/70 border border-red-900/50 space-y-1">
+              <span className="font-bold text-red-400">7. Trial terminated, withdrawn, or suspended</span>
+              <p className="text-slate-300">Clinical evaluation was discontinued, halted early, or withdrawn prior to enrollment.</p>
+            </div>
+            <div className="p-3.5 rounded-lg bg-slate-900/70 border border-slate-800 space-y-1">
+              <span className="font-bold text-slate-400">8. No verified evidence found</span>
+              <p className="text-slate-300">No interventional trials or peer-reviewed records verified in primary databases.</p>
             </div>
           </div>
         </section>
 
-        {/* AI Bounds: AI Never Replaces Evidence */}
-        <section aria-labelledby="ai-principles-heading" className="bg-white border border-slate-200 rounded-lg p-6 space-y-3 shadow-xs">
-          <div className="flex items-center gap-2">
-            <Cpu className="w-5 h-5 text-teal-800" />
-            <h2 id="ai-principles-heading" className="text-lg font-bold text-slate-900">
-              Deterministic Evidence Principle: AI Never Replaces Evidence
-            </h2>
-          </div>
-          <p className="text-xs sm:text-sm text-slate-700 leading-relaxed">
-            In many medical applications, large language models are allowed to generate unbounded answers, which risks severe factual hallucination. In Repurpose:
+        {/* 2. THE 100-POINT RESEARCH READINESS BREAKDOWN */}
+        <section className="space-y-4">
+          <h2 className="text-lg sm:text-xl font-bold text-slate-100 flex items-center gap-2">
+            <Activity className="w-5 h-5 text-indigo-400" />
+            The 100-Point Transparent Readiness Score Breakdown
+          </h2>
+          <p className="text-xs sm:text-sm text-slate-400">
+            Scores are deterministically calculated across five positive pillars plus negative evidence-conflict penalties:
           </p>
-          <ul className="text-xs sm:text-sm text-slate-700 pl-4 list-disc space-y-1.5">
-            <li>Scoring, trials retrieval, and PubMed citations are <strong>100% deterministic</strong>. No generative model calculates scores or invents studies.</li>
-            <li>Groq AI is invoked only on factual payloads and is strictly schema-validated. Any response containing unverified facts or clinical advice is discarded.</li>
-            <li>Every AI synthesis is visibly labeled &ldquo;AI-assisted summary&rdquo; and lists direct supporting source IDs.</li>
+
+          <div className="space-y-3 text-xs">
+            <div className="p-4 rounded-xl bg-slate-900/60 border border-slate-800 space-y-2">
+              <div className="flex items-center justify-between">
+                <span className="font-bold text-slate-200 flex items-center gap-2">
+                  <Activity className="w-4 h-4 text-blue-400" />
+                  Clinical-Trial Maturity and Status (0 – 25 Points)
+                </span>
+                <span className="font-mono font-bold text-blue-400">Max 25 pts</span>
+              </div>
+              <p className="text-slate-400 text-[11px] leading-relaxed">
+                Phase 4: 25 pts | Phase 3: 20–24 pts | Phase 2: 14–18 pts | Phase 1: 8–10 pts | Early Phase 1: 4–6 pts. Terminated/withdrawn trials capped at max 4 pts.
+              </p>
+            </div>
+
+            <div className="p-4 rounded-xl bg-slate-900/60 border border-slate-800 space-y-2">
+              <div className="flex items-center justify-between">
+                <span className="font-bold text-slate-200 flex items-center gap-2">
+                  <BookOpen className="w-4 h-4 text-indigo-400" />
+                  Published Human Evidence (0 – 25 Points)
+                </span>
+                <span className="font-mono font-bold text-indigo-400">Max 25 pts</span>
+              </div>
+              <p className="text-slate-400 text-[11px] leading-relaxed">
+                4+ PubMed citations: 25 pts | 3 citations: 20 pts | 2 citations: 14 pts | 1 citation: 8 pts | 0 citations: 0 pts (triggers automatic score cap).
+              </p>
+            </div>
+
+            <div className="p-4 rounded-xl bg-slate-900/60 border border-slate-800 space-y-2">
+              <div className="flex items-center justify-between">
+                <span className="font-bold text-slate-200 flex items-center gap-2">
+                  <Microscope className="w-4 h-4 text-purple-400" />
+                  Mechanistic / Target–Disease Plausibility (0 – 20 Points)
+                </span>
+                <span className="font-mono font-bold text-purple-400">Max 20 pts</span>
+              </div>
+              <p className="text-slate-400 text-[11px] leading-relaxed">
+                Direct receptor/enzyme target alignment: 20 pts | Secondary pathway rationale: 14 pts | Broad/hypothesized mechanism: 8 pts.
+              </p>
+            </div>
+
+            <div className="p-4 rounded-xl bg-slate-900/60 border border-slate-800 space-y-2">
+              <div className="flex items-center justify-between">
+                <span className="font-bold text-slate-200 flex items-center gap-2">
+                  <Layers className="w-4 h-4 text-emerald-400" />
+                  Source Quality, Recency & Reproducibility (0 – 15 Points)
+                </span>
+                <span className="font-mono font-bold text-emerald-400">Max 15 pts</span>
+              </div>
+              <p className="text-slate-400 text-[11px] leading-relaxed">
+                Multi-source corroboration across FDA, ClinicalTrials.gov, PubMed, and RxNorm: 15 pts | Partial registry coverage: 10 pts.
+              </p>
+            </div>
+
+            <div className="p-4 rounded-xl bg-slate-900/60 border border-slate-800 space-y-2">
+              <div className="flex items-center justify-between">
+                <span className="font-bold text-slate-200 flex items-center gap-2">
+                  <ShieldAlert className="w-4 h-4 text-teal-400" />
+                  Safety / Context Compatibility (0 – 15 Points)
+                </span>
+                <span className="font-mono font-bold text-teal-400">Max 15 pts</span>
+              </div>
+              <p className="text-slate-400 text-[11px] leading-relaxed">
+                No acute target-tissue contraindications: 15 pts | General precautions documented: 10 pts | Severe organ toxicity: 5 pts.
+              </p>
+            </div>
+
+            <div className="p-4 rounded-xl bg-rose-950/20 border border-rose-900/40 space-y-2">
+              <div className="flex items-center justify-between">
+                <span className="font-bold text-rose-300 flex items-center gap-2">
+                  <AlertTriangle className="w-4 h-4 text-rose-400" />
+                  Evidence-Conflict Penalties (Subtracted)
+                </span>
+                <span className="font-mono font-bold text-rose-400">Deductions</span>
+              </div>
+              <p className="text-rose-300/80 text-[11px] leading-relaxed">
+                All trials terminated/withdrawn: -15 pts | FDA label absolute contraindication: -12 pts | Late-phase trials without outcome papers: -4 pts.
+              </p>
+            </div>
+          </div>
+        </section>
+
+        {/* 3. CONTRADICTION DETECTION */}
+        <section className="space-y-4">
+          <h2 className="text-lg sm:text-xl font-bold text-slate-100 flex items-center gap-2">
+            <AlertTriangle className="w-5 h-5 text-amber-400" />
+            Evidence Contradiction Detection: &quot;What Needs Verification?&quot;
+          </h2>
+          <p className="text-xs sm:text-sm text-slate-400">
+            The Repurpose Compass continuously cross-references clinical trial registries against PubMed publications and FDA labels to detect 7 specific evidence discrepancies:
+          </p>
+
+          <ul className="space-y-2 text-xs text-slate-300 pl-4 list-disc">
+            <li><strong>Trial exists but no published outcome:</strong> Clinical trial activity identified, but peer-reviewed findings have not yet been indexed in PubMed.</li>
+            <li><strong>High trial phase but unconfirmed result:</strong> Phase 2 or Phase 3 trial registered without published corroboration.</li>
+            <li><strong>PubMed findings conflict with trial status:</strong> Literature indicates clinical promise while all interventional trials were terminated or withdrawn.</li>
+            <li><strong>Disease normalization overlap:</strong> Candidate appears across multiple ontology synonyms.</li>
+            <li><strong>Safety warnings or contraindications:</strong> Boxed warnings or renal/hepatic contraindications may conflict with candidate disease pathology.</li>
+            <li><strong>Source data recency or incompleteness:</strong> Records lack recent verification timestamps or required identifiers.</li>
+            <li><strong>Uncharacterized biological mechanism:</strong> Empirical activity observed without characterized molecular receptor targets.</li>
           </ul>
         </section>
 
-        {/* Update Timestamps */}
-        <section aria-labelledby="timestamps-heading" className="bg-white border border-slate-200 rounded-lg p-6 space-y-2 text-xs sm:text-sm text-slate-700 shadow-xs">
-          <h2 id="timestamps-heading" className="text-base font-bold text-slate-900">
-            Freshness & Timestamp Verification
-          </h2>
-          <p className="leading-relaxed">
-            Every query and published guide displays its exact retrieval date. Because biomedical research rapidly evolves as new trial results are published on ClinicalTrials.gov, users can inspect the original source URLs on every drug card.
-          </p>
-        </section>
-
-        {/* Navigation Call-to-Action */}
-        <div className="bg-slate-100 rounded-lg p-5 flex flex-col sm:flex-row items-center justify-between gap-4">
-          <div>
-            <h3 className="text-sm font-bold text-slate-900">Learn About Our Data Sources</h3>
-            <p className="text-xs text-slate-600">
-              Review the public biomedical registries powering Repurpose.
-            </p>
-          </div>
-          <div className="flex items-center gap-2">
-            <Link
-              href="/sources"
-              className="px-3.5 py-2 bg-white text-slate-800 text-xs font-semibold rounded border border-slate-300 hover:bg-slate-50 transition-colors"
-            >
-              Data Sources
-            </Link>
-            <Link
-              href="/"
-              className="px-3.5 py-2 bg-slate-900 text-white text-xs font-semibold rounded hover:bg-slate-800 transition-colors flex items-center gap-1"
-            >
-              <span>Search Database</span>
-              <ArrowRight className="w-3.5 h-3.5" />
-            </Link>
-          </div>
+        {/* Bottom Navigation */}
+        <div className="flex flex-col sm:flex-row justify-between items-center pt-6 border-t border-slate-800 gap-4">
+          <Link
+            href="/sources"
+            className="inline-flex items-center gap-2 text-xs font-medium text-slate-400 hover:text-slate-200 transition-colors"
+          >
+            <Layers className="w-4 h-4" />
+            View Data Source & Licence Registry
+          </Link>
+          <Link
+            href="/compare"
+            className="inline-flex items-center justify-center px-4 py-2 text-xs font-semibold rounded-lg bg-indigo-600 hover:bg-indigo-500 text-white transition-colors"
+          >
+            Launch Compare Workspace
+          </Link>
         </div>
       </main>
     </div>

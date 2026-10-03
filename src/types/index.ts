@@ -1,12 +1,24 @@
+export type ResearchState = 
+  | 'Approved indication'
+  | 'Off-label evidence'
+  | 'Investigational'
+  | 'Preclinical'
+  | 'Insufficient evidence'
+  | 'Conflicting evidence'
+  | 'Trial terminated, withdrawn, or suspended'
+  | 'No verified evidence found';
+
+// Backwards-compatible union for legacy and modern states
 export type EvidenceStatus = 
   | 'Approved' 
   | 'Investigational' 
   | 'Off-label' 
   | 'Preclinical' 
-  | 'Unsupported';
+  | 'Unsupported' 
+  | ResearchState;
 
 export interface SourceProvenance {
-  name: 'RxNorm' | 'openFDA' | 'PubChem' | 'ClinicalTrials.gov' | 'PubMed';
+  name: 'RxNorm' | 'openFDA' | 'PubChem' | 'ClinicalTrials.gov' | 'PubMed' | 'UniProt';
   url: string;
   responseId?: string;
   timestamp: string;
@@ -25,6 +37,7 @@ export interface DrugConcept {
   approvedIndications: string[];
   warnings: string[];
   contraindications: string[];
+  targets?: string[];
   lastVerifiedDate: string;
   sources: SourceProvenance[];
 }
@@ -33,10 +46,13 @@ export interface ClinicalTrial {
   nctId: string;
   title: string;
   phase: string;
-  status: string; // RECRUITING, COMPLETED, ACTIVE_NOT_RECRUITING, TERMINATED, WITHDRAWN, etc.
+  status: string; // RECRUITING, COMPLETED, ACTIVE_NOT_RECRUITING, TERMINATED, WITHDRAWN, SUSPENDED, etc.
   conditions: string[];
   leadSponsor: string;
   studyUrl: string;
+  url?: string;
+  enrollment?: number;
+  startDate?: string;
   completionDate?: string;
   briefSummary?: string;
 }
@@ -52,25 +68,106 @@ export interface PubMedCitation {
   abstractSnippet?: string;
 }
 
-export interface EvidenceScoreBreakdown {
-  clinicalTrialScore: number;      // 0 - 40
-  humanObservationalScore: number; // 0 - 20
-  mechanisticScore: number;        // 0 - 20
-  reproducibilityScore: number;    // 0 - 10
-  safetyCompatibilityScore: number;// 0 - 10
-  totalScore: number;              // 0 - 100
+export interface EvidenceScoreLegacy {
+  clinicalTrialScore: number;
+  humanObservationalScore: number;
+  mechanisticScore: number;
+  reproducibilityScore: number;
+  safetyCompatibilityScore: number;
+  totalScore: number;
   evidenceTier?: 'High' | 'Moderate' | 'Preliminary' | 'Insufficient evidence';
-  trialOutcomeStatus?: string;     // e.g. "Clinical trial activity identified; published outcome evidence unavailable."
   contributingFactors: string[];
   uncertaintyFlags: string[];
+}
+
+/**
+ * Transparent Research Readiness Score (0 - 100)
+ * Replaces generic "Evidence Score" with empirical research readiness metric.
+ * NOT an efficacy, approval, safety, or prescribing score.
+ */
+export interface ResearchReadinessBreakdown {
+  totalScore: number;
+  readinessTier: 'High readiness' | 'Moderate readiness' | 'Preliminary' | 'Insufficient evidence';
+  evidenceTier: 'High' | 'Moderate' | 'Preliminary' | 'Insufficient evidence';
+  clinicalTrialMaturity: number;           // 0 - 25
+  clinicalTrialMaturityReason: string;
+  publishedHumanEvidence: number;          // 0 - 25
+  publishedHumanEvidenceReason: string;
+  mechanisticPlausibility: number;         // 0 - 20
+  mechanisticPlausibilityReason: string;
+  sourceQualityReproducibility: number;   // 0 - 15
+  sourceQualityReproducibilityReason: string;
+  safetyCompatibility: number;             // 0 - 15
+  safetyCompatibilityReason: string;
+  evidenceConflictPenalty: number;         // <= 0 (subtracted)
+  evidenceConflictPenaltyReason: string;
+  trialOutcomeStatus?: string;
+  contributingFactors: string[];
+  uncertaintyFlags: string[];
+
+  // Legacy field aliases for backwards compatibility with existing components and tests
+  clinicalTrialScore: number;
+  humanObservationalScore: number;
+  mechanisticScore: number;
+  reproducibilityScore: number;
+  safetyCompatibilityScore: number;
+
+  // Structured breakdown object for RepurposeCompass
+  breakdown: {
+    clinicalTrialMaturity: { score: number; max: number; reason: string };
+    publishedHumanEvidence: { score: number; max: number; reason: string };
+    mechanisticPlausibility: { score: number; max: number; reason: string };
+    sourceQualityRecency: { score: number; max: number; reason: string };
+    safetyContextCompatibility: { score: number; max: number; reason: string };
+    conflictPenalties: { score: number; reason: string };
+  };
+}
+
+// Backwards compatibility alias
+export type EvidenceScoreBreakdown = ResearchReadinessBreakdown;
+
+export interface ContradictionItem {
+  id: string;
+  severity: 'critical' | 'warning' | 'info' | 'high' | 'medium' | 'low';
+  title: string;
+  description: string;
+  category: 'trial' | 'literature' | 'safety' | 'mechanism' | 'normalization' | 'data_freshness' | string;
+  recommendedAction?: string;
+  sourceReference?: string;
+}
+
+export interface SourceTimelineEvent {
+  id: string;
+  date: string;
+  title: string;
+  summary?: string;
+  description?: string;
+  source: string;
+  sourceName?: string;
+  sourceId?: string;
+  sourceUrl?: string;
+  identifier?: string;
+  timestamp?: string;
+  type?: string;
+}
+
+export interface ResearchChecklistStep {
+  id: string;
+  title: string;
+  label?: string;
+  description: string;
+  category: 'clinical_trial' | 'literature' | 'ontology' | 'safety' | 'mechanism' | 'comparative' | 'literature_review' | string;
+  actionLink?: string;
+  isCompleted?: boolean;
 }
 
 export interface RepurposingCandidate {
   id: string;
   condition: string;
+  conditionCanonical?: string;
   status: EvidenceStatus;
   highestPhase: string;
-  evidenceScore: EvidenceScoreBreakdown;
+  evidenceScore: ResearchReadinessBreakdown | EvidenceScoreLegacy;
   clinicalTrials: ClinicalTrial[];
   citations: PubMedCitation[];
   biologicalRationale: string;
@@ -78,6 +175,14 @@ export interface RepurposingCandidate {
   sourceCount: number;
   evidenceNote?: string;
   trialOutcomeStatus?: string;
+  contradictions?: ContradictionItem[];
+  timeline?: SourceTimelineEvent[];
+  checklist?: ResearchChecklistStep[];
+  // Repurpose Compass fields
+  researchState?: ResearchState;
+  readinessScore?: number;
+  readinessBreakdown?: ResearchReadinessBreakdown['breakdown'];
+  readinessTier?: string;
 }
 
 export interface AISummary {

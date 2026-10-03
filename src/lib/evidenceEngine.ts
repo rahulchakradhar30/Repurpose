@@ -3,7 +3,14 @@ import { fetchOpenFDALabel } from './sources/openfda';
 import { fetchPubChemData } from './sources/pubchem';
 import { fetchClinicalTrials } from './sources/clinicaltrials';
 import { fetchPubMedCitations } from './sources/pubmed';
-import { computeEvidenceScore } from './scoring';
+import { 
+  computeEvidenceScore, 
+  computeResearchReadinessScore, 
+  determineResearchState, 
+  detectContradictions, 
+  buildProvenanceTimeline, 
+  generateResearchChecklist 
+} from './scoring';
 import { 
   filterDistinctBrandNames, 
   deduplicateTrials, 
@@ -188,23 +195,39 @@ export async function aggregateDrugResearch(drugQuery: string): Promise<DrugRese
       else if ((p.includes('PHASE 2') || p.includes('PHASE2')) && !['Phase 3', 'Phase 4'].includes(highestPhase)) highestPhase = 'Phase 2';
     }
 
-    // Determine status
-    const allTerminated = trials.every(t => 
-      ['TERMINATED', 'WITHDRAWN', 'SUSPENDED'].some(s => (t.status || '').toUpperCase().includes(s))
-    );
+    // Compute Compass Research State (8 standardized states)
+    const researchState = determineResearchState({
+      condition: condName,
+      trials,
+      citations,
+      mechanismOfAction,
+      isApproved: false,
+    });
 
+    // Map backwards-compatible EvidenceStatus
     let status: EvidenceStatus = 'Investigational';
-    if (allTerminated && trials.length > 0) {
+    if (researchState === 'Trial terminated, withdrawn, or suspended') {
       status = 'Unsupported';
-    } else if (highestPhase === 'Phase 4' || highestPhase === 'Phase 3') {
-      status = 'Investigational';
-    } else if (trials.length === 0 && citations.length > 0) {
+    } else if (researchState === 'Off-label evidence') {
       status = 'Off-label';
-    } else if (trials.length === 0) {
+    } else if (researchState === 'Preclinical') {
+      status = 'Preclinical';
+    } else if (researchState === 'Insufficient evidence' || researchState === 'No verified evidence found') {
       status = 'Preclinical';
     }
 
-    // Compute evidence score
+    // Compute Compass Transparent Research Readiness Score (0-100 breakdown)
+    const readinessScore = computeResearchReadinessScore({
+      condition: condName,
+      trials,
+      citations,
+      mechanismOfAction,
+      biologicalRationale: `Evaluation of ${genericName} targeting ${condName} via ${drugClass} pathway interactions.`,
+      fdaWarnings: warnings,
+      fdaContraindications: contraindications,
+    });
+
+    // Legacy evidenceScore alias for backwards compatibility
     const evidenceScore = computeEvidenceScore({
       condition: condName,
       trials,
@@ -215,12 +238,43 @@ export async function aggregateDrugResearch(drugQuery: string): Promise<DrugRese
       fdaContraindications: contraindications,
     });
 
+    // Detect contradictions / gaps ("What needs verification?")
+    const contradictions = detectContradictions({
+      condition: condName,
+      trials,
+      citations,
+      mechanismOfAction,
+      warnings,
+      contraindications,
+    });
+
+    // Build source-provenance timeline
+    const timeline = buildProvenanceTimeline({
+      drugName: genericName,
+      condition: condName,
+      trials,
+      citations,
+      approvalDate: (rxData as { approvalDate?: string } | null)?.approvalDate,
+      lastVerifiedDate: now.split('T')[0],
+    });
+
+    // Generate deterministic, non-clinical research checklist
+    const checklist = generateResearchChecklist({
+      condition: condName,
+      trials,
+      citations,
+      mechanismOfAction,
+      warnings,
+      contraindications,
+      contradictions,
+    });
+
     // Generate clear, explanatory evidence note
     let evidenceNote = '';
-    if (evidenceScore.evidenceTier === 'Insufficient evidence') {
-      evidenceNote = `Insufficient evidence: ${trials.length} trial(s) and ${citations.length} citation(s) identified. Score capped at ${evidenceScore.totalScore}/100 pending verified human studies or peer-reviewed literature.`;
-    } else if (evidenceScore.trialOutcomeStatus) {
-      evidenceNote = `${evidenceScore.trialOutcomeStatus} Phase ${highestPhase.replace(/phase /i, '')} clinical trial activity registered, but peer-reviewed outcome publications have not yet been indexed in PubMed. Trial existence does not establish efficacy.`;
+    if (readinessScore.evidenceTier === 'Insufficient evidence') {
+      evidenceNote = `Insufficient evidence: ${trials.length} trial(s) and ${citations.length} citation(s) identified. Score capped at ${readinessScore.totalScore}/100 pending verified human studies or peer-reviewed literature.`;
+    } else if (readinessScore.trialOutcomeStatus) {
+      evidenceNote = `${readinessScore.trialOutcomeStatus} Phase ${highestPhase.replace(/phase /i, '')} clinical trial activity registered, but peer-reviewed outcome publications have not yet been indexed in PubMed. Trial existence does not establish efficacy.`;
     } else if (citations.length > 0 && trials.length > 0) {
       evidenceNote = `Supported by ${trials.length} registered clinical trial(s) (highest: ${highestPhase}) and ${citations.length} peer-reviewed PubMed publication(s). Research exploration only.`;
     } else if (trials.length > 0) {
@@ -236,12 +290,20 @@ export async function aggregateDrugResearch(drugQuery: string): Promise<DrugRese
       highestPhase,
       evidenceScore,
       evidenceNote,
-      trialOutcomeStatus: evidenceScore.trialOutcomeStatus,
+      trialOutcomeStatus: readinessScore.trialOutcomeStatus,
       clinicalTrials: trials.slice(0, 5),
       citations,
       biologicalRationale: `Exploration of ${genericName} (${drugClass}) for ${condName} based on shared mechanistic targets and observed clinical or pre-clinical activity.`,
       safetyNotes: warnings.slice(0, 2),
       sourceCount: trials.length + citations.length,
+      // Repurpose Compass fields
+      researchState,
+      readinessScore: readinessScore.totalScore,
+      readinessBreakdown: readinessScore.breakdown,
+      readinessTier: readinessScore.evidenceTier,
+      contradictions,
+      timeline,
+      checklist,
     };
 
     return candidate;
@@ -249,8 +311,8 @@ export async function aggregateDrugResearch(drugQuery: string): Promise<DrugRese
 
   const candidates = await Promise.all(candidatePromises);
 
-  // Sort candidates by total score descending
-  candidates.sort((a, b) => b.evidenceScore.totalScore - a.evidenceScore.totalScore);
+  // Sort candidates by readiness score descending
+  candidates.sort((a, b) => (b.readinessScore ?? b.evidenceScore.totalScore) - (a.readinessScore ?? a.evidenceScore.totalScore));
 
   return {
     drug: drugConcept,

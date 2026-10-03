@@ -3,17 +3,18 @@
 import Link from 'next/link';
 import Image from 'next/image';
 import { usePathname } from 'next/navigation';
-import { Search, BookOpen, Scale, Database, HelpCircle } from 'lucide-react';
+import { Search, BookOpen, Scale, Database, HelpCircle, BookMarked } from 'lucide-react';
 
 export function Header() {
   const pathname = usePathname() || '/';
 
   const navLinks = [
-    { href: '/', label: 'Search', icon: Search },
-    { href: '/what-is-drug-repurposing', label: 'Repurposing Guide', icon: BookOpen },
-    { href: '/methodology', label: 'Methodology', icon: Scale },
+    { href: '/', label: 'Explore', icon: Search },
+    { href: '/compare', label: 'Compare', icon: Scale },
+    { href: '/notebook', label: 'Notebook', icon: BookMarked },
     { href: '/sources', label: 'Sources', icon: Database },
-    { href: '/about', label: 'About', icon: HelpCircle },
+    { href: '/what-is-drug-repurposing', label: 'Guide', icon: BookOpen },
+    { href: '/methodology', label: 'Methodology', icon: Scale },
   ];
 
   return (

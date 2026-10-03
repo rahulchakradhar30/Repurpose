@@ -246,10 +246,10 @@ export function RepurposingList({
                     )}
                   </div>
 
-                  {/* Score & Visual Bar */}
+                  {/* Score & Visual Bar & Dossier Link */}
                   <div className="flex items-center sm:flex-col sm:items-end justify-between gap-2 sm:min-w-[140px] pt-2 sm:pt-0 border-t sm:border-t-0 border-slate-100 shrink-0">
                     <div className="flex items-baseline gap-1">
-                      <span className="text-xs font-medium text-slate-500">Evidence Score:</span>
+                      <span className="text-[11px] font-medium text-slate-500">Readiness:</span>
                       <span className={`text-base font-bold px-2 py-0.5 rounded border font-mono ${getScoreColor(score)}`}>
                         {score}/100
                       </span>
@@ -257,13 +257,19 @@ export function RepurposingList({
 
                     <div className="w-24 sm:w-28 bg-slate-200 h-1.5 rounded-full overflow-hidden">
                       <div
-                        className="bg-teal-700 h-full transition-all"
+                        className="bg-indigo-600 h-full transition-all"
                         style={{ width: `${Math.min(100, Math.max(5, score))}%` }}
                       />
                     </div>
 
-                    <div className="hidden sm:flex items-center gap-1 text-xs text-teal-800 font-medium hover:underline mt-1">
-                      <span>Examine Evidence</span>
+                    {cand.contradictions && cand.contradictions.length > 0 && (
+                      <span className="text-[10px] font-semibold text-amber-700 bg-amber-50 border border-amber-200 px-1.5 py-0.5 rounded">
+                        {cand.contradictions.length} verification flags
+                      </span>
+                    )}
+
+                    <div className="hidden sm:flex items-center gap-1 text-xs text-indigo-700 font-medium hover:underline mt-1">
+                      <span>Inspect Compass</span>
                       <ChevronRight className="w-3.5 h-3.5" />
                     </div>
                   </div>
