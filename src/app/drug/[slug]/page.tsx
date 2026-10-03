@@ -22,6 +22,7 @@ import {
   generateDrugPageJsonLd,
 } from '@/lib/seo';
 import { CopyPageLinkButton } from '@/components/CopyPageLinkButton';
+import { CompareDrugButton } from '@/components/CompareDrugButton';
 
 interface PageProps {
   params: Promise<{ slug: string }>;
@@ -117,7 +118,10 @@ export default async function DrugPage({ params }: PageProps) {
               <li className="text-slate-800 font-semibold">{drug.genericName}</li>
             </ol>
           </nav>
-          <CopyPageLinkButton label="Copy dossier link" />
+          <div className="flex items-center gap-2 flex-wrap">
+            <CompareDrugButton drug={drug} candidates={guide.candidates} />
+            <CopyPageLinkButton label="Copy dossier link" />
+          </div>
         </div>
 
         {/* Drug Header Dossier Card */}

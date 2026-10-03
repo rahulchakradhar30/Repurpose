@@ -143,6 +143,7 @@ function HomeContent() {
                 <div className="space-y-6 animate-in fade-in duration-150">
                   <DrugOverview
                     drug={researchSnapshot.drug}
+                    candidates={researchSnapshot.candidates}
                   />
 
                   <RepurposingList

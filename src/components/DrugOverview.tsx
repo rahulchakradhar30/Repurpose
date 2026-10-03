@@ -2,14 +2,16 @@
 
 import { useState } from 'react';
 import { ExternalLink, ShieldAlert, CheckCircle2, FileText, Share2, Check, AlertTriangle } from 'lucide-react';
-import { DrugConcept } from '@/types';
+import { DrugConcept, RepurposingCandidate } from '@/types';
 import { filterDistinctBrandNames } from '@/lib/normalization';
+import { CompareDrugButton } from './CompareDrugButton';
 
 interface DrugOverviewProps {
   drug: DrugConcept;
+  candidates?: RepurposingCandidate[];
 }
 
-export function DrugOverview({ drug }: DrugOverviewProps) {
+export function DrugOverview({ drug, candidates = [] }: DrugOverviewProps) {
   const [copied, setCopied] = useState(false);
 
   const handleCopyLink = async () => {
@@ -98,29 +100,33 @@ export function DrugOverview({ drug }: DrugOverviewProps) {
           )}
         </div>
 
-        {/* Copy Link Button (no link text shown on UI) */}
-        <button
-          onClick={handleCopyLink}
-          className={`flex items-center gap-2 px-3.5 py-2 rounded-md text-xs font-semibold border transition-colors self-start cursor-pointer ${
-            copied
-              ? 'bg-teal-50 text-teal-800 border-teal-300'
-              : 'bg-white hover:bg-slate-50 text-slate-700 border-slate-300'
-          }`}
-          aria-label="Copy direct link to this drug"
-          title="Copy link to clipboard"
-        >
-          {copied ? (
-            <>
-              <Check className="w-4 h-4 text-teal-700" />
-              <span>Link Copied</span>
-            </>
-          ) : (
-            <>
-              <Share2 className="w-4 h-4 text-slate-500" />
-              <span>Copy Link</span>
-            </>
-          )}
-        </button>
+        {/* Action Buttons: Compare & Copy Link */}
+        <div className="flex items-center gap-2 self-start flex-wrap">
+          <CompareDrugButton drug={drug} candidates={candidates} />
+
+          <button
+            onClick={handleCopyLink}
+            className={`flex items-center gap-2 px-3.5 py-2 rounded-md text-xs font-semibold border transition-colors cursor-pointer ${
+              copied
+                ? 'bg-teal-50 text-teal-800 border-teal-300'
+                : 'bg-white hover:bg-slate-50 text-slate-700 border-slate-300'
+            }`}
+            aria-label="Copy direct link to this drug"
+            title="Copy link to clipboard"
+          >
+            {copied ? (
+              <>
+                <Check className="w-4 h-4 text-teal-700" />
+                <span>Link Copied</span>
+              </>
+            ) : (
+              <>
+                <Share2 className="w-4 h-4 text-slate-500" />
+                <span>Copy Link</span>
+              </>
+            )}
+          </button>
+        </div>
       </div>
 
       {/* Mechanism and Pharmacology */}
