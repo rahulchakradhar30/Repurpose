@@ -146,24 +146,36 @@ export default function AboutPage() {
             </ul>
           </section>
 
-          {/* Creator Attribution */}
-          <section className="mb-10 p-6 rounded-xl bg-white border border-slate-200 shadow-xs">
-            <h2 className="text-lg font-bold text-slate-900 mb-2">Creator Attribution & Contact</h2>
-            <p className="text-sm text-slate-700 leading-relaxed mb-3">
-              Open-source tool prepared by <strong className="text-slate-900">P. Rahul Chakradhar</strong>.
-            </p>
-            <p className="text-xs text-slate-600 leading-relaxed mb-4">
-              Developed as an independent open-science contribution to computational pharmacology education. The project creator does not make clinical claims or claim personal medical credentials. Suggestions, data discrepancies, or bug reports are welcomed via email.
-            </p>
-            <div className="flex items-center gap-2 text-sm text-teal-800">
-              <Mail className="w-4 h-4 text-teal-700" />
-              <span className="text-slate-600">Contact:</span>
-              <a
-                href="mailto:rahulchakradhar30@outlook.com"
-                className="font-medium text-teal-800 hover:text-teal-900 hover:underline font-mono text-xs sm:text-sm"
-              >
-                rahulchakradhar30@outlook.com
-              </a>
+          {/* Creator Attribution & Contributors */}
+          <section className="mb-10 p-6 rounded-xl bg-white border border-slate-200 shadow-xs space-y-4">
+            <h2 className="text-lg font-bold text-slate-900 mb-1">Creator Attribution &amp; Contributors</h2>
+            
+            <div className="space-y-2">
+              <p className="text-sm text-slate-700 leading-relaxed">
+                Developer &amp; Tool Creator: <strong className="text-slate-900">P. Rahul Chakradhar</strong>
+              </p>
+              <p className="text-xs text-slate-600 leading-relaxed">
+                Developed as an independent open-science contribution to computational pharmacology education. The project developer does not make clinical claims or claim personal medical credentials. Suggestions, data discrepancies, or bug reports are welcomed via email.
+              </p>
+              <div className="flex items-center gap-2 text-sm text-teal-800 pt-0.5">
+                <Mail className="w-4 h-4 text-teal-700" />
+                <span className="text-slate-600 text-xs sm:text-sm">Contact:</span>
+                <a
+                  href="mailto:rahulchakradhar30@outlook.com"
+                  className="font-medium text-teal-800 hover:text-teal-900 hover:underline font-mono text-xs sm:text-sm"
+                >
+                  rahulchakradhar30@outlook.com
+                </a>
+              </div>
+            </div>
+
+            <div className="pt-3 border-t border-slate-100 space-y-1">
+              <p className="text-sm text-slate-700 leading-relaxed">
+                Idea &amp; Concept Contributor: <strong className="text-slate-900">A. Hema</strong>
+              </p>
+              <p className="text-xs text-slate-600 leading-relaxed">
+                Suggested and contributed the foundational idea for creating the Repurpose evidence exploration platform.
+              </p>
             </div>
           </section>
 
