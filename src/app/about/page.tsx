@@ -161,10 +161,10 @@ export default function AboutPage() {
                 <Mail className="w-4 h-4 text-teal-700" />
                 <span className="text-slate-600 text-xs sm:text-sm">Contact:</span>
                 <a
-                  href="mailto:rahulchakradhar30@outlook.com"
+                  href="mailto:hello@rahulchakradhar.dev"
                   className="font-medium text-teal-800 hover:text-teal-900 hover:underline font-mono text-xs sm:text-sm"
                 >
-                  rahulchakradhar30@outlook.com
+                  hello@rahulchakradhar.dev
                 </a>
               </div>
             </div>

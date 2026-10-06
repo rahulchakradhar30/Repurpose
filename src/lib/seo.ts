@@ -39,7 +39,7 @@ export const SITE_DESCRIPTION =
 
 export const CREATOR_ATTRIBUTION = {
   name: 'P. Rahul Chakradhar',
-  email: 'rahulchakradhar30@outlook.com',
+  email: 'hello@rahulchakradhar.dev',
   role: 'Open-source creator & maintainer',
 };
 

@@ -35,7 +35,7 @@ export const metadata: Metadata = {
   },
   description: SITE_DESCRIPTION,
   applicationName: SITE_NAME,
-  authors: [{ name: "P. Rahul Chakradhar", url: "mailto:rahulchakradhar30@outlook.com" }],
+  authors: [{ name: "P. Rahul Chakradhar", url: "mailto:hello@rahulchakradhar.dev" }],
   creator: "P. Rahul Chakradhar",
   publisher: "P. Rahul Chakradhar",
   formatDetection: {

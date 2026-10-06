@@ -263,5 +263,5 @@ npm run build
 
 - **Code:** Open-source under the MIT License.
 - **Biomedical Data:** Ingested from public domain sources provided by the U.S. National Institutes of Health (NIH), National Library of Medicine (NLM), and Food and Drug Administration (FDA).
-- **Author:** P. Rahul Chakradhar · [rahulchakradhar30@outlook.com](mailto:rahulchakradhar30@outlook.com)
+- **Author:** P. Rahul Chakradhar · [hello@rahulchakradhar.dev](mailto:hello@rahulchakradhar.dev)
 
