@@ -9,6 +9,7 @@ import {
   PUBLISHED_DRUG_REGISTRY,
 } from '@/lib/publishedDrugs';
 import {
+  getSiteUrl,
   getCanonicalUrl,
   generateHomeJsonLd,
   generateDrugPageJsonLd,
@@ -17,35 +18,55 @@ import {
   SITE_CONFIG,
 } from '@/lib/seo';
 
+const CANONICAL_DOMAIN = 'https://drugrepurpose.vercel.app';
+
 describe('Production SEO Suite', () => {
   const originalEnv = process.env.NEXT_PUBLIC_SITE_URL;
+  const originalVercelUrl = process.env.VERCEL_URL;
 
   beforeEach(() => {
-    process.env.NEXT_PUBLIC_SITE_URL = 'https://repurpose-research.org';
+    process.env.NEXT_PUBLIC_SITE_URL = CANONICAL_DOMAIN;
+    delete process.env.VERCEL_URL;
   });
 
   afterEach(() => {
     process.env.NEXT_PUBLIC_SITE_URL = originalEnv;
+    if (originalVercelUrl) {
+      process.env.VERCEL_URL = originalVercelUrl;
+    } else {
+      delete process.env.VERCEL_URL;
+    }
   });
 
-  describe('Canonical URL Generator (getCanonicalUrl)', () => {
-    it('should generate valid HTTPS canonical URLs without double slashes', () => {
-      expect(getCanonicalUrl('/')).toBe('https://repurpose-research.org');
-      expect(getCanonicalUrl('')).toBe('https://repurpose-research.org');
+  describe('Canonical URL Generator & Vercel Preview Protection (getCanonicalUrl)', () => {
+    it('should generate valid HTTPS canonical URLs using the production domain', () => {
+      expect(getCanonicalUrl('/')).toBe(CANONICAL_DOMAIN);
+      expect(getCanonicalUrl('')).toBe(CANONICAL_DOMAIN);
       expect(getCanonicalUrl('/what-is-drug-repurposing')).toBe(
-        'https://repurpose-research.org/what-is-drug-repurposing'
+        `${CANONICAL_DOMAIN}/what-is-drug-repurposing`
       );
       expect(getCanonicalUrl('drug/metformin')).toBe(
-        'https://repurpose-research.org/drug/metformin'
+        `${CANONICAL_DOMAIN}/drug/metformin`
+      );
+    });
+
+    it('should never use VERCEL_URL preview deployment hashes as canonical URLs', () => {
+      delete process.env.NEXT_PUBLIC_SITE_URL;
+      process.env.VERCEL_URL = 'repurpose-d4jb6yont-thefifthagefilms-6204s-projects.vercel.app';
+
+      // Must strictly resolve to https://drugrepurpose.vercel.app and never the preview hash
+      expect(getSiteUrl()).toBe(CANONICAL_DOMAIN);
+      expect(getCanonicalUrl('/what-is-drug-repurposing')).toBe(
+        `${CANONICAL_DOMAIN}/what-is-drug-repurposing`
       );
     });
 
     it('should strip trailing slashes for consistency', () => {
       expect(getCanonicalUrl('/methodology/')).toBe(
-        'https://repurpose-research.org/methodology'
+        `${CANONICAL_DOMAIN}/methodology`
       );
       expect(getCanonicalUrl('///sources///')).toBe(
-        'https://repurpose-research.org/sources'
+        `${CANONICAL_DOMAIN}/sources`
       );
     });
   });
@@ -85,7 +106,7 @@ describe('Production SEO Suite', () => {
 
     it('should reference the canonical sitemap XML URL', () => {
       const robotsConfig = robots();
-      expect(robotsConfig.sitemap).toBe('https://repurpose-research.org/sitemap.xml');
+      expect(robotsConfig.sitemap).toBe(`${CANONICAL_DOMAIN}/sitemap.xml`);
     });
   });
 
@@ -94,11 +115,11 @@ describe('Production SEO Suite', () => {
       const entries = sitemap();
       const urls = entries.map((e) => e.url);
 
-      expect(urls).toContain('https://repurpose-research.org');
-      expect(urls).toContain('https://repurpose-research.org/what-is-drug-repurposing');
-      expect(urls).toContain('https://repurpose-research.org/methodology');
-      expect(urls).toContain('https://repurpose-research.org/sources');
-      expect(urls).toContain('https://repurpose-research.org/about');
+      expect(urls).toContain(CANONICAL_DOMAIN);
+      expect(urls).toContain(`${CANONICAL_DOMAIN}/what-is-drug-repurposing`);
+      expect(urls).toContain(`${CANONICAL_DOMAIN}/methodology`);
+      expect(urls).toContain(`${CANONICAL_DOMAIN}/sources`);
+      expect(urls).toContain(`${CANONICAL_DOMAIN}/about`);
     });
 
     it('should only include verified, publishable drug dossiers in sitemap', () => {
@@ -106,14 +127,14 @@ describe('Production SEO Suite', () => {
       const urls = entries.map((e) => e.url);
 
       // Curated verified drugs must be present
-      expect(urls).toContain('https://repurpose-research.org/drug/metformin');
-      expect(urls).toContain('https://repurpose-research.org/drug/thalidomide');
-      expect(urls).toContain('https://repurpose-research.org/drug/imatinib');
-      expect(urls).toContain('https://repurpose-research.org/drug/azithromycin');
+      expect(urls).toContain(`${CANONICAL_DOMAIN}/drug/metformin`);
+      expect(urls).toContain(`${CANONICAL_DOMAIN}/drug/thalidomide`);
+      expect(urls).toContain(`${CANONICAL_DOMAIN}/drug/imatinib`);
+      expect(urls).toContain(`${CANONICAL_DOMAIN}/drug/azithromycin`);
 
       // Unverified or random searched terms must NEVER appear in sitemap
-      expect(urls).not.toContain('https://repurpose-research.org/drug/fake-drug');
-      expect(urls).not.toContain('https://repurpose-research.org/drug/aspirin-random-search');
+      expect(urls).not.toContain(`${CANONICAL_DOMAIN}/drug/fake-drug`);
+      expect(urls).not.toContain(`${CANONICAL_DOMAIN}/drug/aspirin-random-search`);
 
       // Query parameters must NEVER be in sitemap URLs
       entries.forEach((e) => {
@@ -208,7 +229,7 @@ describe('Production SEO Suite', () => {
           follow: true,
         })
       );
-      expect(meta.alternates?.canonical).toBe('https://repurpose-research.org/drug/azithromycin');
+      expect(meta.alternates?.canonical).toBe(`${CANONICAL_DOMAIN}/drug/azithromycin`);
     });
 
     it('should generate indexable metadata for verified drugs', async () => {
@@ -223,7 +244,7 @@ describe('Production SEO Suite', () => {
           follow: true,
         })
       );
-      expect(meta.alternates?.canonical).toBe('https://repurpose-research.org/drug/metformin');
+      expect(meta.alternates?.canonical).toBe(`${CANONICAL_DOMAIN}/drug/metformin`);
     });
 
     it('should return noindex for unverified or unpublishable slugs', async () => {
@@ -247,7 +268,7 @@ describe('Production SEO Suite', () => {
 
       const websiteSchema = schemas.find((s) => s['@type'] === 'WebSite') as any;
       expect(websiteSchema).toBeDefined();
-      expect(websiteSchema?.url).toBe('https://repurpose-research.org');
+      expect(websiteSchema?.url).toBe(CANONICAL_DOMAIN);
 
       const appSchema = schemas.find((s) => s['@type'] === 'SoftwareApplication') as any;
       expect(appSchema).toBeDefined();
@@ -285,8 +306,8 @@ describe('Production SEO Suite', () => {
 
       expect(breadcrumbs['@type']).toBe('BreadcrumbList');
       expect(breadcrumbs.itemListElement).toHaveLength(2);
-      expect(breadcrumbs.itemListElement[0].item).toBe('https://repurpose-research.org');
-      expect(breadcrumbs.itemListElement[1].item).toBe('https://repurpose-research.org/sources');
+      expect(breadcrumbs.itemListElement[0].item).toBe(CANONICAL_DOMAIN);
+      expect(breadcrumbs.itemListElement[1].item).toBe(`${CANONICAL_DOMAIN}/sources`);
     });
 
     it('should generate Article schema with valid dates and author credit', () => {
@@ -300,7 +321,7 @@ describe('Production SEO Suite', () => {
 
       expect(article['@type']).toBe('Article');
       expect(article.mainEntityOfPage).toBe(
-        'https://repurpose-research.org/what-is-drug-repurposing'
+        `${CANONICAL_DOMAIN}/what-is-drug-repurposing`
       );
       expect(article.author.name).toBe('P. Rahul Chakradhar');
     });

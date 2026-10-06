@@ -7,20 +7,14 @@
 import { PublishedDrugGuide } from '@/lib/publishedDrugs';
 
 export function getSiteUrl(): string {
-  // Read production canonical URL from environment variable
+  // Read production canonical URL from environment variable as single source of truth
   const envUrl = process.env.NEXT_PUBLIC_SITE_URL;
   if (envUrl && envUrl.trim() !== '') {
-    // Strip trailing slash
     return envUrl.trim().replace(/\/+$/, '');
   }
 
-  // Fallback for Vercel production deployment if environment variable is not yet configured
-  if (process.env.VERCEL_URL) {
-    return `https://${process.env.VERCEL_URL}`.replace(/\/+$/, '');
-  }
-
-  // Local development fallback
-  return 'http://localhost:3000';
+  // Strict production canonical domain (never use ephemeral Vercel deployment hashes)
+  return 'https://drugrepurpose.vercel.app';
 }
 
 /**
