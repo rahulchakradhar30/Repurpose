@@ -154,45 +154,135 @@ function HomeContent() {
                 </div>
               )}
 
-              {/* Educational Knowledge Hub Internal Links */}
+              {/* Educational Knowledge Hub Internal Links & Verified Drug Dossiers */}
               {!researchSnapshot && !isLoading && (
                 <div className="space-y-8 pt-2">
-                  <section aria-labelledby="educational-hub-heading" className="max-w-4xl mx-auto pt-4">
-                    <h2 id="educational-hub-heading" className="text-base font-bold text-slate-900 mb-3 flex items-center gap-2">
-                      <BookOpen className="w-4 h-4 text-teal-700" />
-                      Research Workspace, Comparison & Verification Tools
-                    </h2>
-                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                  {/* Verified Clinical Evidence Dossiers Section */}
+                  <section aria-labelledby="verified-dossiers-heading" className="max-w-4xl mx-auto">
+                    <div className="flex items-center justify-between mb-3">
+                      <h2 id="verified-dossiers-heading" className="text-base font-bold text-slate-900 flex items-center gap-2">
+                        <BookOpen className="w-4 h-4 text-teal-700" />
+                        Featured Verified Drug Repurposing Dossiers
+                      </h2>
+                      <span className="text-xs text-slate-500 font-mono">Peer-reviewed &amp; trial-indexed</span>
+                    </div>
+
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                       <Link
-                        href="/compare"
-                        className="flex flex-col sm:flex-row items-center justify-center gap-2 p-3 sm:py-3.5 rounded-lg bg-white border border-slate-200 hover:border-teal-600 hover:text-teal-800 text-slate-800 text-xs sm:text-sm font-semibold transition-all shadow-xs group text-center sm:text-left"
+                        href="/drug/metformin"
+                        className="p-4 rounded-xl bg-white border border-slate-200 hover:border-teal-600 hover:shadow-xs transition-all group block"
                       >
-                        <Scale className="w-4 h-4 text-teal-700 group-hover:scale-110 transition-transform shrink-0" />
-                        <span>Compare Workspace</span>
+                        <div className="flex items-center justify-between mb-1">
+                          <span className="font-bold text-sm text-slate-900 group-hover:text-teal-800">Metformin</span>
+                          <span className="text-[10px] font-mono font-semibold px-2 py-0.5 rounded bg-emerald-50 text-emerald-800 border border-emerald-200">
+                            PCOS &amp; Oncology
+                          </span>
+                        </div>
+                        <p className="text-xs text-slate-600 line-clamp-2">
+                          First-line biguanide for type 2 diabetes explored in polycystic ovary syndrome and cancer chemoprevention trials.
+                        </p>
                       </Link>
 
                       <Link
-                        href="/notebook"
-                        className="flex flex-col sm:flex-row items-center justify-center gap-2 p-3 sm:py-3.5 rounded-lg bg-white border border-slate-200 hover:border-teal-600 hover:text-teal-800 text-slate-800 text-xs sm:text-sm font-semibold transition-all shadow-xs group text-center sm:text-left"
+                        href="/drug/azithromycin"
+                        className="p-4 rounded-xl bg-white border border-slate-200 hover:border-teal-600 hover:shadow-xs transition-all group block"
                       >
-                        <BookMarked className="w-4 h-4 text-teal-700 group-hover:scale-110 transition-transform shrink-0" />
-                        <span>Research Notebook</span>
+                        <div className="flex items-center justify-between mb-1">
+                          <span className="font-bold text-sm text-slate-900 group-hover:text-teal-800">Azithromycin</span>
+                          <span className="text-[10px] font-mono font-semibold px-2 py-0.5 rounded bg-blue-50 text-blue-800 border border-blue-200">
+                            CF &amp; Viral Trials
+                          </span>
+                        </div>
+                        <p className="text-xs text-slate-600 line-clamp-2">
+                          Macrolide with immunomodulatory properties investigated across cystic fibrosis and large randomized COVID-19 platform trials.
+                        </p>
+                      </Link>
+
+                      <Link
+                        href="/drug/thalidomide"
+                        className="p-4 rounded-xl bg-white border border-slate-200 hover:border-teal-600 hover:shadow-xs transition-all group block"
+                      >
+                        <div className="flex items-center justify-between mb-1">
+                          <span className="font-bold text-sm text-slate-900 group-hover:text-teal-800">Thalidomide</span>
+                          <span className="text-[10px] font-mono font-semibold px-2 py-0.5 rounded bg-purple-50 text-purple-800 border border-purple-200">
+                            Myeloma &amp; ENL
+                          </span>
+                        </div>
+                        <p className="text-xs text-slate-600 line-clamp-2">
+                          Historic teratogen repurposed through cereblon-mediated anti-angiogenesis into standard multiple myeloma therapy.
+                        </p>
+                      </Link>
+
+                      <Link
+                        href="/drug/imatinib"
+                        className="p-4 rounded-xl bg-white border border-slate-200 hover:border-teal-600 hover:shadow-xs transition-all group block"
+                      >
+                        <div className="flex items-center justify-between mb-1">
+                          <span className="font-bold text-sm text-slate-900 group-hover:text-teal-800">Imatinib</span>
+                          <span className="text-[10px] font-mono font-semibold px-2 py-0.5 rounded bg-teal-50 text-teal-800 border border-teal-200">
+                            GIST &amp; Scleroderma
+                          </span>
+                        </div>
+                        <p className="text-xs text-slate-600 line-clamp-2">
+                          Prototypical kinase inhibitor targeting BCR-ABL, KIT, and PDGFR evaluated in systemic sclerosis and fibrosis.
+                        </p>
+                      </Link>
+                    </div>
+                  </section>
+
+                  {/* Knowledge Architecture Links */}
+                  <section aria-labelledby="educational-hub-heading" className="max-w-4xl mx-auto pt-2">
+                    <h2 id="educational-hub-heading" className="text-base font-bold text-slate-900 mb-3 flex items-center gap-2">
+                      <Compass className="w-4 h-4 text-teal-700" />
+                      Educational Guides, Scoring Methodology &amp; Registry
+                    </h2>
+                    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-2.5">
+                      <Link
+                        href="/what-is-drug-repurposing"
+                        className="flex flex-col items-center justify-center p-3 rounded-lg bg-white border border-slate-200 hover:border-teal-600 hover:text-teal-800 text-slate-800 text-xs font-semibold transition-all shadow-xs text-center"
+                      >
+                        <BookOpen className="w-4 h-4 text-teal-700 mb-1" />
+                        <span>What is Repurposing?</span>
                       </Link>
 
                       <Link
                         href="/methodology"
-                        className="flex flex-col sm:flex-row items-center justify-center gap-2 p-3 sm:py-3.5 rounded-lg bg-white border border-slate-200 hover:border-teal-600 hover:text-teal-800 text-slate-800 text-xs sm:text-sm font-semibold transition-all shadow-xs group text-center sm:text-left"
+                        className="flex flex-col items-center justify-center p-3 rounded-lg bg-white border border-slate-200 hover:border-teal-600 hover:text-teal-800 text-slate-800 text-xs font-semibold transition-all shadow-xs text-center"
                       >
-                        <Compass className="w-4 h-4 text-teal-700 group-hover:scale-110 transition-transform shrink-0" />
-                        <span>Repurpose Compass™</span>
+                        <Compass className="w-4 h-4 text-teal-700 mb-1" />
+                        <span>Scoring Methodology</span>
                       </Link>
 
                       <Link
                         href="/sources"
-                        className="flex flex-col sm:flex-row items-center justify-center gap-2 p-3 sm:py-3.5 rounded-lg bg-white border border-slate-200 hover:border-teal-600 hover:text-teal-800 text-slate-800 text-xs sm:text-sm font-semibold transition-all shadow-xs group text-center sm:text-left"
+                        className="flex flex-col items-center justify-center p-3 rounded-lg bg-white border border-slate-200 hover:border-teal-600 hover:text-teal-800 text-slate-800 text-xs font-semibold transition-all shadow-xs text-center"
                       >
-                        <Database className="w-4 h-4 text-teal-700 group-hover:scale-110 transition-transform shrink-0" />
-                        <span>Data Source Registry</span>
+                        <Database className="w-4 h-4 text-teal-700 mb-1" />
+                        <span>Data Sources</span>
+                      </Link>
+
+                      <Link
+                        href="/compare"
+                        className="flex flex-col items-center justify-center p-3 rounded-lg bg-white border border-slate-200 hover:border-teal-600 hover:text-teal-800 text-slate-800 text-xs font-semibold transition-all shadow-xs text-center"
+                      >
+                        <Scale className="w-4 h-4 text-teal-700 mb-1" />
+                        <span>Compare Candidates</span>
+                      </Link>
+
+                      <Link
+                        href="/about"
+                        className="flex flex-col items-center justify-center p-3 rounded-lg bg-white border border-slate-200 hover:border-teal-600 hover:text-teal-800 text-slate-800 text-xs font-semibold transition-all shadow-xs text-center"
+                      >
+                        <BookMarked className="w-4 h-4 text-teal-700 mb-1" />
+                        <span>About Mission</span>
+                      </Link>
+
+                      <Link
+                        href="/privacy"
+                        className="flex flex-col items-center justify-center p-3 rounded-lg bg-white border border-slate-200 hover:border-teal-600 hover:text-teal-800 text-slate-800 text-xs font-semibold transition-all shadow-xs text-center"
+                      >
+                        <Compass className="w-4 h-4 text-teal-700 mb-1" />
+                        <span>Privacy Policy</span>
                       </Link>
                     </div>
                   </section>

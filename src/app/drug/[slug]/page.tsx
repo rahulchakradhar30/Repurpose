@@ -54,7 +54,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   const canonicalUrl = getCanonicalUrl(`/drug/${guide.slug}`);
 
   return {
-    title: `${drug.genericName} Repurposing & Clinical Evidence Dossier | Repurpose`,
+    title: `${drug.genericName} Repurposing & Clinical Evidence Dossier`,
     description: `Evidence-based drug repurposing research for ${drug.genericName}. Verified clinical trials, pharmacology rationale, approved indications, and biomedical source links.`,
     alternates: {
       canonical: canonicalUrl,

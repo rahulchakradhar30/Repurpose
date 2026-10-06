@@ -32,7 +32,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   const state = candidate.researchState || 'Investigational';
 
   return {
-    title: `${candidate.condition} & ${drug.genericName} Repurposing Evidence Dossier | Repurpose`,
+    title: `${candidate.condition} & ${drug.genericName} Repurposing Evidence Dossier`,
     description: `Biomedical evidence dossier for ${drug.genericName} in ${candidate.condition}. Research state: ${state}. Research readiness score: ${score}/100. Verified trials & PubMed citations.`,
     alternates: {
       canonical: canonicalUrl,

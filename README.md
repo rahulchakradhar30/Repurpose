@@ -189,7 +189,68 @@ npm run build
 
 ---
 
-## 7. Known Limitations
+## 7. Production SEO & Google Search Console Runbook
+
+### Core Production URLs & Endpoints
+- **Production Domain:** `https://drugrepurpose.vercel.app`
+- **Canonical Robots.txt:** `https://drugrepurpose.vercel.app/robots.txt`
+- **Dynamic XML Sitemap:** `https://drugrepurpose.vercel.app/sitemap.xml`
+
+### Google Search Console Verification & Setup
+1. **Verification Meta Tag:**
+   The verification meta tag is baked directly into the Next.js root layout HTML:
+   ```html
+   <meta name="google-site-verification" content="TVRormk2JxbUCOVNS_0kWGP5hn26StqTY5bJjs4Vi2s" />
+   ```
+2. **Adding the Property in Google Search Console:**
+   - Log into [Google Search Console](https://search.google.com/search-console).
+   - Click **Add Property** and select **URL prefix**: `https://drugrepurpose.vercel.app`.
+   - Choose the **HTML tag** verification method and click **Verify**.
+
+3. **Submitting the Dynamic Sitemap:**
+   - In Search Console, navigate to **Sitemaps** in the left sidebar.
+   - Under *Add a new sitemap*, enter `sitemap.xml` (i.e. `https://drugrepurpose.vercel.app/sitemap.xml`) and click **Submit**.
+   - Verify that Google reports status **Success** and detects all indexable canonical URLs.
+
+4. **Using URL Inspection:**
+   - Paste any canonical public URL (e.g., `https://drugrepurpose.vercel.app/` or `https://drugrepurpose.vercel.app/drug/metformin`) into the top search bar.
+   - Click **Test Live URL** to confirm that Googlebot can fetch the page, render text content, execute structured data, and view canonical tags.
+
+5. **Requesting Re-Indexing After Substantial Content Updates:**
+   - After updating drug dossiers, scoring rules, or educational guides, inspect the updated URL and click **Request Indexing**.
+   - *Note:* Google enforces daily quotas on manual indexing requests; rely on the auto-updating `sitemap.xml` for routine updates.
+
+6. **Monitoring Indexing, Core Web Vitals & Search Performance:**
+   - **Pages / Coverage Report:** Check *Indexed* vs *Not indexed* pages. Confirm that `/api/*`, `/notebook`, and parameterized query URLs (`/?drug=...`) are excluded as intended.
+   - **Performance Report:** Track impressions, search clicks, average CTR, and ranking queries for biomedical and drug repositioning terms.
+   - **Core Web Vitals:** Monitor LCP (<2.5s), FID/INP (<200ms), and CLS (<0.1) across mobile and desktop.
+   - **Crawl Errors:** Audit the *Crawl Stats* report in Settings to verify zero 5xx server errors or blocked rendering assets.
+
+7. **Important Search Engine Disclaimer:**
+   - **Indexing and Rankings Are Not Guaranteed:** Search engines evaluate crawl frequency, site quality, backlink authority, and content freshness autonomously. We do not engage in manipulative SEO, keyword stuffing, or artificial backlink schemes.
+
+---
+
+## 8. SEO Architecture & Indexability Matrix
+
+| Route Pattern | Index Status | Canonical Target | Structured Data (JSON-LD) | Notes / Guardrails |
+| :--- | :--- | :--- | :--- | :--- |
+| `/` | `index, follow` | `https://drugrepurpose.vercel.app` | `WebSite`, `SoftwareApplication`, `Person` | Clean discovery hub, search, and educational links. |
+| `/?drug=...` | `noindex, follow` | `https://drugrepurpose.vercel.app` | None | Search query results prevent duplicate indexation. |
+| `/what-is-drug-repurposing` | `index, follow` | `.../what-is-drug-repurposing` | `Article`, `BreadcrumbList` | Educational guide with peer-reviewed references. |
+| `/methodology` | `index, follow` | `.../methodology` | `Article`, `BreadcrumbList` | 100-point Research Readiness Score specification. |
+| `/sources` | `index, follow` | `.../sources` | `Article`, `BreadcrumbList` | Public biomedical API registry & license boundaries. |
+| `/about` | `index, follow` | `.../about` | `AboutPage`, `Person`, `BreadcrumbList` | Mission, open-source principles, creator credit. |
+| `/privacy` | `index, follow` | `.../privacy` | `Article`, `BreadcrumbList` | 30-day auto-purge, no PHI, zero tracking pixels. |
+| `/compare` | `index, follow` | `.../compare` | `BreadcrumbList` | Side-by-side hypothesis comparison workspace. |
+| `/drug/[slug]` | `index, follow` (verified only) | `.../drug/[slug]` | `MedicalWebPage`, `BreadcrumbList` | Verified compounds with last-verified date & trials. |
+| `/evidence/[drug]/[cond]` | `index, follow` (qualifying only) | `.../evidence/[drug]/[cond]` | `MedicalWebPage`, `BreadcrumbList` | Verified dossiers (score ≥ 35 & public trials). |
+| `/notebook` | `noindex, nofollow` | Excluded | None | Private authenticated notebook vault. |
+| `/api/*` | `noindex, nofollow` | Excluded | None | Backend REST endpoints (disallowed in robots.txt). |
+
+---
+
+## 9. Known Limitations
 
 1. **US Labeling Focus:** Primary structured product labeling is ingested from openFDA and DailyMed. International regulatory approvals (EMA, PMDA, CDSCO) are planned for future phases.
 2. **ClinicalTrials.gov Data Latency:** Sponsor reporting of primary completion endpoints may lag by 12–24 months following trial completion.
@@ -198,8 +259,9 @@ npm run build
 
 ---
 
-## 8. License & Attribution
+## 10. License & Attribution
 
 - **Code:** Open-source under the MIT License.
 - **Biomedical Data:** Ingested from public domain sources provided by the U.S. National Institutes of Health (NIH), National Library of Medicine (NLM), and Food and Drug Administration (FDA).
 - **Author:** P. Rahul Chakradhar · [rahulchakradhar30@outlook.com](mailto:rahulchakradhar30@outlook.com)
+

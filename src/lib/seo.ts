@@ -39,9 +39,9 @@ export function getCanonicalUrl(path: string = ''): string {
 export const getAbsoluteUrl = getCanonicalUrl;
 
 export const SITE_NAME = 'Repurpose';
-export const SITE_TAGLINE = 'Evidence-Based Drug Repurposing Research Explorer';
+export const SITE_TAGLINE = 'Evidence-Based Drug Repurposing Explorer';
 export const SITE_DESCRIPTION =
-  'Independent, open-source educational and research-support platform for biomedical researchers and pharmacy students exploring evidence-based drug repurposing candidates across RxNorm, openFDA, ClinicalTrials.gov, and PubMed.';
+  'Explore drug-repurposing evidence through verified biomedical sources, clinical-trial context, safety information, and transparent research-readiness scoring.';
 
 export const CREATOR_ATTRIBUTION = {
   name: 'P. Rahul Chakradhar',

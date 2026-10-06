@@ -12,7 +12,7 @@ import {
 import { generateBreadcrumbJsonLd, generateArticleJsonLd, getCanonicalUrl } from '@/lib/seo';
 
 export const metadata: Metadata = {
-  title: 'Data Sources & Licence Registry | Repurpose',
+  title: 'Data Sources & Licence Registry',
   description:
     'Comprehensive registry of open biomedical APIs, access methods, licenses, refresh rates, terms of use, and permitted integration boundaries in Repurpose.',
   alternates: {
