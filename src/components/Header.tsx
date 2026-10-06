@@ -15,6 +15,7 @@ export function Header() {
     { href: '/sources', label: 'Sources', icon: Database },
     { href: '/what-is-drug-repurposing', label: 'Guide', icon: BookOpen },
     { href: '/methodology', label: 'Methodology', icon: Scale },
+    { href: '/about', label: 'About & Privacy', icon: HelpCircle },
   ];
 
   return (
