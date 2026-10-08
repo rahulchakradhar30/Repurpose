@@ -6,6 +6,7 @@ import { DrugOverview } from '@/components/DrugOverview';
 import { RepurposingList } from '@/components/RepurposingList';
 import { EvidenceDetailModal } from '@/components/EvidenceDetailModal';
 import { PWARegister } from '@/components/PWARegister';
+import { MicroscopeWatermark } from '@/components/MicroscopeWatermark';
 import { 
   DrugResearchSnapshot, 
   RepurposingCandidate 
@@ -153,7 +154,10 @@ function HomeContent() {
                 </div>
               )}
 
-
+              {/* Watermark Illustration: Microscope examining drug candidate */}
+              {!researchSnapshot && !isLoading && !error && (
+                <MicroscopeWatermark />
+              )}
             </div>
         </main>
 
