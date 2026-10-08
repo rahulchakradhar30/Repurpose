@@ -127,6 +127,14 @@ export function Header() {
         <div className="flex items-center gap-3">
           <Link
             href="/"
+            onClick={() => {
+              if (pathname === '/') {
+                if (typeof window !== 'undefined') {
+                  window.history.pushState({}, '', '/');
+                  window.dispatchEvent(new CustomEvent('repurpose:reset-search'));
+                }
+              }
+            }}
             className="flex items-center gap-2.5 text-left focus-visible:ring-2 focus-visible:ring-teal-400 rounded-sm cursor-pointer group"
             aria-label="Repurpose Home"
           >
@@ -153,6 +161,14 @@ export function Header() {
               <Link
                 key={item.href}
                 href={item.href}
+                onClick={() => {
+                  if (item.href === '/' && pathname === '/') {
+                    if (typeof window !== 'undefined') {
+                      window.history.pushState({}, '', '/');
+                      window.dispatchEvent(new CustomEvent('repurpose:reset-search'));
+                    }
+                  }
+                }}
                 className={`flex items-center gap-1.5 px-3 py-1.5 rounded text-xs font-medium transition-colors ${
                   isActive
                     ? 'bg-slate-800 text-teal-300 border border-slate-700'
@@ -176,6 +192,14 @@ export function Header() {
             <Link
               key={item.href}
               href={item.href}
+              onClick={() => {
+                if (item.href === '/' && pathname === '/') {
+                  if (typeof window !== 'undefined') {
+                    window.history.pushState({}, '', '/');
+                    window.dispatchEvent(new CustomEvent('repurpose:reset-search'));
+                  }
+                }
+              }}
               className={`flex flex-col items-center justify-center touch-target py-1 px-2.5 rounded text-[11px] font-medium transition-colors ${
                 isActive ? 'text-teal-400 font-semibold' : 'text-slate-400 hover:text-slate-200'
               }`}

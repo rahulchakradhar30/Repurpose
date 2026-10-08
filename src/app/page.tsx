@@ -68,17 +68,44 @@ function HomeContent() {
     }
   }, []);
 
-  // Deep Link Handling: Check URL params on initial load
+  // Reset Search State (Fresh search)
+  const handleResetSearch = useCallback(() => {
+    setResearchSnapshot(null);
+    setSelectedCandidate(null);
+    setSearchQuery('');
+    setError(null);
+    setIsLoading(false);
+    if (typeof window !== 'undefined') {
+      window.history.pushState({}, '', '/');
+    }
+  }, []);
+
+  // Deep Link Handling & Custom Reset Event Listener
   useEffect(() => {
     if (typeof window === 'undefined') return;
-    const params = new URLSearchParams(window.location.search);
-    const drugParam = params.get('drug');
-    const candidateParam = params.get('candidate');
 
-    if (drugParam) {
-      handleSearchDrug(drugParam, candidateParam || undefined);
-    }
-  }, [handleSearchDrug]);
+    const checkUrlAndLoad = () => {
+      const params = new URLSearchParams(window.location.search);
+      const drugParam = params.get('drug');
+      const candidateParam = params.get('candidate');
+
+      if (drugParam) {
+        handleSearchDrug(drugParam, candidateParam || undefined);
+      } else {
+        handleResetSearch();
+      }
+    };
+
+    checkUrlAndLoad();
+
+    window.addEventListener('repurpose:reset-search', handleResetSearch);
+    window.addEventListener('popstate', checkUrlAndLoad);
+
+    return () => {
+      window.removeEventListener('repurpose:reset-search', handleResetSearch);
+      window.removeEventListener('popstate', checkUrlAndLoad);
+    };
+  }, [handleSearchDrug, handleResetSearch]);
 
   return (
     <>

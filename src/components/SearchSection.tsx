@@ -140,11 +140,9 @@ export function SearchSection({
   const dropdownRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
-  // Sync initialQuery if changed externally (e.g. from URL deep link)
+  // Sync initialQuery if changed externally (e.g. from URL deep link or reset)
   useEffect(() => {
-    if (initialQuery) {
-      setQuery(initialQuery);
-    }
+    setQuery(initialQuery);
   }, [initialQuery]);
 
   // Synchronous client-side directory elimination search helper
