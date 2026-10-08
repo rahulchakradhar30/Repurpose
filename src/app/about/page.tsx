@@ -204,8 +204,14 @@ export default function AboutPage() {
             </Link>
           </div>
 
-          {/* Legal / Terms, Privacy & Research Disclaimer */}
-          <div className="pt-6 text-center">
+          {/* Legal / License / Terms, Privacy & Research Disclaimer */}
+          <div className="pt-6 flex flex-col items-center gap-2 text-center">
+            <Link
+              href="/license"
+              className="text-xs font-semibold text-slate-500 hover:text-teal-800 transition-colors underline underline-offset-4"
+            >
+              License
+            </Link>
             <Link
               href="/terms-privacy-disclaimer"
               className="text-xs font-semibold text-slate-500 hover:text-teal-800 transition-colors underline underline-offset-4"
