@@ -55,7 +55,7 @@ export async function GET(request: NextRequest) {
     }
 
     return NextResponse.json(snapshot);
-  } catch (error) {
+  } catch {
     logSecurityEvent({
       eventType: 'UPSTREAM_FAILURE',
       path: '/api/drugs/research',

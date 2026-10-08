@@ -103,7 +103,7 @@ export async function GET(request: NextRequest) {
     }
 
     return NextResponse.json({ results });
-  } catch (error) {
+  } catch {
     logSecurityEvent({
       eventType: 'UPSTREAM_FAILURE',
       path: '/api/drugs/search',

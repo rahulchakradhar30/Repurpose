@@ -39,7 +39,7 @@ export async function POST(request: NextRequest) {
       retentionPolicy: 'All active data is retained for a maximum of 30 days and purged automatically upon expiration.',
       timestamp: new Date().toISOString(),
     });
-  } catch (err) {
+  } catch {
     logSecurityEvent({
       eventType: 'UPSTREAM_FAILURE',
       path: '/api/user/delete-data',

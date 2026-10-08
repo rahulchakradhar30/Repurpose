@@ -1,4 +1,4 @@
-import { PubMedCitation, ClinicalTrial, RepurposingCandidate } from '@/types';
+import { PubMedCitation, RepurposingCandidate } from '@/types';
 
 /**
  * Generates an RIS (Research Information Systems) file string for citations.

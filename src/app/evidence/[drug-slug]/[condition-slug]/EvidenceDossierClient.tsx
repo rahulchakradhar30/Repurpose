@@ -3,13 +3,11 @@
 import React, { useState } from 'react';
 import Link from 'next/link';
 import { 
-  Download, 
   Share2, 
   Bookmark, 
   BookmarkCheck, 
   ExternalLink, 
   Check, 
-  FileSpreadsheet, 
   AlertCircle, 
   ShieldAlert, 
   BookOpen, 

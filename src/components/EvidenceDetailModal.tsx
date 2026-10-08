@@ -13,8 +13,6 @@ import {
   Loader2, 
   Info,
   CheckCircle,
-  FileSpreadsheet,
-  FileCode,
   Share2,
   Check,
   Compass,

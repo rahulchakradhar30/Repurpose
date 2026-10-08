@@ -3,7 +3,6 @@ import { aggregateDrugResearch } from './evidenceEngine';
 import { 
   RepurposingCandidate, 
   DrugConcept, 
-  ResearchState,
   DrugResearchSnapshot
 } from '@/types';
 import { 

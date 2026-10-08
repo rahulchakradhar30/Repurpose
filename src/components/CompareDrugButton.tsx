@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { Scale, Check, AlertCircle } from 'lucide-react';
+import { Scale, Check } from 'lucide-react';
 import { DrugConcept, RepurposingCandidate } from '@/types';
 import { 
   addCompareItem, 

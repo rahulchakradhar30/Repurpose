@@ -17,7 +17,6 @@ import {
   ArrowLeft, 
   Search,
   Clock,
-  Printer,
   AlertTriangle,
   Loader2
 } from 'lucide-react';

@@ -112,7 +112,7 @@ Repurpose operates under a strict open-science and intellectual property complia
 
 ## 5. Security & Threat Model Architecture (OWASP ASVS Level 1)
 
-Repurpose implements production security hardening following **OWASP ASVS (Application Security Verification Standard) Level 1** controls (see [`SECURITY_SCORECARD.md`](SECURITY_SCORECARD.md) for full scorecard and [`SECURITY.md`](SECURITY.md) for vulnerability disclosure policies):
+Repurpose implements production security hardening following **OWASP ASVS (Application Security Verification Standard) Level 1** controls (see [`docs/SECURITY_SCORECARD.md`](docs/SECURITY_SCORECARD.md) for full scorecard and [`SECURITY.md`](SECURITY.md) for vulnerability disclosure policies):
 
 - **Zero Client-Side Secrets:** All API keys (`GROQ_API_KEY`, `GEMINI_API_KEY`, Firebase Admin credentials) operate strictly within server-side route handlers. Zero secrets use the `NEXT_PUBLIC_` prefix or appear in client bundles.
 - **Server-Side Request Forgery (SSRF) Protection:** Outbound calls from backend route handlers are locked to an explicit allowlist of authorized biomedical hosts (`clinicaltrials.gov`, `api.fda.gov`, `pubchem.ncbi.nlm.nih.gov`, `eutils.ncbi.nlm.nih.gov`, `rxnav.nlm.nih.gov`).
@@ -259,7 +259,19 @@ npm run build
 
 ---
 
-## 10. License & Attribution
+## 10. Architecture & Developer Documentation
+
+Detailed architectural deep-dives, integration guidelines, and deployment specifications are available in the [`docs/`](docs/) directory:
+
+- [**Project Structure & Codebase Map**](docs/PROJECT_STRUCTURE.md): Plain-language guide to directory organization, responsibilities, and file locations.
+- [**Technical Architecture & Data Flow**](docs/ARCHITECTURE.md): Full architectural diagrams, parallel aggregation pipelines, and deterministic scoring models.
+- [**Biomedical Data Sources**](docs/DATA_SOURCES.md): Upstream federal API specifications (RxNorm, openFDA, ClinicalTrials.gov, PubMed, PubChem).
+- [**Deployment & Operations Guide**](docs/DEPLOYMENT.md): Step-by-step instructions for Vercel, Firebase rules, and local development.
+- [**OWASP ASVS Security Scorecard**](docs/SECURITY_SCORECARD.md): Complete Level 1 application security audit and verification checklist.
+
+---
+
+## 11. License & Attribution
 
 - **Code:** Open-source under the MIT License.
 - **Biomedical Data:** Ingested from public domain sources provided by the U.S. National Institutes of Health (NIH), National Library of Medicine (NLM), and Food and Drug Administration (FDA).

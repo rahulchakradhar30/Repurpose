@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import nextConfig from '../next.config';
+import nextConfig from '../../next.config';
 
 describe('Production Security Headers & Configuration (OWASP ASVS Level 1)', () => {
   it('disables X-Powered-By header to prevent technology fingerprinting', () => {

@@ -113,7 +113,7 @@ export async function POST(request: NextRequest) {
       available: !!aiSummary,
       note: aiSummary ? 'AI-assisted factual synthesis validated against source schema.' : 'AI summary unavailable or unconfigured.'
     });
-  } catch (error) {
+  } catch {
     logSecurityEvent({
       eventType: 'UPSTREAM_FAILURE',
       path: '/api/repurposing/ai-summary',

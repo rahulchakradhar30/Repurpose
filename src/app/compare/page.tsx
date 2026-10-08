@@ -13,7 +13,6 @@ import {
   Search, 
   RotateCcw 
 } from 'lucide-react';
-import { RepurposingCandidate } from '@/types';
 import { 
   getCompareItems, 
   removeCompareItem, 
@@ -21,53 +20,6 @@ import {
   subscribeCompareItems, 
   CompareItem 
 } from '@/lib/compareStorage';
-
-function getValidCandidate(c: CompareItem): RepurposingCandidate {
-  if (c.candidate) return c.candidate;
-  return {
-    id: `${c.drugSlug}-overview`,
-    condition: c.drugConcept?.approvedIndications?.[0] || 'Investigational Analysis',
-    status: 'Investigational',
-    highestPhase: 'Phase 1/2',
-    clinicalTrials: [],
-    citations: [],
-    biologicalRationale: c.drugConcept?.mechanismOfAction || 'Pathway mechanism under investigation.',
-    safetyNotes: ['Precautionary monitoring recommended.'],
-    sourceCount: c.drugConcept?.sources?.length || 1,
-    evidenceScore: {
-      totalScore: 0,
-      readinessTier: 'Insufficient evidence',
-      evidenceTier: 'Insufficient evidence',
-      clinicalTrialMaturity: 0,
-      clinicalTrialMaturityReason: 'No data',
-      publishedHumanEvidence: 0,
-      publishedHumanEvidenceReason: 'No data',
-      mechanisticPlausibility: 0,
-      mechanisticPlausibilityReason: 'No data',
-      sourceQualityReproducibility: 0,
-      sourceQualityReproducibilityReason: 'No data',
-      safetyCompatibility: 0,
-      safetyCompatibilityReason: 'No data',
-      evidenceConflictPenalty: 0,
-      evidenceConflictPenaltyReason: 'None',
-      contributingFactors: [],
-      uncertaintyFlags: [],
-      clinicalTrialScore: 0,
-      humanObservationalScore: 0,
-      mechanisticScore: 0,
-      reproducibilityScore: 0,
-      safetyCompatibilityScore: 0,
-      breakdown: {
-        clinicalTrialMaturity: { score: 0, max: 25, reason: 'N/A' },
-        publishedHumanEvidence: { score: 0, max: 25, reason: 'N/A' },
-        mechanisticPlausibility: { score: 0, max: 20, reason: 'N/A' },
-        sourceQualityRecency: { score: 0, max: 15, reason: 'N/A' },
-        safetyContextCompatibility: { score: 0, max: 15, reason: 'N/A' },
-        conflictPenalties: { score: 0, reason: 'N/A' }
-      }
-    }
-  };
-}
 
 export default function ComparePage() {
   const [selectedCandidates, setSelectedCandidates] = useState<CompareItem[]>([]);

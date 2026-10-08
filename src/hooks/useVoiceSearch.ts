@@ -179,7 +179,7 @@ export function useVoiceSearch({ onTranscript, onError, lang = 'en-US' }: VoiceS
 
       recognitionRef.current = recognition;
       recognition.start();
-    } catch (err: unknown) {
+    } catch {
       // In case browser is still transitioning internal microphone state, schedule quick retry
       cleanupRecognition();
       restartTimeoutRef.current = setTimeout(() => {

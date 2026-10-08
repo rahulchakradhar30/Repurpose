@@ -499,6 +499,7 @@ export function detectContradictions(input: {
   const citations = input.citations || [];
   const warnings = input.warnings || input.fdaWarnings || [];
   const contraindications = input.contraindications || input.fdaContraindications || [];
+  const safetySignals = [...warnings, ...contraindications];
   const mechanism = (input.mechanismOfAction || '').trim();
   const condLower = input.condition.toLowerCase();
 
@@ -550,7 +551,7 @@ export function detectContradictions(input: {
   }
 
   // Contradiction 4: Safety warnings or label contraindications
-  const matchingContraindications = contraindications.filter((c) =>
+  const matchingContraindications = safetySignals.filter((c) =>
     c.toLowerCase().includes(condLower) || condLower.split(' ').some((token) => token.length > 4 && c.toLowerCase().includes(token))
   );
   if (matchingContraindications.length > 0) {

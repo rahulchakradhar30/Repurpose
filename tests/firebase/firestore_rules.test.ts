@@ -3,7 +3,7 @@ import * as fs from 'fs';
 import * as path from 'path';
 
 describe('Firestore Production Security Rules Verification', () => {
-  const rulesPath = path.resolve(__dirname, '../firestore.rules');
+  const rulesPath = path.resolve(__dirname, '../../firestore.rules');
   const rulesContent = fs.readFileSync(rulesPath, 'utf8');
 
   it('uses rules_version = 2', () => {
