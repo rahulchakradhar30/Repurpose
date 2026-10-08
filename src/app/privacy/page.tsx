@@ -116,6 +116,9 @@ export default function PrivacyPage() {
                 <li>
                   <strong className="text-slate-900">Stateless External Queries:</strong> API requests made to NIH/FDA public endpoints (RxNorm, openFDA, PubChem, ClinicalTrials.gov, PubMed) contain only the public compound or condition terms being researched, with no user identifiers attached.
                 </li>
+                <li>
+                  <strong className="text-slate-900">Private News &amp; Research Reading:</strong> Browsing regulatory updates and literature briefs in the News section is completely anonymous. We do not collect reader health data, personal health information, or reader tracking analytics.
+                </li>
               </ul>
             </div>
           </section>

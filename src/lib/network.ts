@@ -10,6 +10,8 @@ import { logSecurityEvent } from './securityLogger';
 export const ALLOWED_BIOMEDICAL_HOSTS = new Set([
   'clinicaltrials.gov',
   'api.fda.gov',
+  'fda.gov',
+  'www.fda.gov',
   'dailymed.nlm.nih.gov',
   'pubchem.ncbi.nlm.nih.gov',
   'eutils.ncbi.nlm.nih.gov',

@@ -1,8 +1,9 @@
 import { MetadataRoute } from 'next';
 import { getCanonicalUrl } from '@/lib/seo';
 import { getPublishedDrugSlugs, getPublishedDrugBySlug } from '@/lib/publishedDrugs';
+import { getVerifiedNewsArticles } from '@/lib/news/newsEngine';
 
-export default function sitemap(): MetadataRoute.Sitemap {
+export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const currentDate = new Date().toISOString().split('T')[0];
 
   // Core canonical indexable public pages
@@ -17,6 +18,12 @@ export default function sitemap(): MetadataRoute.Sitemap {
       url: getCanonicalUrl('/what-is-drug-repurposing'),
       lastModified: currentDate,
       changeFrequency: 'monthly',
+      priority: 0.9,
+    },
+    {
+      url: getCanonicalUrl('/news'),
+      lastModified: currentDate,
+      changeFrequency: 'daily',
       priority: 0.9,
     },
     {
@@ -51,7 +58,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
     },
   ];
 
-  // Only include verified, publishable drug pages that meet strict evidence thresholds
+  // Verified drug pages
   const verifiedSlugs = getPublishedDrugSlugs();
   const drugRoutes: MetadataRoute.Sitemap = verifiedSlugs
     .map((slug) => {
@@ -67,5 +74,14 @@ export default function sitemap(): MetadataRoute.Sitemap {
     })
     .filter((entry): entry is NonNullable<typeof entry> => entry !== null);
 
-  return [...staticRoutes, ...drugRoutes];
+  // Verified news article pages
+  const verifiedNews = await getVerifiedNewsArticles();
+  const newsRoutes: MetadataRoute.Sitemap = verifiedNews.map((article) => ({
+    url: getCanonicalUrl(`/news/${article.slug}`),
+    lastModified: article.lastVerifiedAt.split('T')[0] || currentDate,
+    changeFrequency: 'weekly' as const,
+    priority: 0.8,
+  }));
+
+  return [...staticRoutes, ...drugRoutes, ...newsRoutes];
 }

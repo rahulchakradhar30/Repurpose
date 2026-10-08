@@ -111,20 +111,22 @@ describe('Production SEO Suite', () => {
   });
 
   describe('Dynamic Sitemap Generator (sitemap.ts)', () => {
-    it('should include all primary public educational pages', () => {
-      const entries = sitemap();
+    it('should include all primary public educational pages', async () => {
+      const entries = await sitemap();
       const urls = entries.map((e) => e.url);
 
       expect(urls).toContain(CANONICAL_DOMAIN);
       expect(urls).toContain(`${CANONICAL_DOMAIN}/what-is-drug-repurposing`);
+      expect(urls).toContain(`${CANONICAL_DOMAIN}/news`);
       expect(urls).toContain(`${CANONICAL_DOMAIN}/methodology`);
       expect(urls).toContain(`${CANONICAL_DOMAIN}/sources`);
       expect(urls).toContain(`${CANONICAL_DOMAIN}/about`);
       expect(urls).toContain(`${CANONICAL_DOMAIN}/terms-privacy-disclaimer`);
+      expect(urls).toContain(`${CANONICAL_DOMAIN}/license`);
     });
 
-    it('should only include verified, publishable drug dossiers in sitemap', () => {
-      const entries = sitemap();
+    it('should only include verified, publishable drug dossiers in sitemap', async () => {
+      const entries = await sitemap();
       const urls = entries.map((e) => e.url);
 
       // Curated verified drugs must be present

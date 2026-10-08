@@ -286,6 +286,26 @@ export default function MethodologyPage() {
           </div>
         </section>
 
+        {/* 4. DRUG NEWS & RESEARCH UPDATES METHODOLOGY */}
+        <section className="space-y-4">
+          <h2 className="text-lg sm:text-xl font-bold text-slate-900 flex items-center gap-2">
+            <BookOpen className="w-5 h-5 text-teal-700" />
+            Drug News &amp; Research Updates Methodology
+          </h2>
+          <p className="text-xs sm:text-sm text-slate-600 leading-relaxed">
+            The Drug News &amp; Research Updates feed aggregates verified regulatory communications and scientific literature directly from official U.S. FDA safety channels and NCBI PubMed E-utilities:
+          </p>
+
+          <div className="p-5 rounded-xl bg-white border border-slate-200 shadow-xs space-y-3">
+            <ul className="space-y-2 text-xs text-slate-700 pl-4 list-disc leading-relaxed">
+              <li><strong>Source Exclusivity:</strong> Feeds are sourced strictly from official government endpoints (FDA MedWatch, CDER newsroom, and PubMed). No unverified social media, general news, or blog posts are indexed.</li>
+              <li><strong>Server-Side Caching:</strong> Feed items are cached server-side on a 6-hour refresh schedule with strict deduplication by canonical URL, PMID, and FDA docket identifier.</li>
+              <li><strong>AI Summarization Role:</strong> AI models are restricted to factual synthesis of retrieved official text. Models are prohibited from generating medical advice, prescriptive language, treatment claims, or fabricated citations.</li>
+              <li><strong>Evidence Brief Structure:</strong> Detail views break down study type, population, intervention, observed outcome, limitations, and relevance to repurposing without extrapolating clinical efficacy.</li>
+            </ul>
+          </div>
+        </section>
+
         {/* Bottom Navigation */}
         <div className="flex flex-col sm:flex-row justify-between items-center pt-6 border-t border-slate-200 gap-4">
           <Link

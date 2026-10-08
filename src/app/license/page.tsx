@@ -8,21 +8,40 @@ import {
   ArrowLeft,
   BookOpen
 } from 'lucide-react';
-import { generateBreadcrumbJsonLd, generateArticleJsonLd, getCanonicalUrl } from '@/lib/seo';
+import { generateBreadcrumbJsonLd, generateArticleJsonLd, getCanonicalUrl, SITE_NAME } from '@/lib/seo';
 
 export const metadata: Metadata = {
-  title: 'Terms, Privacy & MIT License | Repurpose',
+  title: 'Open-Source MIT License | Repurpose',
   description:
     'Repurpose is open-source software released under the MIT License. View source code usage permissions, copyright terms, and liability limits.',
+  keywords: [
+    'MIT License',
+    'Open Source Drug Repurposing',
+    'Biomedical Software License',
+    'Repurpose Source Code',
+    'P. Rahul Chakradhar'
+  ],
   alternates: {
     canonical: getCanonicalUrl('/license'),
   },
   openGraph: {
-    title: 'Terms, Privacy & MIT License | Repurpose',
+    title: 'Open-Source MIT License | Repurpose',
     description:
       'Repurpose open-source software licensing terms, MIT License permissions, and source code copyright notice.',
     url: getCanonicalUrl('/license'),
+    siteName: SITE_NAME,
     type: 'article',
+    locale: 'en_US',
+  },
+  twitter: {
+    card: 'summary',
+    title: 'Open-Source MIT License | Repurpose',
+    description:
+      'Repurpose open-source software licensing terms, MIT License permissions, and source code copyright notice.',
+  },
+  robots: {
+    index: true,
+    follow: true,
   },
 };
 

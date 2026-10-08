@@ -102,6 +102,18 @@ const SOURCE_REGISTRY: SourceRegistryItem[] = [
     termsUrl: 'https://pubchem.ncbi.nlm.nih.gov/docs/policies',
   },
   {
+    name: 'FDA Drug Safety, MedWatch & News Feeds',
+    institution: 'U.S. Food and Drug Administration (CDER / MedWatch)',
+    purpose: 'Official drug safety communications, approvals, recall alerts, and regulatory policy updates powering the News & Research Updates feature.',
+    accessMethod: 'Official FDA RSS & Public API Feeds (fda.gov / open.fda.gov)',
+    license: 'CC0 / Public Domain (U.S. Government Official Information)',
+    refreshFrequency: '6-hour server cache refresh with verified fallback',
+    lastUpdate: 'Active (Automated cache cycle)',
+    status: 'Enabled',
+    knownLimitations: 'Summaries are AI-synthesized from official text; does not replace licensed medical guidance or full package inserts.',
+    termsUrl: 'https://www.fda.gov/about-fda/about-website/website-disclaimers',
+  },
+  {
     name: 'DrugBank Commercial',
     institution: 'OMx Technologies Inc. / DrugBank',
     purpose: 'Proprietary comprehensive chemical, target, and drug action knowledgebase.',

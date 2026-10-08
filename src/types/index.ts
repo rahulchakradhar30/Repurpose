@@ -228,3 +228,44 @@ export interface UserSearchHistory {
   genericName?: string;
   timestamp: string;
 }
+
+export type NewsCategory = 
+  | 'All'
+  | 'FDA Updates' 
+  | 'Safety Alerts' 
+  | 'Approvals' 
+  | 'Clinical Research' 
+  | 'Recalls';
+
+export interface NewsArticleItem {
+  slug: string;
+  title: string;
+  source: string; // e.g., 'FDA Drug Safety', 'FDA Newsroom', 'PubMed / NLM'
+  sourceUrl: string;
+  publishedAt: string; // YYYY-MM-DD or ISO string
+  originalSourceDate?: string;
+  lastVerifiedAt: string;
+  category: 'FDA Updates' | 'Safety Alerts' | 'Approvals' | 'Clinical Research' | 'Recalls';
+  thumbnailUrl?: string | null;
+  imageCaption?: string | null;
+  summary: string;
+  evidenceBrief: {
+    overview: string;
+    studyType?: string;
+    population?: string;
+    intervention?: string;
+    outcome?: string;
+    limitations?: string;
+    repurposingRelevance?: string;
+  };
+  whatThisDoesNotEstablish: string[];
+  citation: {
+    title: string;
+    publisher: string;
+    date: string;
+    identifier?: string;
+    sourceUrl: string;
+  };
+  isAIAssisted: boolean;
+}
+

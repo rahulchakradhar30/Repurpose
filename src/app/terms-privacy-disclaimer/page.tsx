@@ -126,6 +126,10 @@ export default function TermsPrivacyDisclaimerPage() {
               <p>
                 An investigational indication, clinical trial, evidence score, or research reference does not mean that a drug is approved, safe, effective, or recommended for that condition. Users are responsible for independently verifying every result with the original source.
               </p>
+              <p>
+                <strong>Drug News &amp; Research Updates: </strong>
+                Regulatory updates, safety alerts, drug approval notifications, and literature briefs displayed in the News section are aggregated from official U.S. FDA feeds and PubMed/NCBI E-utilities. AI tools are utilized strictly to summarize and format original public source text. Summaries are not medical advice, treatment guidance, or clinical prescribing recommendations.
+              </p>
               <p className="pt-1">
                 <Link
                   href="/sources"
