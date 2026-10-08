@@ -54,16 +54,16 @@ export default function ComparePage() {
 
   return (
     <div className="flex-1 flex flex-col pb-16 md:pb-6 text-slate-900">
-      <main className="max-w-6xl mx-auto px-4 sm:px-6 py-6 sm:py-8 space-y-6 flex-1 w-full">
+      <main className="max-w-5xl mx-auto px-4 sm:px-6 py-6 sm:py-8 space-y-6 flex-1 w-full">
         {/* Navigation Breadcrumb & Header */}
         <div className="space-y-3">
-          <nav aria-label="Breadcrumbs" className="flex items-center gap-1.5 text-xs text-slate-500 no-print">
+          <nav aria-label="Breadcrumb" className="flex items-center gap-1.5 text-xs text-slate-500 no-print h-5">
             <Link href="/" className="hover:text-teal-800 transition-colors flex items-center gap-1">
               <ArrowLeft className="w-3.5 h-3.5" />
               <span>Workspace</span>
             </Link>
             <span>/</span>
-            <span className="text-slate-800 font-semibold">Compare Workspace</span>
+            <span className="text-slate-800 font-semibold truncate">Compare Workspace</span>
           </nav>
 
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">

@@ -10,6 +10,7 @@ import {
   Calendar,
   AlertOctagon,
   Database,
+  ArrowLeft,
 } from 'lucide-react';
 import {
   getPublishedDrugBySlug,
@@ -90,8 +91,7 @@ export default async function DrugPage({ params }: PageProps) {
   const { drug, candidates } = guide;
 
   const breadcrumbJsonLd = generateBreadcrumbJsonLd([
-    { name: 'Home', url: '/' },
-    { name: 'Verified Drugs', url: '/' },
+    { name: 'Workspace', url: '/' },
     { name: drug.genericName, url: `/drug/${guide.slug}` },
   ]);
 
@@ -108,17 +108,16 @@ export default async function DrugPage({ params }: PageProps) {
         dangerouslySetInnerHTML={{ __html: JSON.stringify(drugPageJsonLd) }}
       />
 
-      <div className="max-w-5xl mx-auto px-4 py-6 sm:py-10 flex-1 w-full text-slate-900">
+      <div className="max-w-5xl mx-auto px-4 sm:px-6 py-6 sm:py-8 space-y-6 flex-1 w-full text-slate-900">
         {/* Navigation Breadcrumb & Copy Link */}
-        <div className="flex flex-wrap items-center justify-between gap-4 mb-6">
-          <nav aria-label="Breadcrumb">
-            <ol className="flex items-center text-xs text-slate-500 gap-2">
-              <li><Link href="/" className="hover:text-teal-800 transition-colors">Home</Link></li>
-              <li>/</li>
-              <li><Link href="/" className="hover:text-teal-800 transition-colors">Verified Drugs</Link></li>
-              <li>/</li>
-              <li className="text-slate-800 font-semibold">{drug.genericName}</li>
-            </ol>
+        <div className="flex flex-wrap items-center justify-between gap-4">
+          <nav aria-label="Breadcrumb" className="flex items-center gap-1.5 text-xs text-slate-500 no-print h-5">
+            <Link href="/" className="hover:text-teal-800 transition-colors flex items-center gap-1">
+              <ArrowLeft className="w-3.5 h-3.5" />
+              <span>Workspace</span>
+            </Link>
+            <span>/</span>
+            <span className="text-slate-800 font-semibold truncate">{drug.genericName}</span>
           </nav>
           <div className="flex items-center gap-2 flex-wrap">
             <CompareDrugButton drug={drug} candidates={guide.candidates} />

@@ -14,7 +14,8 @@ import {
   ArrowRight, 
   Calendar, 
   User, 
-  ExternalLink 
+  ExternalLink,
+  ArrowLeft
 } from 'lucide-react';
 
 const PAGE_TITLE = 'What Is Drug Repurposing? Evidence, Methods, and Limitations';
@@ -53,7 +54,7 @@ export default function WhatIsDrugRepurposingPage() {
   });
 
   const breadcrumbsJsonLd = generateBreadcrumbJsonLd([
-    { name: 'Home', path: '/' },
+    { name: 'Workspace', path: '/' },
     { name: 'What Is Drug Repurposing', path: PAGE_PATH },
   ]);
 
@@ -69,14 +70,15 @@ export default function WhatIsDrugRepurposingPage() {
         dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbsJsonLd) }}
       />
 
-      <main className="flex-1 w-full max-w-4xl mx-auto px-4 py-6 sm:py-10 space-y-8">
+      <main className="flex-1 w-full max-w-4xl mx-auto px-4 sm:px-6 py-6 sm:py-8 space-y-6">
         {/* Breadcrumb Navigation */}
-        <nav aria-label="Breadcrumbs" className="text-xs text-slate-500 flex items-center gap-1.5">
-          <Link href="/" className="hover:text-teal-800">
-            Home
+        <nav aria-label="Breadcrumb" className="flex items-center gap-1.5 text-xs text-slate-500 no-print h-5">
+          <Link href="/" className="hover:text-teal-800 transition-colors flex items-center gap-1">
+            <ArrowLeft className="w-3.5 h-3.5" />
+            <span>Workspace</span>
           </Link>
           <span>/</span>
-          <span className="text-slate-800 font-medium">What Is Drug Repurposing</span>
+          <span className="text-slate-800 font-semibold truncate">What Is Drug Repurposing</span>
         </nav>
 
         {/* Article Header */}

@@ -31,7 +31,7 @@ export const metadata: Metadata = {
 
 export default function PrivacyPage() {
   const breadcrumbJsonLd = generateBreadcrumbJsonLd([
-    { name: 'Home', url: '/' },
+    { name: 'Workspace', url: '/' },
     { name: 'Privacy Policy', url: '/privacy' },
   ]);
 
@@ -56,18 +56,15 @@ export default function PrivacyPage() {
       />
 
       <div className="flex-1 flex flex-col pb-16 md:pb-6 text-slate-900">
-        <div className="max-w-3xl mx-auto px-4 py-8 sm:py-12 flex-1 w-full space-y-8">
+        <div className="max-w-4xl mx-auto px-4 sm:px-6 py-6 sm:py-8 space-y-6 flex-1 w-full">
           {/* Breadcrumb Navigation */}
-          <nav className="mb-2" aria-label="Breadcrumb">
-            <ol className="flex items-center text-xs text-slate-500 gap-2">
-              <li>
-                <Link href="/" className="hover:text-teal-800 transition-colors">
-                  Home
-                </Link>
-              </li>
-              <li>/</li>
-              <li className="text-slate-800 font-semibold">Privacy Policy</li>
-            </ol>
+          <nav aria-label="Breadcrumb" className="flex items-center gap-1.5 text-xs text-slate-500 no-print h-5">
+            <Link href="/" className="hover:text-teal-800 transition-colors flex items-center gap-1">
+              <ArrowLeft className="w-3.5 h-3.5" />
+              <span>Workspace</span>
+            </Link>
+            <span>/</span>
+            <span className="text-slate-800 font-semibold truncate">Privacy Policy</span>
           </nav>
 
           {/* Header */}

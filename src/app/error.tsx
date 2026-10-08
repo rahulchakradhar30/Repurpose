@@ -44,7 +44,7 @@ export default function ErrorPage({
             className="flex items-center justify-center gap-2 px-4 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-800 rounded-md text-xs font-medium transition-colors"
           >
             <Home className="w-4 h-4" />
-            <span>Home</span>
+            <span>Workspace</span>
           </Link>
         </div>
       </div>
