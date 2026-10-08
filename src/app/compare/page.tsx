@@ -68,8 +68,8 @@ export default function ComparePage() {
 
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
             <div>
-              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-teal-50 border border-teal-200 text-teal-800 text-xs font-semibold uppercase tracking-wider mb-2">
-                <Scale className="w-3.5 h-3.5" />
+              <div className="flex items-center gap-2 text-xs font-semibold text-teal-800 tracking-wide font-mono mb-2">
+                <Scale className="w-3.5 h-3.5 text-teal-700" />
                 <span>Side-by-Side Comparison Workspace ({selectedCandidates.length}/3)</span>
               </div>
               <h1 className="text-2xl sm:text-3xl lg:text-4xl font-extrabold text-slate-900 tracking-tight font-heading">

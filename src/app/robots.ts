@@ -14,6 +14,7 @@ export default function robots(): MetadataRoute.Robots {
           '/methodology',
           '/sources',
           '/about',
+          '/terms-privacy-disclaimer',
           '/drug/',
           '/icon.svg',
           '/manifest.json',

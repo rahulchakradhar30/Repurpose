@@ -65,9 +65,9 @@ export default function AboutPage() {
 
           {/* Heading */}
           <div className="mb-8">
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-teal-50 border border-teal-200 text-teal-800 text-xs font-semibold uppercase tracking-wider mb-3">
-              <HeartHandshake className="w-3.5 h-3.5" />
-              Open-Source Project Principles
+            <div className="flex items-center gap-2 text-xs font-semibold text-teal-800 tracking-wide font-mono mb-2">
+              <HeartHandshake className="w-3.5 h-3.5 text-teal-700" />
+              <span>Open-Source Project Principles</span>
             </div>
             <h1 className="text-3xl sm:text-4xl font-extrabold tracking-tight text-slate-900 mb-3 font-heading">
               About Repurpose
@@ -200,6 +200,16 @@ export default function AboutPage() {
                 View Verified Data Sources
                 <ArrowRight className="w-4 h-4 ml-1 text-slate-400 group-hover:text-teal-800" />
               </div>
+            </Link>
+          </div>
+
+          {/* Legal / Terms, Privacy & Research Disclaimer */}
+          <div className="pt-6 text-center">
+            <Link
+              href="/terms-privacy-disclaimer"
+              className="text-xs font-semibold text-slate-500 hover:text-teal-800 transition-colors underline underline-offset-4"
+            >
+              Terms, Privacy &amp; Research Disclaimer
             </Link>
           </div>
         </div>

@@ -177,8 +177,8 @@ export default function SourcesPage() {
 
           {/* Page Heading Header */}
           <div className="space-y-3">
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-teal-50 border border-teal-200 text-teal-800 text-xs font-semibold uppercase tracking-wider">
-              <Database className="w-3.5 h-3.5" />
+            <div className="flex items-center gap-2 text-xs font-semibold text-teal-800 tracking-wide font-mono">
+              <Database className="w-3.5 h-3.5 text-teal-700" />
               <span>Transparent Registry Governance</span>
             </div>
             <h1 className="text-2xl sm:text-3xl lg:text-4xl font-extrabold tracking-tight text-slate-900 font-heading">

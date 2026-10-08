@@ -120,6 +120,7 @@ describe('Production SEO Suite', () => {
       expect(urls).toContain(`${CANONICAL_DOMAIN}/methodology`);
       expect(urls).toContain(`${CANONICAL_DOMAIN}/sources`);
       expect(urls).toContain(`${CANONICAL_DOMAIN}/about`);
+      expect(urls).toContain(`${CANONICAL_DOMAIN}/terms-privacy-disclaimer`);
     });
 
     it('should only include verified, publishable drug dossiers in sitemap', () => {

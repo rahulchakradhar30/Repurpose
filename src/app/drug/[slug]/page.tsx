@@ -271,8 +271,8 @@ export default async function DrugPage({ params }: PageProps) {
         {/* Sourced Repurposing Candidates */}
         <section className="mb-12">
           <div className="mb-6">
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-teal-50 border border-teal-200 text-teal-800 text-xs font-semibold uppercase tracking-wider mb-2">
-              <FlaskConical className="w-3.5 h-3.5" />
+            <div className="flex items-center gap-2 text-xs font-semibold text-teal-800 tracking-wide font-mono mb-2">
+              <FlaskConical className="w-3.5 h-3.5 text-teal-700" />
               <span>Investigational Candidates &amp; Active Evidence</span>
             </div>
             <h2 className="text-2xl font-bold text-slate-900 tracking-tight font-heading">

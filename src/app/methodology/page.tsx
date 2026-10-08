@@ -79,8 +79,8 @@ export default function MethodologyPage() {
 
         {/* Page Header */}
         <header className="border-b border-slate-200 pb-6 space-y-3">
-          <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded text-[11px] font-semibold uppercase tracking-wider text-teal-800 bg-teal-50 border border-teal-200">
-            <Compass className="w-3.5 h-3.5" />
+          <div className="flex items-center gap-2 text-xs font-semibold text-teal-800 tracking-wide font-mono">
+            <Compass className="w-3.5 h-3.5 text-teal-700" />
             <span>Repurpose Compass™ Architecture</span>
           </div>
 

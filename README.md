@@ -242,6 +242,7 @@ npm run build
 | `/sources` | `index, follow` | `.../sources` | `Article`, `BreadcrumbList` | Public biomedical API registry & license boundaries. |
 | `/about` | `index, follow` | `.../about` | `AboutPage`, `Person`, `BreadcrumbList` | Mission, open-source principles, creator credit. |
 | `/privacy` | `index, follow` | `.../privacy` | `Article`, `BreadcrumbList` | 30-day auto-purge, no PHI, zero tracking pixels. |
+| `/terms-privacy-disclaimer` | `index, follow` | `.../terms-privacy-disclaimer` | `Article`, `BreadcrumbList` | Terms of use, research disclaimers, liability terms. |
 | `/compare` | `index, follow` | `.../compare` | `BreadcrumbList` | Side-by-side hypothesis comparison workspace. |
 | `/drug/[slug]` | `index, follow` (verified only) | `.../drug/[slug]` | `MedicalWebPage`, `BreadcrumbList` | Verified compounds with last-verified date & trials. |
 | `/evidence/[drug]/[cond]` | `index, follow` (qualifying only) | `.../evidence/[drug]/[cond]` | `MedicalWebPage`, `BreadcrumbList` | Verified dossiers (score ≥ 35 & public trials). |

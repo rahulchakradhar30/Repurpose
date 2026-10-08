@@ -50,6 +50,7 @@ All public pages and API routes follow Next.js App Router conventions:
 - **`robots.ts`** & **`sitemap.ts`**: Dynamic search engine crawling directives and structured XML sitemap generation for all verified drug dossiers.
 - **`about/`**: Platform background, independent open-science mission, developer attribution, and concept acknowledgments.
 - **`privacy/`**: Privacy policy, HIPAA/PHI strict prohibition notice, and 30-day auto-purge retention rules.
+- **`terms-privacy-disclaimer/`**: Official terms of use, research disclaimers, liability terms, and open-source contribution details.
 - **`methodology/`**: Transparent 100-point evidence scoring formula breakdown across 5 deterministic tiers.
 - **`sources/`**: Directory of integrated live biomedical APIs with links to official federal documentation.
 - **`compare/`**: Multi-drug side-by-side comparison matrix.

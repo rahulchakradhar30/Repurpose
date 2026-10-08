@@ -36,6 +36,11 @@
 }
 
 /* Universal default typography: Noto Sans, minimum 16px, comfortable line height */
+html {
+  scrollbar-gutter: stable;
+  overflow-y: scroll;
+}
+
 html,
 body {
   background-color: var(--bg-clinical);
@@ -45,6 +50,11 @@ body {
   line-height: 1.6;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+}
+
+body {
+  overflow-x: hidden;
+  width: 100%;
 }
 
 /* Restrained, scholarly main headings: Noto Serif for H1 and major page titles only */
