@@ -5,7 +5,6 @@ import { SearchSection } from '@/components/SearchSection';
 import { DrugOverview } from '@/components/DrugOverview';
 import { RepurposingList } from '@/components/RepurposingList';
 import { EvidenceDetailModal } from '@/components/EvidenceDetailModal';
-import { PWARegister } from '@/components/PWARegister';
 import { MicroscopeWatermark } from '@/components/MicroscopeWatermark';
 import { 
   DrugResearchSnapshot, 
@@ -126,9 +125,6 @@ function HomeContent() {
       ))}
 
       <div className="flex-1 flex flex-col pb-16 md:pb-6 text-slate-900 selection:bg-teal-100 selection:text-teal-900">
-        {/* PWA offline banner & install prompt */}
-        <PWARegister />
-
         {/* Main Content Area */}
         <main className="flex-1 w-full max-w-5xl mx-auto px-4 py-4 sm:py-6">
           <div className="space-y-8">

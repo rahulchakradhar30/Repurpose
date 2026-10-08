@@ -82,10 +82,31 @@
     <p>
       Clinical trial and efficacy evidence is never cached offline to prevent researchers from viewing outdated or incomplete regulatory data.
     </p>
-    <button onclick="window.location.reload()">Retry Connection</button>
+    <button id="retryBtn" onclick="retryConnection()">Retry Connection</button>
     <div class="disclaimer">
       For education and research only. This tool does not provide medical advice or treatment recommendations.
     </div>
   </div>
+
+  <script>
+    function retryConnection() {
+      const btn = document.getElementById('retryBtn');
+      if (btn) btn.textContent = 'Checking connection...';
+      if (navigator.onLine) {
+        window.location.replace('/');
+      } else {
+        fetch('/', { method: 'HEAD', cache: 'no-store' })
+          .then(() => window.location.replace('/'))
+          .catch(() => {
+            if (btn) btn.textContent = 'Still Offline - Retry';
+          });
+      }
+    }
+
+    // Automatically navigate back as soon as network is restored
+    window.addEventListener('online', function() {
+      window.location.replace('/');
+    });
+  </script>
 </body>
 </html>

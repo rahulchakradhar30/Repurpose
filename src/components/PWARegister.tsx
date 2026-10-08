@@ -15,7 +15,7 @@ export function PWARegister() {
 
   useEffect(() => {
     // 1. Service Worker registration
-    if ('serviceWorker' in navigator && process.env.NODE_ENV === 'production') {
+    if ('serviceWorker' in navigator) {
       navigator.serviceWorker
         .register('/sw.js')
         .then((reg) => {
@@ -26,11 +26,27 @@ export function PWARegister() {
         });
     }
 
-    // 2. Offline / Online event listeners
-    const handleOnline = () => setIsOffline(false);
-    const handleOffline = () => setIsOffline(true);
+    // 2. Immediate & Event-Driven Offline Redirection
+    const redirectToOfflineIfDisconnected = () => {
+      if (typeof window !== 'undefined') {
+        const isOfflineNow = !navigator.onLine;
+        setIsOffline(isOfflineNow);
+        if (isOfflineNow && window.location.pathname !== '/offline.html') {
+          window.location.replace('/offline.html');
+        }
+      }
+    };
 
-    setIsOffline(!navigator.onLine);
+    const handleOnline = () => {
+      setIsOffline(false);
+    };
+
+    const handleOffline = () => {
+      redirectToOfflineIfDisconnected();
+    };
+
+    // Check immediately on load/mount
+    redirectToOfflineIfDisconnected();
 
     window.addEventListener('online', handleOnline);
     window.addEventListener('offline', handleOffline);

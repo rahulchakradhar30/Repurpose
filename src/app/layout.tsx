@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from "next";
 import { Noto_Serif, Noto_Sans, IBM_Plex_Mono } from "next/font/google";
 import { getSiteUrl, SITE_NAME, SITE_TAGLINE, SITE_DESCRIPTION } from "@/lib/seo";
 import { Header } from "@/components/Header";
+import { PWARegister } from "@/components/PWARegister";
 import "./globals.css";
 
 const notoSerif = Noto_Serif({
@@ -125,6 +126,7 @@ export default function RootLayout({
         suppressHydrationWarning
         className="min-h-full flex flex-col bg-slate-50 text-slate-900 selection:bg-teal-100 selection:text-teal-900"
       >
+        <PWARegister />
         <Header />
         <div className="flex-1 flex flex-col pt-14">
           {children}

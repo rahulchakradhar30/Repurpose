@@ -1,4 +1,4 @@
-const CACHE_NAME = 'repurpose-shell-v1';
+const CACHE_NAME = 'repurpose-shell-v2';
 const STATIC_ASSETS = [
   '/',
   '/manifest.json',
@@ -6,7 +6,7 @@ const STATIC_ASSETS = [
   '/offline.html',
 ];
 
-// Install: Cache essential app shell
+// Install: Cache essential app shell and offline page
 self.addEventListener('install', (event) => {
   event.waitUntil(
     caches.open(CACHE_NAME).then((cache) => {
@@ -28,7 +28,7 @@ self.addEventListener('activate', (event) => {
   self.clients.claim();
 });
 
-// Fetch: Network-first for navigation, NO clinical API caching
+// Fetch: Network-first for navigation, NO clinical API caching, serve offline.html when offline
 self.addEventListener('fetch', (event) => {
   const url = new URL(event.request.url);
 
@@ -53,13 +53,19 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
-  // App shell / static navigation
+  // App shell / static navigation: if network unavailable, automatically serve offline.html
   if (event.request.mode === 'navigate') {
     event.respondWith(
       fetch(event.request).catch(async () => {
         const cache = await caches.open(CACHE_NAME);
-        const cached = await cache.match(event.request);
-        return cached || cache.match('/offline.html') || cache.match('/');
+        const offlinePage = await cache.match('/offline.html');
+        if (offlinePage) {
+          return offlinePage;
+        }
+        return new Response(
+          '<!DOCTYPE html><html><head><meta http-equiv="refresh" content="0;url=/offline.html"></head><body>Redirecting to offline page...</body></html>',
+          { headers: { 'Content-Type': 'text/html' } }
+        );
       })
     );
     return;
