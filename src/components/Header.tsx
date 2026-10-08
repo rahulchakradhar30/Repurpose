@@ -121,7 +121,7 @@ export function Header() {
   ].some((r) => pathname === r || (r !== '/' && pathname.startsWith(r)));
 
   return (
-    <header className="bg-slate-900 text-white border-b border-slate-800 sticky top-0 z-30">
+    <header className="bg-slate-900 text-white border-b border-slate-800 fixed top-0 left-0 right-0 z-50">
       <div className="max-w-5xl mx-auto px-4 h-14 flex items-center justify-between">
         {/* Logo & Brand Wordmark */}
         <div className="flex items-center gap-3">
@@ -196,25 +196,31 @@ export function Header() {
             isMenuOpen || isMenuRouteActive ? 'text-teal-400 font-semibold' : 'text-slate-400 hover:text-slate-200'
           }`}
         >
-          {isMenuOpen ? <X className="w-4 h-4 mb-0.5" /> : <Menu className="w-4 h-4 mb-0.5" />}
+          <span className="relative w-4 h-4 mb-0.5 flex items-center justify-center">
+            <Menu className={`w-4 h-4 absolute inset-0 transition-all duration-300 transform ${isMenuOpen ? 'opacity-0 rotate-90 scale-75' : 'opacity-100 rotate-0 scale-100'}`} />
+            <X className={`w-4 h-4 absolute inset-0 transition-all duration-300 transform ${isMenuOpen ? 'opacity-100 rotate-0 scale-100' : 'opacity-0 -rotate-90 scale-75'}`} />
+          </span>
           <span>Menu</span>
         </button>
       </div>
 
       {/* Mobile Slide-Over Menu Sheet */}
       <div 
-        className={`md:hidden fixed inset-0 z-50 flex flex-col justify-end transition-all duration-300 ${
-          isMenuOpen ? 'visible bg-slate-950/40 backdrop-blur-xs opacity-100' : 'invisible pointer-events-none bg-transparent opacity-0'
+        className={`md:hidden fixed inset-0 z-50 flex flex-col justify-end bg-slate-950/40 backdrop-blur-xs transition-[opacity,visibility] duration-300 ease-in-out ${
+          isMenuOpen ? 'opacity-100 visible' : 'opacity-0 invisible pointer-events-none'
         }`}
         onClick={() => setIsMenuOpen(false)}
         aria-hidden={!isMenuOpen}
       >
         <div 
-          className={`w-full bg-white border-t border-slate-200 rounded-t-2xl shadow-2xl p-5 pb-20 max-h-[85vh] overflow-y-auto space-y-5 transform transition-transform duration-300 ease-out text-slate-900 ${
+          className={`w-full bg-white border-t border-slate-200 rounded-t-2xl shadow-2xl p-5 pb-20 max-h-[85vh] overflow-y-auto space-y-5 text-slate-900 transition-transform duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] ${
             isMenuOpen ? 'translate-y-0' : 'translate-y-full'
           }`}
           onClick={(e) => e.stopPropagation()}
         >
+          {/* Top grab handle */}
+          <div className="w-10 h-1 bg-slate-300 rounded-full mx-auto -mt-1 mb-1" aria-hidden="true" />
+
           {/* Drawer Top Header */}
           <div className="flex items-center justify-between border-b border-slate-200 pb-3">
             <div className="flex items-center gap-2">
