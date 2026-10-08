@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, useRef, useCallback } from 'react';
-import { Search, ArrowRight, Loader2, X, Pill, Mic, AlertCircle, Sparkles } from 'lucide-react';
+import { Search, ArrowRight, Loader2, X, Pill, AlertCircle, Sparkles } from 'lucide-react';
 import { searchDrugDirectory, findFuzzyDrugCorrection, DrugDirectoryEntry } from '@/lib/drugDirectory';
 import { useVoiceSearch } from '@/hooks/useVoiceSearch';
 
@@ -51,6 +51,78 @@ function HighlightMatchedText({ text, query }: { text: string; query: string }) 
       </span>
       {after}
     </span>
+  );
+}
+
+function VoicePersonMicIcon({ className = '', isListening = false }: { className?: string; isListening?: boolean }) {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      fill="none"
+      xmlns="http://www.w3.org/2000/svg"
+      className={className}
+      aria-hidden="true"
+    >
+      {/* Person Profile Silhouette */}
+      <circle cx="5" cy="7" r="2.75" fill="currentColor" />
+      <path
+        d="M1.5 18.5C1.5 15.2 3.5 13.5 6 13.5C8.5 13.5 10.5 15.2 10.5 18.5"
+        stroke="currentColor"
+        strokeWidth="1.4"
+        strokeLinecap="round"
+      />
+
+      {/* 3 Radiating Voice Wave Lines from person's mouth towards mic */}
+      <path
+        d="M8.5 7.5C9.5 8 9.5 9 8.5 9.5"
+        stroke="currentColor"
+        strokeWidth="1.3"
+        strokeLinecap="round"
+        className={isListening ? 'opacity-100' : 'opacity-80'}
+      />
+      <path
+        d="M10.5 6.2C12 7.2 12 9.8 10.5 10.8"
+        stroke="currentColor"
+        strokeWidth="1.3"
+        strokeLinecap="round"
+        className={isListening ? 'opacity-100' : 'opacity-70'}
+      />
+      <path
+        d="M12.5 5C14.5 6.5 14.5 10.5 12.5 12"
+        stroke="currentColor"
+        strokeWidth="1.3"
+        strokeLinecap="round"
+        className={isListening ? 'opacity-100' : 'opacity-60'}
+      />
+
+      {/* Microphone in front of the sound waves */}
+      <rect
+        x="16.5"
+        y="4"
+        width="4"
+        height="7.5"
+        rx="2"
+        fill="currentColor"
+      />
+      <path
+        d="M14.5 8C14.5 11.2 22.5 11.2 22.5 8"
+        stroke="currentColor"
+        strokeWidth="1.4"
+        strokeLinecap="round"
+      />
+      <path
+        d="M18.5 11.5V16"
+        stroke="currentColor"
+        strokeWidth="1.4"
+        strokeLinecap="round"
+      />
+      <path
+        d="M16 16H21"
+        stroke="currentColor"
+        strokeWidth="1.4"
+        strokeLinecap="round"
+      />
+    </svg>
   );
 }
 
@@ -310,20 +382,13 @@ export function SearchSection({
                 aria-label={isListening ? 'Stop listening' : 'Search drug by voice'}
                 aria-pressed={isListening}
                 title={isListening ? 'Listening... click to stop' : 'Search by voice'}
-                className={`p-1.5 rounded-md transition-all cursor-pointer relative ${
+                className={`p-1.5 rounded-md transition-colors cursor-pointer ${
                   isListening
-                    ? 'bg-red-50 text-red-600 border border-red-300 ring-2 ring-red-400/30'
-                    : 'text-slate-400 hover:text-teal-700 hover:bg-slate-100'
+                    ? 'bg-teal-50 text-teal-900 border border-teal-600 ring-2 ring-teal-500/20'
+                    : 'text-slate-700 hover:text-slate-950 hover:bg-slate-100'
                 }`}
               >
-                {isListening ? (
-                  <span className="relative flex items-center justify-center">
-                    <Mic className="w-4 h-4 text-red-600 animate-bounce" />
-                    <span className="absolute -top-0.5 -right-0.5 w-2 h-2 rounded-full bg-red-600 animate-ping" />
-                  </span>
-                ) : (
-                  <Mic className="w-4 h-4" />
-                )}
+                <VoicePersonMicIcon className="w-5 h-5" isListening={isListening} />
               </button>
             )}
 
@@ -340,13 +405,13 @@ export function SearchSection({
 
         {/* Live Voice Status Indicator */}
         {isListening && (
-          <div className="mt-2.5 flex items-center justify-center gap-2 text-xs font-medium text-red-700 bg-red-50/90 border border-red-200 py-1 px-3.5 rounded-full animate-pulse w-fit mx-auto shadow-xs">
-            <span className="w-2 h-2 rounded-full bg-red-600 animate-ping" />
+          <div className="mt-2.5 flex items-center justify-center gap-2 text-xs font-medium text-teal-900 bg-teal-50/95 border border-teal-200 py-1 px-3.5 rounded-full w-fit mx-auto shadow-xs">
+            <span className="w-2 h-2 rounded-full bg-teal-600" />
             <span>Listening... speak a drug name (e.g. Metformin, Aspirin)</span>
             <button
               type="button"
               onClick={stopListening}
-              className="ml-1 text-[11px] underline text-red-600 hover:text-red-800 cursor-pointer"
+              className="ml-1 text-[11px] underline text-teal-700 hover:text-teal-900 font-medium cursor-pointer"
             >
               Cancel
             </button>
