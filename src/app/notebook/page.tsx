@@ -74,6 +74,11 @@ export default function NotebookPage() {
     try {
       const res = await signInWithGoogle();
       if (!res.success) {
+        // If popup was blocked by browser or mobile settings, automatically fallback to redirect
+        if (res.code === 'auth/popup-blocked') {
+          await handleGoogleRedirectSignIn();
+          return;
+        }
         setAuthError({
           message: res.error || 'Sign-in failed. Please try again.',
           code: res.code,
@@ -323,18 +328,22 @@ export default function NotebookPage() {
               </div>
             )}
 
-            {authError.code === 'auth/popup-blocked' && (
+            {(authError.code === 'auth/popup-blocked' ||
+              authError.code === 'auth/popup-closed-by-user' ||
+              authError.code === 'auth/cancelled-popup-request' ||
+              authError.code === 'auth/network-request-failed' ||
+              authError.code === 'auth/internal-error') && (
               <div className="pt-1 flex items-center gap-2 flex-wrap">
                 <button
                   onClick={handleGoogleRedirectSignIn}
                   disabled={isSigningIn}
-                  className="px-3 py-1.5 rounded-lg bg-teal-800 hover:bg-teal-900 text-white font-medium text-xs flex items-center gap-1.5 transition-colors cursor-pointer"
+                  className="px-3 py-1.5 rounded-lg bg-teal-800 hover:bg-teal-900 text-white font-medium text-xs flex items-center gap-1.5 transition-colors cursor-pointer shadow-xs"
                 >
                   <LogIn className="w-3.5 h-3.5" />
                   <span>Try Sign In with Page Redirect</span>
                 </button>
                 <span className="text-[11px] text-slate-500">
-                  (Navigates directly to Google without popup windows)
+                  (Bypasses popup windows and third-party cookie restrictions)
                 </span>
               </div>
             )}

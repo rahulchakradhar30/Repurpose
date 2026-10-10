@@ -41,11 +41,11 @@ const securityHeaders = [
     key: 'Content-Security-Policy',
     value: [
       "default-src 'self'",
-      "script-src 'self' 'unsafe-inline' https://apis.google.com https://*.firebaseapp.com",
+      "script-src 'self' 'unsafe-inline' https://apis.google.com https://accounts.google.com https://*.firebaseapp.com",
       "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
       "font-src 'self' https://fonts.gstatic.com data:",
       "img-src 'self' data: blob: https://*.googleusercontent.com https://*.firebaseapp.com",
-      "connect-src 'self' https://identitytoolkit.googleapis.com https://securetoken.googleapis.com https://firestore.googleapis.com https://*.firebaseio.com https://api.groq.com https://generativelanguage.googleapis.com https://clinicaltrials.gov https://api.fda.gov https://pubchem.ncbi.nlm.nih.gov https://eutils.ncbi.nlm.nih.gov https://rxnav.nlm.nih.gov",
+      "connect-src 'self' https://identitytoolkit.googleapis.com https://securetoken.googleapis.com https://firestore.googleapis.com https://*.firebaseio.com https://api.groq.com https://generativelanguage.googleapis.com https://clinicaltrials.gov https://api.fda.gov https://pubchem.ncbi.nlm.nih.gov https://eutils.ncbi.nlm.nih.gov https://rxnav.nlm.nih.gov https://accounts.google.com",
       "frame-src 'self' https://*.firebaseapp.com https://accounts.google.com",
       "frame-ancestors 'none'",
       "object-src 'none'",
@@ -58,6 +58,14 @@ const securityHeaders = [
 const nextConfig: NextConfig = {
   poweredByHeader: false,
   productionBrowserSourceMaps: false,
+  async rewrites() {
+    return [
+      {
+        source: '/__/auth/:path*',
+        destination: 'https://repurpose-6bbab.firebaseapp.com/__/auth/:path*',
+      },
+    ];
+  },
   async headers() {
     return [
       {

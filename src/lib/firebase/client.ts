@@ -5,6 +5,8 @@ import {
   signInWithPopup, 
   signInWithRedirect,
   getRedirectResult,
+  setPersistence,
+  browserLocalPersistence,
   GoogleAuthProvider, 
   signOut as fbSignOut, 
   onAuthStateChanged, 
@@ -44,11 +46,31 @@ let app: FirebaseApp | null = null;
 let auth: Auth | null = null;
 let db: Firestore | null = null;
 
+/**
+ * Resolves the optimal authDomain.
+ * When running in the browser on drugrepurpose.vercel.app or custom domains,
+ * routing through window.location.host uses Next.js /__/auth rewrites.
+ * This converts all auth cookies into 100% first-party cookies, eliminating browser 3P cookie blocks.
+ */
+export function getEffectiveAuthDomain(): string {
+  if (typeof window !== 'undefined') {
+    const host = window.location.host;
+    if (host && (host.includes('vercel.app') || host.includes('localhost') || host.includes('127.0.0.1'))) {
+      return host;
+    }
+  }
+  return process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN || 'repurpose-6bbab.firebaseapp.com';
+}
+
 export function getFirebaseApp(): FirebaseApp | null {
   if (typeof window === 'undefined') return null;
   if (!app && isFirebaseConfigured) {
     try {
-      app = getApps().length > 0 ? getApp() : initializeApp(firebaseConfig);
+      const dynamicConfig = {
+        ...firebaseConfig,
+        authDomain: getEffectiveAuthDomain(),
+      };
+      app = getApps().length > 0 ? getApp() : initializeApp(dynamicConfig);
     } catch (err) {
       console.warn('Firebase app init warning:', err);
     }
@@ -139,6 +161,13 @@ export async function signInWithGoogle(): Promise<GoogleSignInResult> {
   }
 
   try {
+    // Explicitly configure local browser persistence (IndexedDB/localStorage)
+    await setPersistence(currentAuth, browserLocalPersistence);
+  } catch (pErr) {
+    console.warn('Firebase persistence warning:', pErr);
+  }
+
+  try {
     const provider = new GoogleAuthProvider();
     provider.setCustomParameters({ prompt: 'select_account' });
     const cred = await signInWithPopup(currentAuth, provider);
@@ -177,9 +206,9 @@ export async function signInWithGoogle(): Promise<GoogleSignInResult> {
     } else if (error.code === 'auth/popup-blocked') {
       friendlyMessage = 'The Google sign-in popup was blocked by your browser. Please allow popups for this site or use the redirect sign-in option below.';
     } else if (error.code === 'auth/popup-closed-by-user' || error.code === 'auth/cancelled-popup-request') {
-      friendlyMessage = 'Sign-in was cancelled (popup closed before authentication finished).';
+      friendlyMessage = 'Sign-in popup was closed before authentication finished. If your browser blocks popups or cookies, please use the redirect sign-in option below.';
     } else if (error.code === 'auth/network-request-failed') {
-      friendlyMessage = 'Network connection failed. Please verify your internet connection.';
+      friendlyMessage = 'Network connection failed. Please verify your internet connection or ad-blocker privacy settings.';
     } else if (error.message) {
       friendlyMessage = error.message;
     }

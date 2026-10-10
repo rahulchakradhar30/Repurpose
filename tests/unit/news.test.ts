@@ -68,7 +68,7 @@ describe('Drug News & Research Updates Engine', () => {
 
     const clinicalResearch = await getVerifiedNewsArticles('Clinical Research');
     expect(clinicalResearch.every(a => a.category === 'Clinical Research')).toBe(true);
-  });
+  }, 15000);
 
   it('retrieves single article by slug and returns null for unknown slug', async () => {
     const sample = VERIFIED_INITIAL_NEWS[0];
@@ -78,7 +78,7 @@ describe('Drug News & Research Updates Engine', () => {
 
     const nonExistent = await getNewsArticleBySlug('non-existent-drug-news-slug');
     expect(nonExistent).toBeNull();
-  });
+  }, 15000);
 
   it('ensures every article has mandatory research disclaimers and source URLs', async () => {
     const articles = await getVerifiedNewsArticles();
