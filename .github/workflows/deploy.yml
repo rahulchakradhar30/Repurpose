@@ -37,7 +37,19 @@ jobs:
       - name: Check out repository
         uses: actions/checkout@v4
 
+      - name: Check Vercel Token Configuration
+        id: check_token
+        run: |
+          if [ -z "${{ secrets.VERCEL_TOKEN }}" ]; then
+            echo "has_token=false" >> $GITHUB_OUTPUT
+            echo "Notice: VERCEL_TOKEN is not configured in GitHub Secrets."
+            echo "Skipping action deployment. (If Vercel is connected to this repo, Vercel deploys automatically upon push)."
+          else
+            echo "has_token=true" >> $GITHUB_OUTPUT
+          fi
+
       - name: Deploy to Vercel
+        if: steps.check_token.outputs.has_token == 'true'
         uses: amondnet/vercel-action@v25
         with:
           vercel-token: ${{ secrets.VERCEL_TOKEN }}
