@@ -181,6 +181,11 @@ export async function signInWithGoogle(): Promise<GoogleSignInResult> {
 
     if (typeof window !== 'undefined') {
       localStorage.setItem(LOCAL_USER_KEY, JSON.stringify(userProfile));
+      const credential = GoogleAuthProvider.credentialFromResult(cred);
+      if (credential?.accessToken) {
+        sessionStorage.setItem('repurpose_drive_access_token', credential.accessToken);
+        localStorage.setItem('repurpose_drive_access_token', credential.accessToken);
+      }
       window.dispatchEvent(new CustomEvent(AUTH_CHANGED_EVENT, { detail: userProfile }));
     }
 
@@ -222,6 +227,42 @@ export async function signInWithGoogle(): Promise<GoogleSignInResult> {
   }
 }
 
+/**
+ * Requests scoped Google Drive access (https://www.googleapis.com/auth/drive.file)
+ * to save research notebook PDFs directly into the investigator's personal Google Drive.
+ */
+export async function requestGoogleDriveAccess(): Promise<{ success: boolean; token?: string; error?: string }> {
+  const currentAuth = getFirebaseAuth();
+  if (!currentAuth) {
+    return { success: false, error: 'Firebase is not initialized.' };
+  }
+
+  try {
+    const provider = new GoogleAuthProvider();
+    provider.addScope('https://www.googleapis.com/auth/drive.file');
+    provider.setCustomParameters({ prompt: 'consent' });
+    const cred = await signInWithPopup(currentAuth, provider);
+    const credential = GoogleAuthProvider.credentialFromResult(cred);
+    const token = credential?.accessToken;
+
+    if (token) {
+      if (typeof window !== 'undefined') {
+        sessionStorage.setItem('repurpose_drive_access_token', token);
+        localStorage.setItem('repurpose_drive_access_token', token);
+      }
+      return { success: true, token };
+    }
+    return { success: false, error: 'Could not obtain Google Drive access token.' };
+  } catch (err: unknown) {
+    const error = err as { code?: string; message?: string };
+    console.error('Drive access request error:', error);
+    return {
+      success: false,
+      error: error.message || 'Google Drive authorization request was cancelled.',
+    };
+  }
+}
+
 export async function signInWithGoogleRedirect(): Promise<{ success: boolean; error?: string }> {
   const currentAuth = getFirebaseAuth();
   if (!currentAuth) {
@@ -233,6 +274,7 @@ export async function signInWithGoogleRedirect(): Promise<{ success: boolean; er
 
   try {
     const provider = new GoogleAuthProvider();
+    provider.addScope('https://www.googleapis.com/auth/drive.file');
     provider.setCustomParameters({ prompt: 'select_account' });
     await signInWithRedirect(currentAuth, provider);
     return { success: true };
@@ -263,6 +305,11 @@ export async function checkRedirectResult(): Promise<GoogleSignInResult | null> 
 
     if (typeof window !== 'undefined') {
       localStorage.setItem(LOCAL_USER_KEY, JSON.stringify(userProfile));
+      const credential = GoogleAuthProvider.credentialFromResult(cred);
+      if (credential?.accessToken) {
+        sessionStorage.setItem('repurpose_drive_access_token', credential.accessToken);
+        localStorage.setItem('repurpose_drive_access_token', credential.accessToken);
+      }
       window.dispatchEvent(new CustomEvent(AUTH_CHANGED_EVENT, { detail: userProfile }));
     }
 
@@ -292,6 +339,8 @@ export async function signOutUser(): Promise<void> {
   }
   if (typeof window !== 'undefined') {
     localStorage.removeItem(LOCAL_USER_KEY);
+    sessionStorage.removeItem('repurpose_drive_access_token');
+    localStorage.removeItem('repurpose_drive_access_token');
     window.dispatchEvent(new CustomEvent(AUTH_CHANGED_EVENT, { detail: null }));
   }
 }

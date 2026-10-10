@@ -45,7 +45,7 @@ const securityHeaders = [
       "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
       "font-src 'self' https://fonts.gstatic.com data:",
       "img-src 'self' data: blob: https://*.googleusercontent.com https://*.firebaseapp.com",
-      "connect-src 'self' https://identitytoolkit.googleapis.com https://securetoken.googleapis.com https://firestore.googleapis.com https://*.firebaseio.com https://api.groq.com https://generativelanguage.googleapis.com https://clinicaltrials.gov https://api.fda.gov https://pubchem.ncbi.nlm.nih.gov https://eutils.ncbi.nlm.nih.gov https://rxnav.nlm.nih.gov https://accounts.google.com",
+      "connect-src 'self' https://identitytoolkit.googleapis.com https://securetoken.googleapis.com https://firestore.googleapis.com https://*.firebaseio.com https://api.groq.com https://generativelanguage.googleapis.com https://clinicaltrials.gov https://api.fda.gov https://pubchem.ncbi.nlm.nih.gov https://eutils.ncbi.nlm.nih.gov https://rxnav.nlm.nih.gov https://accounts.google.com https://www.googleapis.com",
       "frame-src 'self' https://*.firebaseapp.com https://accounts.google.com",
       "frame-ancestors 'none'",
       "object-src 'none'",
