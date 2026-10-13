@@ -21,6 +21,8 @@ export default function robots(): MetadataRoute.Robots {
         ],
         disallow: [
           '/api/',
+          '/news/',
+          '/news',
           '/*?*', // Disallow crawling user search query URLs with parameters (e.g. /?drug=...)
           '/_next/',
           '/saved',

@@ -117,7 +117,7 @@ describe('Production SEO Suite', () => {
 
       expect(urls).toContain(CANONICAL_DOMAIN);
       expect(urls).toContain(`${CANONICAL_DOMAIN}/what-is-drug-repurposing`);
-      expect(urls).toContain(`${CANONICAL_DOMAIN}/news`);
+      expect(urls).not.toContain(`${CANONICAL_DOMAIN}/news`);
       expect(urls).toContain(`${CANONICAL_DOMAIN}/methodology`);
       expect(urls).toContain(`${CANONICAL_DOMAIN}/sources`);
       expect(urls).toContain(`${CANONICAL_DOMAIN}/about`);

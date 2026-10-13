@@ -11,7 +11,6 @@ import {
   Database, 
   HelpCircle, 
   BookMarked, 
-  Newspaper, 
   Compass, 
   Menu, 
   X, 
@@ -46,7 +45,6 @@ export function Header() {
     { href: '/', label: 'Explore', icon: Search },
     { href: '/compare', label: 'Compare', icon: Scale },
     { href: '/notebook', label: 'Notebook', icon: BookMarked },
-    { href: '/news', label: 'News', icon: Newspaper },
     { href: '/sources', label: 'Sources', icon: Database },
     { href: '/what-is-drug-repurposing', label: 'Guide', icon: BookOpen },
     { href: '/methodology', label: 'Methodology', icon: Compass },
@@ -57,7 +55,6 @@ export function Header() {
     { href: '/', label: 'Explore', icon: Search },
     { href: '/compare', label: 'Compare', icon: Scale },
     { href: '/notebook', label: 'Notebook', icon: BookMarked },
-    { href: '/news', label: 'News', icon: Newspaper },
   ];
 
   const menuSections = [
@@ -187,7 +184,7 @@ export function Header() {
       <div className="md:hidden fixed bottom-0 left-0 right-0 bg-slate-900 border-t border-slate-800 z-40 px-2 py-1 flex items-center justify-around">
         {mobilePrimaryLinks.map((item) => {
           const Icon = item.icon;
-          const isActive = pathname === item.href || (item.href === '/news' && pathname.startsWith('/news'));
+          const isActive = pathname === item.href || (item.href !== '/' && pathname.startsWith(item.href));
           return (
             <Link
               key={item.href}
