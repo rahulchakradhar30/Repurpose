@@ -1,10 +1,8 @@
 'use client';
 
-import { useState, useEffect, useCallback, Suspense } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { SearchSection } from '@/components/SearchSection';
-import { DrugOverview } from '@/components/DrugOverview';
-import { RepurposingList } from '@/components/RepurposingList';
-import { EvidenceDetailModal } from '@/components/EvidenceDetailModal';
+import { ClinicalCanvas } from '@/components/ClinicalCanvas';
 import { MicroscopeWatermark } from '@/components/MicroscopeWatermark';
 import { 
   DrugResearchSnapshot, 
@@ -46,14 +44,18 @@ export function HomeClient() {
 
       setResearchSnapshot(data);
 
-      // If a candidate parameter was requested, open it automatically
+      // If a candidate parameter was requested, select it automatically
       if (targetCandidate && data.candidates) {
         const matched = data.candidates.find((c: RepurposingCandidate) => 
           c.condition.toLowerCase() === targetCandidate.toLowerCase()
         );
         if (matched) {
           setSelectedCandidate(matched);
+        } else if (data.candidates.length > 0) {
+          setSelectedCandidate(data.candidates[0]);
         }
+      } else if (data.candidates && data.candidates.length > 0) {
+        setSelectedCandidate(data.candidates[0]);
       }
     } catch (err: unknown) {
       setError((err as Error).message || 'An error occurred while fetching biomedical records.');
@@ -105,8 +107,8 @@ export function HomeClient() {
   return (
     <div className="flex-1 flex flex-col pb-16 md:pb-6 text-slate-900 selection:bg-teal-100 selection:text-teal-900">
       {/* Main Content Area */}
-      <main className="flex-1 w-full max-w-5xl mx-auto px-4 py-4 sm:py-6">
-        <div className="space-y-8">
+      <main className="flex-1 w-full max-w-7xl mx-auto px-3 sm:px-6 py-4 sm:py-6">
+        <div className="space-y-6">
           <SearchSection
             onSearch={(name) => handleSearchDrug(name)}
             isLoading={isLoading}
@@ -140,44 +142,24 @@ export function HomeClient() {
             </div>
           )}
 
-          {/* Drug Overview & Candidate List */}
+          {/* The Clinical Canvas: Dual-Pane Master-Detail Workbench (Zero Popups) */}
           {researchSnapshot && !isLoading && (
-            <div className="space-y-6 animate-in fade-in duration-150">
-              <DrugOverview
-                drug={researchSnapshot.drug}
-                candidates={researchSnapshot.candidates}
-              />
-
-              <RepurposingList
-                candidates={researchSnapshot.candidates}
-                onSelectCandidate={(cand) => setSelectedCandidate(cand)}
-                drugGenericName={researchSnapshot.drug.genericName}
-              />
-            </div>
+            <ClinicalCanvas
+              drug={researchSnapshot.drug}
+              candidates={researchSnapshot.candidates}
+              initialCandidate={selectedCandidate}
+              onCandidateChange={(cand) => setSelectedCandidate(cand)}
+            />
           )}
 
           {/* Watermark Illustration: Microscope examining drug candidate */}
           {!researchSnapshot && !isLoading && !error && (
-            <MicroscopeWatermark />
+            <div className="max-w-4xl mx-auto">
+              <MicroscopeWatermark />
+            </div>
           )}
         </div>
       </main>
-
-      {/* Candidate Deep-Dive Modal (Read-Only with Copy Link) */}
-      {selectedCandidate && researchSnapshot && (
-        <EvidenceDetailModal
-          candidate={selectedCandidate}
-          drug={researchSnapshot.drug}
-          onClose={() => {
-            setSelectedCandidate(null);
-            // Revert URL to drug-only
-            if (typeof window !== 'undefined' && researchSnapshot.drug.genericName) {
-              window.history.pushState({}, '', `/?drug=${encodeURIComponent(researchSnapshot.drug.genericName)}`);
-            }
-          }}
-        />
-      )}
     </div>
   );
 }
-
