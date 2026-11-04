@@ -14,6 +14,7 @@ import { SaveToNotebookButton } from './SaveToNotebookButton';
 import { CompareDrugButton } from './CompareDrugButton';
 import { PrintSummaryButton } from './PrintSummaryButton';
 import { PdfExportModal } from './PdfExportModal';
+import { MobileEvidenceDrawer } from './MobileEvidenceDrawer';
 import { 
   ExternalLink, 
   Share2, 
@@ -26,12 +27,12 @@ import {
   AlertCircle, 
   Info, 
   ArrowRight, 
-  ArrowLeft, 
   ArrowUpDown, 
   Loader2, 
   FlaskConical, 
   Database,
-  BookOpen
+  BookOpen,
+  ChevronUp
 } from 'lucide-react';
 
 interface ClinicalCanvasProps {
@@ -61,8 +62,8 @@ export function ClinicalCanvas({
     () => initialCandidate || (candidates.length > 0 ? candidates[0] : null)
   );
 
-  // Mobile split view navigation state (false = show list, true = show detail)
-  const [showMobileDetail, setShowMobileDetail] = useState<boolean>(Boolean(initialCandidate));
+  // Arc bottom drawer state on mobile devices
+  const [isMobileDrawerOpen, setIsMobileDrawerOpen] = useState<boolean>(() => Boolean(initialCandidate));
 
   // Filters & Sorting for Left Rail
   const [filterMode, setFilterMode] = useState<CandidateFilter>('ALL');
@@ -82,21 +83,34 @@ export function ClinicalCanvas({
   useEffect(() => {
     if (initialCandidate) {
       setSelectedCandidate(initialCandidate);
-      setShowMobileDetail(true);
+      setIsMobileDrawerOpen(true);
     } else if (candidates.length > 0 && !selectedCandidate) {
       setSelectedCandidate(candidates[0]);
     }
   }, [candidates, initialCandidate]);
 
-  // Handle Candidate Selection
+  // Handle Candidate Selection (Desktop Master-Detail)
   const handleSelectCandidate = useCallback((cand: RepurposingCandidate) => {
     setSelectedCandidate(cand);
-    setShowMobileDetail(true);
     if (onCandidateChange) {
       onCandidateChange(cand);
     }
 
     // Update URL query parameter without full reload
+    if (typeof window !== 'undefined' && drug.genericName) {
+      const newUrl = `/?drug=${encodeURIComponent(drug.genericName)}&candidate=${encodeURIComponent(cand.condition)}`;
+      window.history.replaceState({}, '', newUrl);
+    }
+  }, [drug.genericName, onCandidateChange]);
+
+  // Handle Candidate Selection (Mobile Apple Health Card Tap -> Slide Up Arc Drawer)
+  const handleSelectCandidateMobile = useCallback((cand: RepurposingCandidate) => {
+    setSelectedCandidate(cand);
+    setIsMobileDrawerOpen(true);
+    if (onCandidateChange) {
+      onCandidateChange(cand);
+    }
+
     if (typeof window !== 'undefined' && drug.genericName) {
       const newUrl = `/?drug=${encodeURIComponent(drug.genericName)}&candidate=${encodeURIComponent(cand.condition)}`;
       window.history.replaceState({}, '', newUrl);
@@ -709,49 +723,169 @@ export function ClinicalCanvas({
           4. THE CLINICAL CANVAS (DUAL-PANE WORKBENCH) — MODE: 'workbench'
           ────────────────────────────────────────────────────────────────────────── */}
       {viewMode === 'workbench' && (
-        <div className="space-y-3">
-          {/* Mobile Master-Detail Segmented View Switcher (Handheld devices < md) */}
-          <div className="md:hidden flex items-center p-1 bg-slate-100 rounded-xl border border-slate-200/90 shadow-2xs">
-            <button
-              type="button"
-              onClick={() => setShowMobileDetail(false)}
-              className={`flex-1 py-2 px-3 text-xs font-semibold rounded-lg flex items-center justify-center gap-1.5 transition-all cursor-pointer ${
-                !showMobileDetail
-                  ? 'bg-white text-teal-950 border border-slate-200/80 shadow-xs'
-                  : 'text-slate-600 hover:text-slate-900'
-              }`}
-            >
-              <FlaskConical className="w-3.5 h-3.5 text-teal-700" />
-              <span>Candidates ({filteredCandidates.length})</span>
-            </button>
-            <button
-              type="button"
-              onClick={() => setShowMobileDetail(true)}
-              disabled={!selectedCandidate}
-              className={`flex-1 py-2 px-3 text-xs font-semibold rounded-lg flex items-center justify-center gap-1.5 transition-all cursor-pointer ${
-                showMobileDetail
-                  ? 'bg-white text-teal-950 border border-slate-200/80 shadow-xs'
-                  : 'text-slate-600 hover:text-slate-900 disabled:opacity-40'
-              }`}
-            >
-              <Compass className="w-3.5 h-3.5 text-teal-700" />
-              <span className="truncate max-w-[130px]">{selectedCandidate ? selectedCandidate.condition : 'Dossier'}</span>
-              {selectedCandidate && (
-                <span className="font-mono text-[10px] px-1.5 py-0.2 rounded bg-teal-50 text-teal-800 border border-teal-200 font-bold shrink-0">
-                  {selectedCandidate.readinessScore ?? selectedCandidate.evidenceScore.totalScore}
+        <div className="space-y-4">
+          {/* ══════════════════════════════════════════════════════════════════════
+              MOBILE VIEW (Screens < md): Apple Health / Arc Sheet Paradigm (Idea 1)
+              ══════════════════════════════════════════════════════════════════════ */}
+          <div className="md:hidden space-y-3">
+            {/* Mobile Rail Header with Fast Filter Pills & Sort */}
+            <div className="p-3.5 bg-white border border-slate-200/90 rounded-xl shadow-xs space-y-2.5">
+              <div className="flex items-center justify-between">
+                <span className="text-xs font-bold text-slate-900 uppercase tracking-wider flex items-center gap-1.5">
+                  <FlaskConical className="w-3.5 h-3.5 text-teal-700" />
+                  <span>Candidates ({filteredCandidates.length})</span>
                 </span>
+
+                <div className="flex items-center gap-1 text-[11px] text-slate-500">
+                  <ArrowUpDown className="w-3 h-3 text-slate-400" />
+                  <select
+                    value={sortBy}
+                    onChange={(e) => setSortBy(e.target.value as SortOption)}
+                    className="bg-transparent border-0 text-slate-700 font-semibold cursor-pointer focus:ring-0 text-[11px]"
+                    aria-label="Sort candidates by"
+                  >
+                    <option value="score_desc">Highest Score</option>
+                    <option value="score_asc">Lowest Score</option>
+                    <option value="trials_desc">Most Trials</option>
+                    <option value="name_asc">Name (A-Z)</option>
+                  </select>
+                </div>
+              </div>
+
+              {/* Fast Filter Pills */}
+              <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar py-0.5">
+                <button
+                  onClick={() => setFilterMode('ALL')}
+                  className={`px-3 py-1 rounded-full text-xs font-semibold transition-colors cursor-pointer whitespace-nowrap shrink-0 ${
+                    filterMode === 'ALL'
+                      ? 'bg-teal-800 text-white shadow-2xs'
+                      : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                  }`}
+                >
+                  All ({candidates.length})
+                </button>
+                <button
+                  onClick={() => setFilterMode('HIGH_EVIDENCE')}
+                  className={`px-3 py-1 rounded-full text-xs font-semibold transition-colors cursor-pointer whitespace-nowrap shrink-0 ${
+                    filterMode === 'HIGH_EVIDENCE'
+                      ? 'bg-teal-800 text-white shadow-2xs'
+                      : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                  }`}
+                >
+                  High (≥70)
+                </button>
+                <button
+                  onClick={() => setFilterMode('PHASE_2_3')}
+                  className={`px-3 py-1 rounded-full text-xs font-semibold transition-colors cursor-pointer whitespace-nowrap shrink-0 ${
+                    filterMode === 'PHASE_2_3'
+                      ? 'bg-teal-800 text-white shadow-2xs'
+                      : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                  }`}
+                >
+                  Phase 2/3
+                </button>
+                <button
+                  onClick={() => setFilterMode('OFF_LABEL')}
+                  className={`px-3 py-1 rounded-full text-xs font-semibold transition-colors cursor-pointer whitespace-nowrap shrink-0 ${
+                    filterMode === 'OFF_LABEL'
+                      ? 'bg-teal-800 text-white shadow-2xs'
+                      : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                  }`}
+                >
+                  Off-label
+                </button>
+              </div>
+            </div>
+
+            {/* Mobile Hero Candidate Cards */}
+            <div className="space-y-3">
+              {filteredCandidates.length === 0 ? (
+                <div className="p-8 text-center bg-white border border-slate-200 rounded-xl text-xs text-slate-500 space-y-1">
+                  <p className="font-semibold text-slate-700">No candidates match current filter</p>
+                  <p>Reset filter or query another generic drug name.</p>
+                </div>
+              ) : (
+                filteredCandidates.map((cand) => {
+                  const score = cand.readinessScore ?? cand.evidenceScore?.totalScore ?? 0;
+                  return (
+                    <div
+                      key={cand.id}
+                      onClick={() => handleSelectCandidateMobile(cand)}
+                      className="bg-white rounded-2xl border border-slate-200/90 p-4 shadow-xs active:scale-[0.98] transition-all cursor-pointer relative overflow-hidden space-y-3 hover:border-teal-300"
+                    >
+                      {/* Card Top: Badges & Circular Readiness Gauge */}
+                      <div className="flex items-start justify-between gap-3">
+                        <div className="space-y-1.5 min-w-0">
+                          <div className="flex items-center gap-1.5 flex-wrap">
+                            <span className={`text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full border ${getStatusBadgeStyle(cand.status)}`}>
+                              {cand.status}
+                            </span>
+                            <span className="text-[11px] font-semibold text-slate-700 bg-slate-100 px-2 py-0.5 rounded-full border border-slate-200">
+                              {cand.highestPhase}
+                            </span>
+                          </div>
+
+                          <h3 className="text-base font-bold text-slate-900 leading-snug pt-0.5">
+                            {cand.condition}
+                          </h3>
+                        </div>
+
+                        {/* Apple Health Circular Readiness Meter */}
+                        <div className="shrink-0 flex flex-col items-center">
+                          <div className="relative w-12 h-12 flex items-center justify-center">
+                            <svg className="w-12 h-12 -rotate-90 transform" viewBox="0 0 48 48">
+                              <circle cx="24" cy="24" r="19" stroke="currentColor" strokeWidth="4" className="text-slate-100" fill="transparent" />
+                              <circle
+                                cx="24" cy="24" r="19"
+                                stroke="currentColor" strokeWidth="4"
+                                strokeDasharray={119.38}
+                                strokeDashoffset={119.38 - (119.38 * Math.min(score, 100)) / 100}
+                                strokeLinecap="round"
+                                className={score >= 70 ? 'text-teal-600' : score >= 45 ? 'text-blue-600' : 'text-amber-600'}
+                                fill="transparent"
+                              />
+                            </svg>
+                            <span className="absolute font-mono text-xs font-black text-slate-900">
+                              {score}
+                            </span>
+                          </div>
+                          <span className="text-[9px] font-semibold text-slate-500 uppercase tracking-tight mt-0.5">Readiness</span>
+                        </div>
+                      </div>
+
+                      {/* Biological Rationale Snippet */}
+                      {cand.biologicalRationale && (
+                        <p className="text-xs text-slate-600 line-clamp-2 leading-relaxed">
+                          {cand.biologicalRationale}
+                        </p>
+                      )}
+
+                      {/* Card Bottom: Stats + View Dossier Tap Affordance */}
+                      <div className="pt-2.5 border-t border-slate-100 flex items-center justify-between text-xs text-slate-500">
+                        <span className="font-mono text-[11px] text-slate-600 font-medium">
+                          {cand.clinicalTrials.length} Trial{cand.clinicalTrials.length === 1 ? '' : 's'} · {cand.citations.length} Paper{cand.citations.length === 1 ? '' : 's'}
+                        </span>
+                        <span className="inline-flex items-center gap-1 text-teal-800 font-semibold text-xs">
+                          <span>View Dossier</span>
+                          <ChevronUp className="w-3.5 h-3.5 text-teal-700" />
+                        </span>
+                      </div>
+                    </div>
+                  );
+                })
               )}
-            </button>
+            </div>
           </div>
 
-          <div className="flex flex-col md:flex-row gap-4 items-stretch min-h-[640px]">
+          {/* ══════════════════════════════════════════════════════════════════════
+              DESKTOP VIEW (Screens >= md): The Pristine Dual-Pane Master-Detail Workbench
+              ══════════════════════════════════════════════════════════════════════ */}
+          <div className="hidden md:flex flex-row gap-4 items-stretch min-h-[640px]">
           {/* ────────────────────────────────────────────────────────────────
               LEFT RAIL: MASTER CANDIDATE STREAM (38% Desktop Width)
               ──────────────────────────────────────────────────────────────── */}
           <aside 
-            className={`w-full md:w-[350px] lg:w-[380px] xl:w-[410px] shrink-0 flex flex-col bg-white border border-slate-200 rounded-xl shadow-xs overflow-hidden ${
-              showMobileDetail ? 'hidden md:flex' : 'flex'
-            }`}
+            className="w-[350px] lg:w-[380px] xl:w-[410px] shrink-0 flex flex-col bg-white border border-slate-200 rounded-xl shadow-xs overflow-hidden"
           >
             {/* Rail Header with Filter & Search */}
             <div className="p-3.5 border-b border-slate-100 bg-slate-50/80 space-y-2.5 shrink-0">
@@ -895,26 +1029,10 @@ export function ClinicalCanvas({
               RIGHT VIEWPORT: LIVE EVIDENCE CANVAS (62% Desktop Width)
               ──────────────────────────────────────────────────────────────── */}
           <main 
-            className={`flex-1 min-w-0 bg-white border border-slate-200 rounded-xl shadow-xs overflow-hidden flex flex-col ${
-              !showMobileDetail ? 'hidden md:flex' : 'flex'
-            }`}
+            className="flex-1 min-w-0 bg-white border border-slate-200 rounded-xl shadow-xs overflow-hidden flex flex-col"
           >
             {selectedCandidate ? (
               <>
-                {/* Mobile Back Button Navigation Bar */}
-                <div className="md:hidden border-b border-slate-200 bg-slate-50 px-4 py-2.5 flex items-center justify-between">
-                  <button
-                    onClick={() => setShowMobileDetail(false)}
-                    className="inline-flex items-center gap-1.5 text-xs font-semibold text-teal-800 hover:text-teal-900 cursor-pointer"
-                  >
-                    <ArrowLeft className="w-3.5 h-3.5" />
-                    <span>Back to Candidates ({filteredCandidates.length})</span>
-                  </button>
-                  <span className="text-xs text-slate-500 font-medium truncate max-w-[160px]">
-                    {selectedCandidate.condition}
-                  </span>
-                </div>
-
                 {/* Viewport Header: Title, Score & Actions */}
                 <div className="p-4 sm:p-5 border-b border-slate-100 bg-white flex flex-col sm:flex-row sm:items-start justify-between gap-3 shrink-0">
                   <div className="space-y-1">
@@ -1480,6 +1598,23 @@ export function ClinicalCanvas({
         </div>
         </div>
       )}
+
+      {/* Mobile Evidence Bottom Sheet Drawer (Arc / Apple Health Style) */}
+      <MobileEvidenceDrawer
+        isOpen={isMobileDrawerOpen}
+        onClose={() => setIsMobileDrawerOpen(false)}
+        drug={drug}
+        candidate={selectedCandidate}
+        candidates={candidates}
+        activeTab={activeTab}
+        onTabChange={setActiveTab}
+        aiSummary={aiSummary}
+        isAiLoading={isAiLoading}
+        onOpenExportModal={() => setIsExportModalOpen(true)}
+        candidateClinicalTrialsUrl={candidateClinicalTrialsUrl}
+        candidatePubMedUrl={candidatePubMedUrl}
+        rxNormUrl={rxNormUrl}
+      />
 
       {/* Customizable PDF Export & Chrome Save Modal */}
       <PdfExportModal
