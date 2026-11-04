@@ -138,3 +138,4 @@ export async function fetchOpenTargetsAssociations(
     return null;
   }
 }
+
