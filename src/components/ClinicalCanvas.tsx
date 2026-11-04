@@ -75,7 +75,6 @@ export function ClinicalCanvas({
 
   // Link copy feedback states
   const [copiedDrugLink, setCopiedDrugLink] = useState(false);
-  const [copiedCandidateLink, setCopiedCandidateLink] = useState(false);
 
   // Synchronize when candidates prop changes
   useEffect(() => {
@@ -164,27 +163,16 @@ export function ClinicalCanvas({
     }
   }, [handleSelectCandidate]);
 
-  // Copy Drug URL Handler
+  // Copy Share URL Handler (includes selected candidate when active)
   const handleCopyDrugLink = async () => {
     if (typeof window === 'undefined') return;
-    const url = `${window.location.origin}/?drug=${encodeURIComponent(drug.genericName)}`;
+    const url = selectedCandidate
+      ? `${window.location.origin}/?drug=${encodeURIComponent(drug.genericName)}&candidate=${encodeURIComponent(selectedCandidate.condition)}`
+      : `${window.location.origin}/?drug=${encodeURIComponent(drug.genericName)}`;
     try {
       await navigator.clipboard.writeText(url);
       setCopiedDrugLink(true);
       setTimeout(() => setCopiedDrugLink(false), 2000);
-    } catch {
-      // ignore
-    }
-  };
-
-  // Copy Candidate URL Handler
-  const handleCopyCandidateLink = async () => {
-    if (typeof window === 'undefined' || !selectedCandidate) return;
-    const url = `${window.location.origin}/?drug=${encodeURIComponent(drug.genericName)}&candidate=${encodeURIComponent(selectedCandidate.condition)}`;
-    try {
-      await navigator.clipboard.writeText(url);
-      setCopiedCandidateLink(true);
-      setTimeout(() => setCopiedCandidateLink(false), 2000);
     } catch {
       // ignore
     }
@@ -345,8 +333,18 @@ export function ClinicalCanvas({
             )}
           </div>
 
-          {/* Quick Metrics & Action Controls */}
+          {/* Quick Metrics & Action Controls (Single Unified Action Bar) */}
           <div className="flex items-center gap-2 self-start lg:self-center flex-wrap shrink-0">
+            {selectedCandidate && (
+              <Link
+                href={`/evidence/${encodeURIComponent(drug.genericName.toLowerCase().replace(/[^a-z0-9]+/g, '-'))}/${encodeURIComponent(selectedCandidate.condition.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, ''))}`}
+                className="flex items-center gap-1 px-3 py-1.5 bg-teal-800 hover:bg-teal-900 text-white rounded-md text-xs font-semibold transition-colors cursor-pointer shadow-xs"
+                title={`Open full permanent dossier page for ${drug.genericName} in ${selectedCandidate.condition}`}
+              >
+                <span>Full Dossier</span>
+                <ArrowRight className="w-3 h-3" />
+              </Link>
+            )}
             <CompareDrugButton drug={drug} candidates={candidates} />
             <SaveToNotebookButton drug={drug} candidate={selectedCandidate || candidates[0]} showViewLink={true} />
             <PrintSummaryButton label="Print" />
@@ -358,7 +356,7 @@ export function ClinicalCanvas({
                   ? 'bg-teal-50 text-teal-800 border-teal-300'
                   : 'bg-white hover:bg-slate-50 text-slate-700 border-slate-300'
               }`}
-              title="Copy direct share link to this drug"
+              title="Copy direct share link"
             >
               {copiedDrugLink ? <Check className="w-3.5 h-3.5 text-teal-700" /> : <Share2 className="w-3.5 h-3.5 text-slate-500" />}
               <span>{copiedDrugLink ? 'Copied' : 'Share'}</span>
@@ -906,33 +904,6 @@ export function ClinicalCanvas({
                         {selectedCandidate.evidenceScore.evidenceTier || 'Active Evaluation'}
                       </span>
                     </div>
-                  </div>
-
-                  {/* Actions: Open Full Dossier, Save, Share */}
-                  <div className="flex items-center gap-2 flex-wrap self-start sm:self-center">
-                    <Link
-                      href={`/evidence/${encodeURIComponent(drug.genericName.toLowerCase().replace(/[^a-z0-9]+/g, '-'))}/${encodeURIComponent(selectedCandidate.condition.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, ''))}`}
-                      className="flex items-center gap-1 px-3 py-1.5 bg-teal-800 hover:bg-teal-900 text-white rounded-md text-xs font-semibold transition-colors cursor-pointer shadow-xs"
-                      title="Open full permanent dossier page"
-                    >
-                      <span>Full Dossier</span>
-                      <ArrowRight className="w-3 h-3" />
-                    </Link>
-
-                    <SaveToNotebookButton drug={drug} candidate={selectedCandidate} showViewLink={false} />
-
-                    <button
-                      onClick={handleCopyCandidateLink}
-                      className={`flex items-center gap-1 px-2.5 py-1.5 rounded-md text-xs font-semibold border transition-all cursor-pointer ${
-                        copiedCandidateLink
-                          ? 'bg-teal-50 text-teal-800 border-teal-300'
-                          : 'bg-white hover:bg-slate-50 text-slate-700 border-slate-300'
-                      }`}
-                      title="Copy direct share link to this hypothesis"
-                    >
-                      {copiedCandidateLink ? <Check className="w-3 h-3 text-teal-700" /> : <Share2 className="w-3 h-3 text-slate-500" />}
-                      <span className="hidden sm:inline">{copiedCandidateLink ? 'Copied' : 'Share'}</span>
-                    </button>
                   </div>
                 </div>
 
