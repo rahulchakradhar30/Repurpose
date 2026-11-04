@@ -180,8 +180,8 @@ export function Header() {
         </nav>
       </div>
 
-      {/* Mobile Bottom Navigation Bar with Three-Horizontal-Lines Menu Button */}
-      <div className="md:hidden fixed bottom-0 left-0 right-0 bg-slate-900 border-t border-slate-800 z-40 px-2 py-1 flex items-center justify-around">
+      {/* Mobile Bottom Navigation Bar with Safe-Area Inset Support */}
+      <div className="md:hidden fixed bottom-0 left-0 right-0 bg-slate-900/95 backdrop-blur-md border-t border-slate-800 z-40 px-2 py-1.5 pb-[calc(0.375rem+env(safe-area-inset-bottom,0px))] flex items-center justify-around shadow-lg">
         {mobilePrimaryLinks.map((item) => {
           const Icon = item.icon;
           const isActive = pathname === item.href || (item.href !== '/' && pathname.startsWith(item.href));

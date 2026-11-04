@@ -174,15 +174,20 @@ export function PdfExportModal({
           1. INTERACTIVE EXPORT CUSTOMIZATION MODAL (HIDDEN DURING PRINT)
           ────────────────────────────────────────────────────────────────────────── */}
       <div 
-        className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-slate-900/60 backdrop-blur-xs no-print animate-in fade-in duration-150"
+        className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4 bg-slate-900/60 backdrop-blur-xs no-print animate-in fade-in duration-150"
         role="dialog"
         aria-modal="true"
         aria-labelledby={titleId}
       >
-        <div className="bg-white rounded-2xl border border-slate-200 shadow-2xl w-full max-w-2xl max-h-[92vh] flex flex-col overflow-hidden text-slate-900">
+        <div className="bg-white rounded-t-2xl sm:rounded-2xl border border-slate-200 shadow-2xl w-full max-w-2xl max-h-[92vh] sm:max-h-[90vh] flex flex-col overflow-hidden text-slate-900">
           
+          {/* Mobile Sheet Handle (Handheld screens only) */}
+          <div className="sm:hidden pt-2 pb-0 flex justify-center bg-slate-50/80">
+            <div className="w-10 h-1 rounded-full bg-slate-300" />
+          </div>
+
           {/* Header */}
-          <div className="px-5 py-4 border-b border-slate-100 flex items-center justify-between bg-slate-50/80">
+          <div className="px-4 sm:px-5 py-3 sm:py-4 border-b border-slate-100 flex items-center justify-between bg-slate-50/80">
             <div className="flex items-center gap-2.5">
               <div className="w-8 h-8 rounded-lg bg-slate-900 flex items-center justify-center shadow-xs">
                 <Image
@@ -440,21 +445,21 @@ export function PdfExportModal({
             </div>
           </div>
 
-          {/* Modal Footer Controls */}
-          <div className="px-5 py-3.5 border-t border-slate-100 bg-slate-50/80 flex items-center justify-between gap-3 flex-wrap">
+          {/* Modal Footer Controls (Responsive Full-Width Touch Controls on Mobile) */}
+          <div className="px-4 sm:px-5 py-3 sm:py-3.5 border-t border-slate-100 bg-slate-50/90 flex flex-col-reverse sm:flex-row sm:items-center justify-between gap-2.5">
             <button
               onClick={onClose}
-              className="px-3.5 py-1.5 rounded-lg border border-slate-300 bg-white hover:bg-slate-50 text-slate-700 text-xs font-semibold transition-colors cursor-pointer"
+              className="w-full sm:w-auto px-4 py-2 sm:py-1.5 rounded-lg border border-slate-300 bg-white hover:bg-slate-50 text-slate-700 text-xs font-semibold transition-colors cursor-pointer text-center justify-center flex items-center"
             >
               Cancel
             </button>
 
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2 w-full sm:w-auto">
               {/* Option A: Direct Local PDF Download */}
               <button
                 onClick={handleDownloadPdf}
                 disabled={isGenerating}
-                className="px-3.5 py-1.5 rounded-lg border border-teal-300 bg-white hover:bg-teal-50 text-teal-800 text-xs font-semibold flex items-center gap-1.5 transition-colors cursor-pointer shadow-2xs"
+                className="flex-1 sm:flex-initial px-3.5 py-2 sm:py-1.5 rounded-lg border border-teal-300 bg-white hover:bg-teal-50 text-teal-800 text-xs font-semibold flex items-center justify-center gap-1.5 transition-colors cursor-pointer shadow-2xs"
                 title="Generate and download a customized PDF document directly"
               >
                 <Download className="w-3.5 h-3.5 text-teal-700" />
@@ -464,7 +469,7 @@ export function PdfExportModal({
               {/* Option B: Browser Print / Save as PDF with Chrome's native engine */}
               <button
                 onClick={handlePrint}
-                className="px-4 py-1.5 rounded-lg bg-teal-800 hover:bg-teal-900 text-white text-xs font-semibold flex items-center gap-1.5 transition-colors cursor-pointer shadow-xs"
+                className="flex-1 sm:flex-initial px-4 py-2 sm:py-1.5 rounded-lg bg-teal-800 hover:bg-teal-900 text-white text-xs font-semibold flex items-center justify-center gap-1.5 transition-colors cursor-pointer shadow-xs"
                 title="Open browser print dialog to print or Save as PDF"
               >
                 <Printer className="w-3.5 h-3.5" />

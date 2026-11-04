@@ -67,6 +67,7 @@ export default function NotebookPage() {
   // Local PDF download & custom export modal state
   const [isDownloadingPdf, setIsDownloadingPdf] = useState(false);
   const [isExportModalOpen, setIsExportModalOpen] = useState(false);
+  const [mobileTab, setMobileTab] = useState<'list' | 'detail'>('detail');
 
   // Subscribe to auth state & check redirect sign-in outcome on mount
   useEffect(() => {
@@ -471,28 +472,61 @@ export default function NotebookPage() {
             </div>
           </div>
         ) : (
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-            {/* LEFT COLUMN: Saved Dossier List */}
-            <div className="lg:col-span-4 space-y-3 no-print">
-              <div className="relative">
-                <Search className="w-4 h-4 text-slate-400 absolute left-3 top-2.5" />
-                <input
-                  type="text"
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  placeholder="Filter by drug, disease, or tag..."
-                  className="w-full pl-9 pr-3 py-2 rounded-lg bg-white border border-slate-300 text-xs text-slate-900 placeholder-slate-400 focus:outline-none focus:border-teal-600 shadow-xs"
-                />
-              </div>
+          <div className="space-y-4">
+            {/* Mobile Segmented View Switcher (Handheld devices < lg) */}
+            <div className="lg:hidden flex items-center p-1 bg-slate-100 rounded-xl border border-slate-200/90 shadow-2xs">
+              <button
+                type="button"
+                onClick={() => setMobileTab('list')}
+                className={`flex-1 py-2 px-3 text-xs font-semibold rounded-lg flex items-center justify-center gap-1.5 transition-all cursor-pointer ${
+                  mobileTab === 'list'
+                    ? 'bg-white text-teal-950 border border-slate-200/80 shadow-xs'
+                    : 'text-slate-600 hover:text-slate-900'
+                }`}
+              >
+                <BookMarked className="w-3.5 h-3.5 text-teal-700" />
+                <span>Saved Dossiers ({items.length})</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => setMobileTab('detail')}
+                disabled={!activeItem}
+                className={`flex-1 py-2 px-3 text-xs font-semibold rounded-lg flex items-center justify-center gap-1.5 transition-all cursor-pointer ${
+                  mobileTab === 'detail'
+                    ? 'bg-white text-teal-950 border border-slate-200/80 shadow-xs'
+                    : 'text-slate-600 hover:text-slate-900 disabled:opacity-40'
+                }`}
+              >
+                <FileText className="w-3.5 h-3.5 text-teal-700" />
+                <span className="truncate max-w-[130px]">{activeItem ? activeItem.drug : 'Notes'}</span>
+              </button>
+            </div>
 
-              <div className="space-y-2 max-h-[70vh] overflow-y-auto pr-1">
-                {filteredItems.map((item) => {
-                  const isSelected = activeItem?.id === item.id;
-                  return (
-                    <div
-                      key={item.id}
-                      onClick={() => setActiveItemId(item.id)}
-                      className={`p-3.5 rounded-xl border cursor-pointer transition-all text-xs space-y-1.5 ${
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+              {/* LEFT COLUMN: Saved Dossier List */}
+              <div className={`lg:col-span-4 space-y-3 no-print ${mobileTab === 'detail' ? 'hidden lg:block' : 'block'}`}>
+                <div className="relative">
+                  <Search className="w-4 h-4 text-slate-400 absolute left-3 top-2.5" />
+                  <input
+                    type="text"
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    placeholder="Filter by drug, disease, or tag..."
+                    className="w-full pl-9 pr-3 py-2 rounded-lg bg-white border border-slate-300 text-xs text-slate-900 placeholder-slate-400 focus:outline-none focus:border-teal-600 shadow-xs"
+                  />
+                </div>
+
+                <div className="space-y-2 max-h-[70vh] overflow-y-auto pr-1">
+                  {filteredItems.map((item) => {
+                    const isSelected = activeItem?.id === item.id;
+                    return (
+                      <div
+                        key={item.id}
+                        onClick={() => {
+                          setActiveItemId(item.id);
+                          setMobileTab('detail');
+                        }}
+                        className={`p-3.5 rounded-xl border cursor-pointer transition-all text-xs space-y-1.5 ${
                         isSelected
                           ? 'bg-teal-50 border-teal-300 shadow-xs'
                           : 'bg-white border-slate-200 hover:border-slate-300 shadow-xs'
@@ -528,7 +562,18 @@ export default function NotebookPage() {
 
             {/* RIGHT COLUMN: Active Dossier Notebook Details */}
             {activeItem && (
-              <div className="lg:col-span-8 space-y-6">
+              <div className={`lg:col-span-8 space-y-6 ${mobileTab === 'list' ? 'hidden lg:block' : 'block'}`}>
+                {/* Mobile Back to List Button */}
+                <div className="lg:hidden pb-1">
+                  <button
+                    type="button"
+                    onClick={() => setMobileTab('list')}
+                    className="inline-flex items-center gap-1.5 text-xs font-semibold text-teal-800 hover:text-teal-900 cursor-pointer"
+                  >
+                    <ArrowLeft className="w-3.5 h-3.5" />
+                    <span>Back to Saved Dossiers ({items.length})</span>
+                  </button>
+                </div>
                 {/* Dossier Header Card */}
                 <div className="p-5 sm:p-6 rounded-xl bg-white border border-slate-200 shadow-xs space-y-3">
                   <div className="flex flex-wrap items-center justify-between gap-3">
@@ -671,6 +716,7 @@ export default function NotebookPage() {
               </div>
             )}
           </div>
+        </div>
         )}
       </main>
 

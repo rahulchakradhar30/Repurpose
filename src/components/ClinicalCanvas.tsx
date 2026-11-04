@@ -335,12 +335,12 @@ export function ClinicalCanvas({
             )}
           </div>
 
-          {/* Quick Metrics & Action Controls (Single Unified Action Bar) */}
-          <div className="flex items-center gap-2 self-start lg:self-center flex-wrap shrink-0">
+          {/* Quick Metrics & Action Controls (Single Unified Action Bar - Horizontal Swipeable on Mobile) */}
+          <div className="flex items-center gap-2 self-start lg:self-center overflow-x-auto no-scrollbar py-1 w-full lg:w-auto shrink-0 -mx-1 px-1 lg:mx-0 lg:px-0 lg:flex-wrap">
             {selectedCandidate && (
               <Link
                 href={`/evidence/${encodeURIComponent(drug.genericName.toLowerCase().replace(/[^a-z0-9]+/g, '-'))}/${encodeURIComponent(selectedCandidate.condition.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, ''))}`}
-                className="flex items-center gap-1 px-3 py-1.5 bg-teal-800 hover:bg-teal-900 text-white rounded-md text-xs font-semibold transition-colors cursor-pointer shadow-xs"
+                className="flex items-center gap-1 px-3 py-1.5 bg-teal-800 hover:bg-teal-900 text-white rounded-md text-xs font-semibold transition-colors cursor-pointer shadow-xs shrink-0 whitespace-nowrap"
                 title={`Open full permanent dossier page for ${drug.genericName} in ${selectedCandidate.condition}`}
               >
                 <span>Full Dossier</span>
@@ -353,7 +353,7 @@ export function ClinicalCanvas({
 
             <button
               onClick={handleCopyDrugLink}
-              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-semibold border transition-all cursor-pointer shadow-2xs ${
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-semibold border transition-all cursor-pointer shadow-2xs shrink-0 whitespace-nowrap ${
                 copiedDrugLink
                   ? 'bg-teal-50 text-teal-800 border-teal-300'
                   : 'bg-white hover:bg-slate-50 text-slate-700 border-slate-300'
@@ -367,7 +367,7 @@ export function ClinicalCanvas({
         </div>
 
         {/* Executive Mode Navigation Bar */}
-        <div className="border-t border-slate-100 bg-slate-50/70 px-4 sm:px-5 flex items-center justify-between gap-2 overflow-x-auto">
+        <div className="border-t border-slate-100 bg-slate-50/70 px-4 sm:px-5 flex items-center justify-between gap-2 overflow-x-auto no-scrollbar">
           <div className="flex items-center gap-1 py-1.5">
             <button
               onClick={() => setViewMode('workbench')}
@@ -709,7 +709,42 @@ export function ClinicalCanvas({
           4. THE CLINICAL CANVAS (DUAL-PANE WORKBENCH) — MODE: 'workbench'
           ────────────────────────────────────────────────────────────────────────── */}
       {viewMode === 'workbench' && (
-        <div className="flex flex-col md:flex-row gap-4 items-stretch min-h-[640px]">
+        <div className="space-y-3">
+          {/* Mobile Master-Detail Segmented View Switcher (Handheld devices < md) */}
+          <div className="md:hidden flex items-center p-1 bg-slate-100 rounded-xl border border-slate-200/90 shadow-2xs">
+            <button
+              type="button"
+              onClick={() => setShowMobileDetail(false)}
+              className={`flex-1 py-2 px-3 text-xs font-semibold rounded-lg flex items-center justify-center gap-1.5 transition-all cursor-pointer ${
+                !showMobileDetail
+                  ? 'bg-white text-teal-950 border border-slate-200/80 shadow-xs'
+                  : 'text-slate-600 hover:text-slate-900'
+              }`}
+            >
+              <FlaskConical className="w-3.5 h-3.5 text-teal-700" />
+              <span>Candidates ({filteredCandidates.length})</span>
+            </button>
+            <button
+              type="button"
+              onClick={() => setShowMobileDetail(true)}
+              disabled={!selectedCandidate}
+              className={`flex-1 py-2 px-3 text-xs font-semibold rounded-lg flex items-center justify-center gap-1.5 transition-all cursor-pointer ${
+                showMobileDetail
+                  ? 'bg-white text-teal-950 border border-slate-200/80 shadow-xs'
+                  : 'text-slate-600 hover:text-slate-900 disabled:opacity-40'
+              }`}
+            >
+              <Compass className="w-3.5 h-3.5 text-teal-700" />
+              <span className="truncate max-w-[130px]">{selectedCandidate ? selectedCandidate.condition : 'Dossier'}</span>
+              {selectedCandidate && (
+                <span className="font-mono text-[10px] px-1.5 py-0.2 rounded bg-teal-50 text-teal-800 border border-teal-200 font-bold shrink-0">
+                  {selectedCandidate.readinessScore ?? selectedCandidate.evidenceScore.totalScore}
+                </span>
+              )}
+            </button>
+          </div>
+
+          <div className="flex flex-col md:flex-row gap-4 items-stretch min-h-[640px]">
           {/* ────────────────────────────────────────────────────────────────
               LEFT RAIL: MASTER CANDIDATE STREAM (38% Desktop Width)
               ──────────────────────────────────────────────────────────────── */}
@@ -743,7 +778,7 @@ export function ClinicalCanvas({
               </div>
 
               {/* Fast Filter Pills */}
-              <div className="flex items-center gap-1 flex-wrap">
+              <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar py-0.5">
                 <button
                   onClick={() => setFilterMode('ALL')}
                   className={`px-2 py-0.5 rounded text-[11px] font-medium transition-colors cursor-pointer ${
@@ -910,7 +945,7 @@ export function ClinicalCanvas({
                 </div>
 
                 {/* Viewport Sub-Tabs Navigation */}
-                <div className="flex border-b border-slate-200 bg-slate-50/70 px-4 sm:px-5 shrink-0 overflow-x-auto">
+                <div className="flex border-b border-slate-200 bg-slate-50/70 px-4 sm:px-5 shrink-0 overflow-x-auto no-scrollbar">
                   <button
                     onClick={() => setActiveTab('compass')}
                     className={`py-2 px-3 text-xs font-semibold border-b-2 transition-colors whitespace-nowrap cursor-pointer flex items-center gap-1.5 ${
@@ -969,7 +1004,7 @@ export function ClinicalCanvas({
                 </div>
 
                 {/* Viewport Scrollable Tab Body */}
-                <div className="p-4 sm:p-6 overflow-y-auto space-y-5 flex-1 max-h-[660px]">
+                <div className="p-4 sm:p-6 overflow-y-auto space-y-5 flex-1 max-h-none md:max-h-[660px]">
                   {/* ──────────────────────────────────────────────────────────
                       TAB 1: REPURPOSE COMPASS™
                       ────────────────────────────────────────────────────────── */}
@@ -1442,6 +1477,7 @@ export function ClinicalCanvas({
               </div>
             )}
           </main>
+        </div>
         </div>
       )}
 

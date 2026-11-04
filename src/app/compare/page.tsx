@@ -130,7 +130,17 @@ export default function ComparePage() {
             </div>
           </div>
         ) : (
-          <div className="overflow-x-auto bg-white border border-slate-200 rounded-xl shadow-xs">
+          <div className="space-y-2">
+            {/* Mobile swipe hint */}
+            <div className="md:hidden flex items-center justify-between text-[11px] text-slate-600 bg-slate-100/90 px-3 py-1.5 rounded-lg border border-slate-200">
+              <span className="flex items-center gap-1.5 font-medium">
+                <Scale className="w-3.5 h-3.5 text-teal-700" />
+                <span>Swipe horizontally to compare columns</span>
+              </span>
+              <span className="font-mono text-teal-800 font-bold">{selectedCandidates.length} drugs</span>
+            </div>
+
+            <div className="overflow-x-auto bg-white border border-slate-200 rounded-xl shadow-xs">
             <table className="w-full text-xs text-left border-collapse">
               <thead>
                 <tr className="border-b border-slate-200 bg-slate-50">
@@ -458,6 +468,7 @@ export default function ComparePage() {
               </tbody>
             </table>
           </div>
+        </div>
         )}
 
         {/* Comparison Research Disclaimer */}

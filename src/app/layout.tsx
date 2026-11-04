@@ -128,7 +128,7 @@ export default function RootLayout({
       >
         <PWARegister />
         <Header />
-        <div className="flex-1 flex flex-col pt-14">
+        <div className="flex-1 flex flex-col pt-14 pb-16 md:pb-0">
           {children}
         </div>
       </body>

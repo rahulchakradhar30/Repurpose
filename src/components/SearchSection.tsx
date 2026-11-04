@@ -344,16 +344,16 @@ export function SearchSection({
             placeholder={
               isListening
                 ? 'Listening... speak drug name now...'
-                : 'Enter drug generic or trade name (e.g. Metformin, Imatinib, Thalidomide)...'
+                : 'Search generic or brand (e.g. Metformin, Imatinib)...'
             }
             disabled={isLoading}
             autoComplete="off"
             spellCheck="false"
-            className={`w-full pl-11 pr-36 py-3 bg-white border-2 rounded-lg text-slate-900 text-sm sm:text-base placeholder-slate-400 shadow-xs focus:ring-0 focus:outline-hidden transition-colors ${
+            className={`w-full pl-10 sm:pl-11 pr-26 sm:pr-36 py-2.5 sm:py-3 bg-white border-2 rounded-xl text-slate-900 text-sm sm:text-base placeholder-slate-400 shadow-xs focus:ring-0 focus:outline-hidden transition-colors ${
               isListening ? 'border-red-400 ring-2 ring-red-100' : 'border-slate-300 focus:border-teal-700'
             }`}
           />
-          <div className="absolute right-1.5 flex items-center gap-1">
+          <div className="absolute right-1.5 flex items-center gap-0.5 sm:gap-1">
             {query && (
               <button
                 type="button"
@@ -386,16 +386,17 @@ export function SearchSection({
                     : 'text-slate-700 hover:text-slate-950 hover:bg-slate-100'
                 }`}
               >
-                <VoicePersonMicIcon className="w-5 h-5" isListening={isListening} />
+                <VoicePersonMicIcon className="w-4.5 h-4.5 sm:w-5 sm:h-5" isListening={isListening} />
               </button>
             )}
 
             <button
               type="submit"
               disabled={isLoading || !query.trim()}
-              className="px-3 py-1.5 bg-slate-900 hover:bg-slate-800 disabled:bg-slate-300 text-white text-xs sm:text-sm font-medium rounded-md transition-colors flex items-center gap-1 cursor-pointer shrink-0"
+              className="px-2.5 sm:px-3 py-1.5 bg-slate-900 hover:bg-slate-800 disabled:bg-slate-300 text-white text-xs sm:text-sm font-semibold rounded-lg transition-colors flex items-center gap-1 cursor-pointer shrink-0"
+              aria-label="Execute search"
             >
-              <span>Search</span>
+              <span className="hidden xs:inline sm:inline">Search</span>
               <ArrowRight className="w-3.5 h-3.5" />
             </button>
           </div>
@@ -506,7 +507,7 @@ export function SearchSection({
                     role="option"
                     aria-selected={isSelected}
                     onClick={() => handleSelectSuggestion(item)}
-                    className={`w-full text-left px-3.5 py-2.5 text-sm flex items-center justify-between transition-colors cursor-pointer ${
+                    className={`w-full text-left px-3.5 py-2.5 min-h-[44px] text-sm flex items-center justify-between transition-colors cursor-pointer ${
                       isSelected
                         ? 'bg-teal-50/90 text-teal-950 font-medium'
                         : 'text-slate-800 hover:bg-slate-50'

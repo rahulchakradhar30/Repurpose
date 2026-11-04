@@ -18,7 +18,7 @@ export function DrugPageActions({ drug, candidates }: DrugPageActionsProps) {
 
   return (
     <>
-      <div className="flex items-center gap-2 flex-wrap no-print">
+      <div className="flex items-center gap-2 overflow-x-auto no-scrollbar py-0.5 w-full sm:w-auto shrink-0 no-print sm:flex-wrap">
         <CompareDrugButton drug={drug} candidates={candidates} />
         <SaveToNotebookButton drug={drug} candidate={candidates[0]} showViewLink={true} />
         <PrintSummaryButton label="Export PDF" onClick={() => setIsExportModalOpen(true)} />
@@ -34,3 +34,4 @@ export function DrugPageActions({ drug, candidates }: DrugPageActionsProps) {
     </>
   );
 }
+

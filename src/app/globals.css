@@ -113,6 +113,20 @@ p {
   min-width: 44px;
 }
 
+/* Hide scrollbars while preserving native touch and mouse swipe functionality */
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+/* Smooth tap highlight on mobile WebKit browsers */
+* {
+  -webkit-tap-highlight-color: transparent;
+}
+
 /* Clean print styling for research dossiers and PDF generation */
 @media print {
   @page {
