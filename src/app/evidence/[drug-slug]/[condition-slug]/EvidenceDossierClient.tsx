@@ -419,9 +419,17 @@ export function EvidenceDossierClient({ dossier }: EvidenceDossierClientProps) {
           </div>
           <div className="flex items-center gap-2 flex-wrap pt-1">
             {sourceList.map((src, i) => (
-              <span key={i} className="px-2 py-0.5 rounded bg-white border border-slate-200 text-[10px] font-mono text-slate-700 shadow-xs">
-                {src.name}: {src.status}
-              </span>
+              <a
+                key={i}
+                href={src.url || `https://clinicaltrials.gov`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="px-2.5 py-1 rounded bg-white hover:bg-slate-100 border border-slate-300 text-[11px] font-mono text-slate-700 hover:text-teal-800 transition-colors inline-flex items-center gap-1 shadow-2xs"
+                title={`Open official ${src.name} registry record`}
+              >
+                <span>{src.name}: {src.status}</span>
+                <ExternalLink className="w-2.5 h-2.5 text-slate-400" />
+              </a>
             ))}
           </div>
         </section>

@@ -26,16 +26,11 @@ import {
   Info, 
   ArrowRight, 
   ArrowLeft, 
-  Filter, 
   ArrowUpDown, 
   Loader2, 
   FlaskConical, 
-  Activity, 
-  Pill, 
-  Sparkles,
-  ChevronRight,
-  BookOpen,
-  Layers
+  Database,
+  BookOpen
 } from 'lucide-react';
 
 interface ClinicalCanvasProps {
@@ -199,15 +194,13 @@ export function ClinicalCanvas({
   const filteredCandidates = useMemo(() => {
     let list = [...candidates];
 
-    // Search query filter
     if (searchFilter.trim()) {
       const q = searchFilter.toLowerCase().trim();
       list = list.filter((c) => c.condition.toLowerCase().includes(q));
     }
 
-    // Category / Filter Mode
     if (filterMode === 'HIGH_EVIDENCE') {
-      list = list.filter((c) => c.evidenceScore.totalScore >= 70);
+      list = list.filter((c) => (c.readinessScore ?? c.evidenceScore.totalScore) >= 70);
     } else if (filterMode === 'PHASE_2_3') {
       list = list.filter((c) => c.highestPhase.includes('Phase 2') || c.highestPhase.includes('Phase 3') || c.highestPhase.includes('Phase 4'));
     } else if (filterMode === 'OFF_LABEL') {
@@ -216,7 +209,6 @@ export function ClinicalCanvas({
       list = list.filter((c) => c.status === 'Investigational');
     }
 
-    // Sorting
     list.sort((a, b) => {
       if (sortBy === 'score_desc') {
         return (b.readinessScore ?? b.evidenceScore.totalScore) - (a.readinessScore ?? a.evidenceScore.totalScore);
@@ -244,6 +236,25 @@ export function ClinicalCanvas({
   const originalLabelUrl =
     fdaSource?.url ||
     `https://dailymed.nlm.nih.gov/dailymed/search.cfm?labeltype=all&query=${encodeURIComponent(drug.genericName)}`;
+
+  const rxNormUrl = drug.rxNormId
+    ? `https://mor.nlm.nih.gov/RxNav/search?searchBy=RXCUI&searchTerm=${drug.rxNormId}`
+    : `https://mor.nlm.nih.gov/RxNav/search?searchBy=String&searchTerm=${encodeURIComponent(drug.genericName)}`;
+
+  const pubChemUrl = drug.pubchemCid
+    ? `https://pubchem.ncbi.nlm.nih.gov/compound/${drug.pubchemCid}`
+    : `https://pubchem.ncbi.nlm.nih.gov/#query=${encodeURIComponent(drug.genericName)}`;
+
+  const clinicalTrialsDrugUrl = `https://clinicaltrials.gov/search?intr=${encodeURIComponent(drug.genericName)}`;
+  const pubMedDrugUrl = `https://pubmed.ncbi.nlm.nih.gov/?term=${encodeURIComponent(drug.genericName)}`;
+
+  const candidateClinicalTrialsUrl = selectedCandidate
+    ? `https://clinicaltrials.gov/search?intr=${encodeURIComponent(drug.genericName)}&cond=${encodeURIComponent(selectedCandidate.condition)}`
+    : clinicalTrialsDrugUrl;
+
+  const candidatePubMedUrl = selectedCandidate
+    ? `https://pubmed.ncbi.nlm.nih.gov/?term=${encodeURIComponent(drug.genericName)}+AND+${encodeURIComponent(selectedCandidate.condition)}`
+    : pubMedDrugUrl;
 
   const displayIndications = (drug.approvedIndications || [])
     .map((ind) => ind.replace(/^INDICATIONS AND USAGE:?\s*/i, '').trim())
@@ -288,11 +299,11 @@ export function ClinicalCanvas({
               </span>
               {drug.rxNormId && (
                 <a
-                  href={`https://mor.nlm.nih.gov/RxNav/search?searchBy=RXCUI&searchTerm=${drug.rxNormId}`}
+                  href={rxNormUrl}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="font-mono text-[11px] text-slate-600 hover:text-teal-800 bg-slate-100 hover:bg-slate-200 px-1.5 py-0.5 rounded border border-slate-200 transition-colors inline-flex items-center gap-1"
-                  title="View in NLM RxNav"
+                  title="Open record in NLM RxNav"
                 >
                   <span>RxCUI: {drug.rxNormId}</span>
                   <ExternalLink className="w-2.5 h-2.5" />
@@ -300,11 +311,11 @@ export function ClinicalCanvas({
               )}
               {drug.pubchemCid && (
                 <a
-                  href={`https://pubchem.ncbi.nlm.nih.gov/compound/${drug.pubchemCid}`}
+                  href={pubChemUrl}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="font-mono text-[11px] text-slate-600 hover:text-teal-800 bg-slate-100 hover:bg-slate-200 px-1.5 py-0.5 rounded border border-slate-200 transition-colors inline-flex items-center gap-1"
-                  title="View in NCBI PubChem"
+                  title="Open chemical structure in NCBI PubChem"
                 >
                   <span>CID: {drug.pubchemCid}</span>
                   <ExternalLink className="w-2.5 h-2.5" />
@@ -347,7 +358,7 @@ export function ClinicalCanvas({
                   ? 'bg-teal-50 text-teal-800 border-teal-300'
                   : 'bg-white hover:bg-slate-50 text-slate-700 border-slate-300'
               }`}
-              title="Copy link to this drug"
+              title="Copy direct share link to this drug"
             >
               {copiedDrugLink ? <Check className="w-3.5 h-3.5 text-teal-700" /> : <Share2 className="w-3.5 h-3.5 text-slate-500" />}
               <span>{copiedDrugLink ? 'Copied' : 'Share'}</span>
@@ -403,8 +414,82 @@ export function ClinicalCanvas({
             </button>
           </div>
 
-          <div className="hidden sm:flex items-center gap-2 text-[11px] text-slate-500">
-            <span>NIH RxNorm · openFDA · PubMed · ClinicalTrials.gov</span>
+          <div className="hidden sm:flex items-center gap-1.5 text-[11px] text-slate-500">
+            <span className="font-medium text-slate-600">Live Repositories:</span>
+            <a href={rxNormUrl} target="_blank" rel="noopener noreferrer" className="hover:text-teal-800 hover:underline">RxNorm</a>
+            <span>·</span>
+            <a href={originalLabelUrl} target="_blank" rel="noopener noreferrer" className="hover:text-teal-800 hover:underline">DailyMed</a>
+            <span>·</span>
+            <a href={pubChemUrl} target="_blank" rel="noopener noreferrer" className="hover:text-teal-800 hover:underline">PubChem</a>
+            <span>·</span>
+            <a href={clinicalTrialsDrugUrl} target="_blank" rel="noopener noreferrer" className="hover:text-teal-800 hover:underline">ClinicalTrials.gov</a>
+            <span>·</span>
+            <a href={pubMedDrugUrl} target="_blank" rel="noopener noreferrer" className="hover:text-teal-800 hover:underline">PubMed</a>
+          </div>
+        </div>
+
+        {/* CLICKABLE SOURCE PROVENANCE STRIP (Always at bottom of executive header) */}
+        <div className="border-t border-slate-100 bg-white px-4 sm:px-5 py-2 flex flex-wrap items-center justify-between gap-2 text-xs">
+          <div className="flex items-center gap-1.5 text-slate-500">
+            <Database className="w-3.5 h-3.5 text-teal-700 shrink-0" />
+            <span className="font-semibold text-slate-700 text-[11px]">Primary Source Records for {drug.genericName}:</span>
+          </div>
+
+          <div className="flex flex-wrap items-center gap-1.5">
+            <a
+              href={rxNormUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[11px] font-mono bg-slate-50 hover:bg-teal-50 text-slate-700 hover:text-teal-900 border border-slate-200 transition-colors"
+              title="Open RxNorm / RxNav entry"
+            >
+              <span>RxNorm</span>
+              <ExternalLink className="w-2.5 h-2.5 text-slate-400" />
+            </a>
+
+            <a
+              href={originalLabelUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[11px] font-mono bg-slate-50 hover:bg-teal-50 text-slate-700 hover:text-teal-900 border border-slate-200 transition-colors"
+              title="Open DailyMed FDA Structured Product Label"
+            >
+              <span>DailyMed FDA Label</span>
+              <ExternalLink className="w-2.5 h-2.5 text-slate-400" />
+            </a>
+
+            <a
+              href={pubChemUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[11px] font-mono bg-slate-50 hover:bg-teal-50 text-slate-700 hover:text-teal-900 border border-slate-200 transition-colors"
+              title="Open NCBI PubChem chemical monograph"
+            >
+              <span>NCBI PubChem</span>
+              <ExternalLink className="w-2.5 h-2.5 text-slate-400" />
+            </a>
+
+            <a
+              href={clinicalTrialsDrugUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[11px] font-mono bg-slate-50 hover:bg-teal-50 text-slate-700 hover:text-teal-900 border border-slate-200 transition-colors"
+              title="Search all registered clinical studies on ClinicalTrials.gov"
+            >
+              <span>ClinicalTrials.gov ({candidates.reduce((a, b) => a + b.clinicalTrials.length, 0)} Studies)</span>
+              <ExternalLink className="w-2.5 h-2.5 text-slate-400" />
+            </a>
+
+            <a
+              href={pubMedDrugUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[11px] font-mono bg-slate-50 hover:bg-teal-50 text-slate-700 hover:text-teal-900 border border-slate-200 transition-colors"
+              title="Search peer-reviewed articles in PubMed Central"
+            >
+              <span>PubMed Central</span>
+              <ExternalLink className="w-2.5 h-2.5 text-slate-400" />
+            </a>
           </div>
         </div>
       </header>
@@ -469,6 +554,45 @@ export function ClinicalCanvas({
             )}
           </div>
 
+          {/* PROVENANCE AT BOTTOM OF FDA VIEW */}
+          <div className="pt-3 border-t border-slate-100 bg-slate-50 rounded-lg p-4 space-y-2 text-xs text-slate-600">
+            <span className="font-semibold text-slate-800 flex items-center gap-1.5">
+              <Database className="w-3.5 h-3.5 text-teal-700" />
+              Primary Regulatory & Pharmacological Sources:
+            </span>
+            <div className="flex flex-wrap items-center gap-2 pt-1">
+              <a
+                href={originalLabelUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-1 px-2.5 py-1 rounded bg-white hover:bg-slate-100 border border-slate-200 text-slate-700 hover:text-teal-800 font-medium transition-colors"
+              >
+                <span>DailyMed SPL Package Insert</span>
+                <ExternalLink className="w-3 h-3 text-slate-400" />
+              </a>
+
+              <a
+                href={rxNormUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-1 px-2.5 py-1 rounded bg-white hover:bg-slate-100 border border-slate-200 text-slate-700 hover:text-teal-800 font-medium transition-colors"
+              >
+                <span>NLM RxNav Normalized Active Ingredients</span>
+                <ExternalLink className="w-3 h-3 text-slate-400" />
+              </a>
+
+              <a
+                href={pubChemUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-1 px-2.5 py-1 rounded bg-white hover:bg-slate-100 border border-slate-200 text-slate-700 hover:text-teal-800 font-medium transition-colors"
+              >
+                <span>NCBI PubChem Compound Annotation</span>
+                <ExternalLink className="w-3 h-3 text-slate-400" />
+              </a>
+            </div>
+          </div>
+
           <div className="pt-2 text-right">
             <button
               onClick={() => setViewMode('workbench')}
@@ -530,6 +654,45 @@ export function ClinicalCanvas({
             )}
           </div>
 
+          {/* PROVENANCE AT BOTTOM OF SAFETY VIEW */}
+          <div className="pt-3 border-t border-slate-100 bg-slate-50 rounded-lg p-4 space-y-2 text-xs text-slate-600">
+            <span className="font-semibold text-slate-800 flex items-center gap-1.5">
+              <Database className="w-3.5 h-3.5 text-teal-700" />
+              Pharmacovigilance & Safety Surveillance Repositories:
+            </span>
+            <div className="flex flex-wrap items-center gap-2 pt-1">
+              <a
+                href="https://www.fda.gov/safety/medwatch-fda-safety-information-and-adverse-event-reporting-program"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-1 px-2.5 py-1 rounded bg-white hover:bg-slate-100 border border-slate-200 text-slate-700 hover:text-teal-800 font-medium transition-colors"
+              >
+                <span>FDA MedWatch Safety Alerts Portal</span>
+                <ExternalLink className="w-3 h-3 text-slate-400" />
+              </a>
+
+              <a
+                href={originalLabelUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-1 px-2.5 py-1 rounded bg-white hover:bg-slate-100 border border-slate-200 text-slate-700 hover:text-teal-800 font-medium transition-colors"
+              >
+                <span>DailyMed Boxed Warning Monograph</span>
+                <ExternalLink className="w-3 h-3 text-slate-400" />
+              </a>
+
+              <a
+                href="https://open.fda.gov/apis/drug/enforcement/"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-1 px-2.5 py-1 rounded bg-white hover:bg-slate-100 border border-slate-200 text-slate-700 hover:text-teal-800 font-medium transition-colors"
+              >
+                <span>openFDA Drug Enforcement & Recalls API</span>
+                <ExternalLink className="w-3 h-3 text-slate-400" />
+              </a>
+            </div>
+          </div>
+
           <div className="pt-2 text-right">
             <button
               onClick={() => setViewMode('workbench')}
@@ -546,7 +709,7 @@ export function ClinicalCanvas({
           4. THE CLINICAL CANVAS (DUAL-PANE WORKBENCH) — MODE: 'workbench'
           ────────────────────────────────────────────────────────────────────────── */}
       {viewMode === 'workbench' && (
-        <div className="flex flex-col md:flex-row gap-4 items-stretch min-h-[620px]">
+        <div className="flex flex-col md:flex-row gap-4 items-stretch min-h-[640px]">
           {/* ────────────────────────────────────────────────────────────────
               LEFT RAIL: MASTER CANDIDATE STREAM (38% Desktop Width)
               ──────────────────────────────────────────────────────────────── */}
@@ -844,6 +1007,25 @@ export function ClinicalCanvas({
                         drugName={drug.genericName}
                         defaultExpanded={true}
                       />
+
+                      {/* COMPASS PROVENANCE AT BOTTOM */}
+                      <div className="pt-3 border-t border-slate-100 bg-slate-50 rounded-lg p-3.5 flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-xs text-slate-600">
+                        <div className="flex items-center gap-1.5">
+                          <Database className="w-3.5 h-3.5 text-teal-700 shrink-0" />
+                          <span>Repurpose Compass™ formulated dynamically from registered trials and PubMed index.</span>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <Link href="/methodology" className="text-teal-800 font-semibold hover:underline inline-flex items-center gap-1">
+                            <span>Methodology Guide</span>
+                            <ExternalLink className="w-3 h-3" />
+                          </Link>
+                          <span>·</span>
+                          <Link href="/sources" className="text-teal-800 font-semibold hover:underline inline-flex items-center gap-1">
+                            <span>All Sources</span>
+                            <ExternalLink className="w-3 h-3" />
+                          </Link>
+                        </div>
+                      </div>
                     </div>
                   )}
 
@@ -968,6 +1150,55 @@ export function ClinicalCanvas({
                           </p>
                         )}
                       </div>
+
+                      {/* COMPREHENSIVE CLICKABLE SOURCE PROVENANCE AT BOTTOM OF EVIDENCE TAB */}
+                      <div className="border border-teal-200 rounded-lg p-4 bg-teal-50/40 space-y-3">
+                        <div className="flex items-center justify-between flex-wrap gap-2 pb-2 border-b border-teal-100">
+                          <span className="text-xs font-bold uppercase tracking-wider text-teal-950 flex items-center gap-1.5">
+                            <Database className="w-3.5 h-3.5 text-teal-700" />
+                            Primary Outbound Evidence Sources & Registries
+                          </span>
+                          <span className="text-[11px] font-mono text-teal-800">
+                            {selectedCandidate.clinicalTrials.length} Trials · {selectedCandidate.citations.length} Papers
+                          </span>
+                        </div>
+
+                        <p className="text-xs text-slate-600 leading-relaxed">
+                          All clinical and scientific findings for this hypothesis were collected through open, public biomedical APIs. Inspect the direct primary source registries:
+                        </p>
+
+                        <div className="flex flex-wrap items-center gap-2 pt-1">
+                          <a
+                            href={candidateClinicalTrialsUrl}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="inline-flex items-center gap-1 px-3 py-1.5 rounded-md bg-white hover:bg-slate-100 border border-slate-300 text-xs font-semibold text-teal-900 shadow-2xs transition-colors"
+                          >
+                            <span>Search {selectedCandidate.condition} on ClinicalTrials.gov</span>
+                            <ExternalLink className="w-3 h-3 text-slate-400" />
+                          </a>
+
+                          <a
+                            href={candidatePubMedUrl}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="inline-flex items-center gap-1 px-3 py-1.5 rounded-md bg-white hover:bg-slate-100 border border-slate-300 text-xs font-semibold text-teal-900 shadow-2xs transition-colors"
+                          >
+                            <span>Search {drug.genericName} + {selectedCandidate.condition} on PubMed</span>
+                            <ExternalLink className="w-3 h-3 text-slate-400" />
+                          </a>
+
+                          <a
+                            href={rxNormUrl}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="inline-flex items-center gap-1 px-3 py-1.5 rounded-md bg-white hover:bg-slate-100 border border-slate-300 text-xs font-semibold text-teal-900 shadow-2xs transition-colors"
+                          >
+                            <span>RxNorm RxCUI: {drug.rxNormId || drug.genericName}</span>
+                            <ExternalLink className="w-3 h-3 text-slate-400" />
+                          </a>
+                        </div>
+                      </div>
                     </div>
                   )}
 
@@ -991,9 +1222,16 @@ export function ClinicalCanvas({
                             <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-2">
                               <div>
                                 <div className="flex items-center gap-2 flex-wrap mb-1">
-                                  <span className="font-mono text-xs font-bold text-teal-800 bg-teal-50 border border-teal-200 px-1.5 py-0.5 rounded">
-                                    {trial.nctId}
-                                  </span>
+                                  <a
+                                    href={trial.studyUrl}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="font-mono text-xs font-bold text-teal-800 bg-teal-50 border border-teal-200 hover:bg-teal-100 px-1.5 py-0.5 rounded inline-flex items-center gap-1"
+                                    title="Open trial record on ClinicalTrials.gov"
+                                  >
+                                    <span>{trial.nctId}</span>
+                                    <ExternalLink className="w-2.5 h-2.5" />
+                                  </a>
                                   <span className="text-xs font-semibold text-slate-700 bg-slate-100 px-2 py-0.5 rounded border border-slate-200">
                                     {trial.phase}
                                   </span>
@@ -1035,6 +1273,23 @@ export function ClinicalCanvas({
                           </div>
                         ))
                       )}
+
+                      {/* PROVENANCE AT BOTTOM OF TRIALS */}
+                      <div className="pt-3 border-t border-slate-100 bg-slate-50 rounded-lg p-3 flex items-center justify-between flex-wrap gap-2 text-xs text-slate-600">
+                        <span className="flex items-center gap-1.5">
+                          <Database className="w-3.5 h-3.5 text-teal-700" />
+                          Source Authority: US National Library of Medicine ClinicalTrials.gov PRS v2 API
+                        </span>
+                        <a
+                          href={candidateClinicalTrialsUrl}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="font-semibold text-teal-800 hover:underline inline-flex items-center gap-1"
+                        >
+                          <span>Live ClinicalTrials.gov Query</span>
+                          <ExternalLink className="w-3 h-3" />
+                        </a>
+                      </div>
                     </div>
                   )}
 
@@ -1056,9 +1311,15 @@ export function ClinicalCanvas({
                         selectedCandidate.citations.map((cit) => (
                           <div key={cit.pmid} className="border border-slate-200 rounded-lg p-3.5 bg-white hover:bg-slate-50/50 transition-colors space-y-1.5">
                             <div className="flex items-start justify-between gap-3">
-                              <span className="font-mono text-xs font-semibold text-slate-600 bg-slate-100 px-2 py-0.5 rounded border border-slate-200">
-                                PMID: {cit.pmid}
-                              </span>
+                              <a
+                                href={cit.url}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="font-mono text-xs font-semibold text-teal-800 hover:underline bg-slate-100 hover:bg-teal-50 px-2 py-0.5 rounded border border-slate-200 inline-flex items-center gap-1"
+                              >
+                                <span>PMID: {cit.pmid}</span>
+                                <ExternalLink className="w-2.5 h-2.5" />
+                              </a>
                               <a
                                 href={cit.url}
                                 target="_blank"
@@ -1086,6 +1347,23 @@ export function ClinicalCanvas({
                           </div>
                         ))
                       )}
+
+                      {/* PROVENANCE AT BOTTOM OF LITERATURE */}
+                      <div className="pt-3 border-t border-slate-100 bg-slate-50 rounded-lg p-3 flex items-center justify-between flex-wrap gap-2 text-xs text-slate-600">
+                        <span className="flex items-center gap-1.5">
+                          <Database className="w-3.5 h-3.5 text-teal-700" />
+                          Source Authority: National Center for Biotechnology Information (NCBI) Entrez E-Utilities
+                        </span>
+                        <a
+                          href={candidatePubMedUrl}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="font-semibold text-teal-800 hover:underline inline-flex items-center gap-1"
+                        >
+                          <span>Live PubMed Query</span>
+                          <ExternalLink className="w-3 h-3" />
+                        </a>
+                      </div>
                     </div>
                   )}
 
@@ -1163,6 +1441,21 @@ export function ClinicalCanvas({
                           </div>
                           <p className="text-[11px] text-slate-500">Absence of acute toxicity overlap and clinical feasibility.</p>
                         </div>
+                      </div>
+
+                      {/* PROVENANCE AT BOTTOM OF SCORING */}
+                      <div className="pt-3 border-t border-slate-100 bg-slate-50 rounded-lg p-3 flex items-center justify-between flex-wrap gap-2 text-xs text-slate-600">
+                        <span className="flex items-center gap-1.5">
+                          <Database className="w-3.5 h-3.5 text-teal-700" />
+                          Evaluation Rubric Audit: 100% deterministic formula based on NIH & FDA guidelines
+                        </span>
+                        <Link
+                          href="/methodology"
+                          className="font-semibold text-teal-800 hover:underline inline-flex items-center gap-1"
+                        >
+                          <span>Full Methodology Rubric</span>
+                          <ExternalLink className="w-3 h-3" />
+                        </Link>
                       </div>
                     </div>
                   )}

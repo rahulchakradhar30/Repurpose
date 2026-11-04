@@ -225,6 +225,7 @@ export async function aggregateDrugResearch(drugQuery: string): Promise<DrugRese
       biologicalRationale: `Evaluation of ${genericName} targeting ${condName} via ${drugClass} pathway interactions.`,
       fdaWarnings: warnings,
       fdaContraindications: contraindications,
+      status,
     });
 
     // Legacy evidenceScore alias for backwards compatibility
@@ -236,6 +237,7 @@ export async function aggregateDrugResearch(drugQuery: string): Promise<DrugRese
       biologicalRationale: `Evaluation of ${genericName} targeting ${condName} via ${drugClass} pathway interactions.`,
       fdaWarnings: warnings,
       fdaContraindications: contraindications,
+      status,
     });
 
     // Detect contradictions / gaps ("What needs verification?")

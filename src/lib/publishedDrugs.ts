@@ -1,4 +1,5 @@
 import { DrugConcept, RepurposingCandidate } from '@/types';
+import { computeResearchReadinessScore, computeEvidenceScore } from '@/lib/scoring';
 
 export interface PublishedDrugGuide {
   slug: string;
@@ -32,7 +33,7 @@ export function isDrugPublishable(guide: Partial<PublishedDrugGuide>): boolean {
   );
 }
 
-export const PUBLISHED_DRUG_REGISTRY: Record<string, PublishedDrugGuide> = {
+const RAW_PUBLISHED_DRUG_REGISTRY: Record<string, PublishedDrugGuide> = {
   metformin: {
     slug: 'metformin',
     lastReviewedDate: '2026-10-02',
@@ -668,6 +669,65 @@ export const PUBLISHED_DRUG_REGISTRY: Record<string, PublishedDrugGuide> = {
     ],
   },
 };
+
+
+function enrichPublishedDrugGuide(guide: PublishedDrugGuide): PublishedDrugGuide {
+  const dynamicCandidates = guide.candidates.map((cand) => {
+    const trials = cand.clinicalTrials || [];
+    const citations = cand.citations || [];
+    const mechanism = guide.drug.mechanismOfAction || '';
+    const warnings = guide.drug.warnings || [];
+    const contraindications = guide.drug.contraindications || [];
+
+    const readiness = computeResearchReadinessScore({
+      condition: cand.condition,
+      trials,
+      citations,
+      mechanismOfAction: mechanism,
+      biologicalRationale: cand.biologicalRationale,
+      fdaWarnings: warnings,
+      fdaContraindications: contraindications,
+      status: cand.status,
+      trialOutcomeStatus: cand.trialOutcomeStatus,
+    });
+
+    const legacy = computeEvidenceScore({
+      condition: cand.condition,
+      trials,
+      citations,
+      mechanismOfAction: mechanism,
+      biologicalRationale: cand.biologicalRationale,
+      fdaWarnings: warnings,
+      fdaContraindications: contraindications,
+      status: cand.status,
+      trialOutcomeStatus: cand.trialOutcomeStatus,
+    });
+
+    return {
+      ...cand,
+      readinessScore: readiness.totalScore,
+      readinessBreakdown: readiness.breakdown,
+      readinessTier: readiness.evidenceTier,
+      evidenceScore: {
+        ...legacy,
+        totalScore: readiness.totalScore,
+        evidenceTier: readiness.evidenceTier,
+      },
+    };
+  });
+
+  return {
+    ...guide,
+    candidates: dynamicCandidates,
+  };
+}
+
+export const PUBLISHED_DRUG_REGISTRY: Record<string, PublishedDrugGuide> = Object.fromEntries(
+  Object.entries(RAW_PUBLISHED_DRUG_REGISTRY).map(([slug, guide]) => [
+    slug,
+    enrichPublishedDrugGuide(guide),
+  ])
+);
 
 export function getPublishedDrugSlugs(): string[] {
   return Object.keys(PUBLISHED_DRUG_REGISTRY).filter((slug) => {

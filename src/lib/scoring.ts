@@ -20,6 +20,8 @@ interface ScoringInput {
   targets?: string[];
   drugName?: string;
   retrievedAt?: string;
+  status?: string;
+  trialOutcomeStatus?: string;
 }
 
 /**
@@ -286,7 +288,7 @@ export function computeResearchReadinessScore(input: ScoringInput): ResearchRead
     penaltyReasons.push('Phase 2/3 trial activity registered without published peer-reviewed outcome papers (-4 pts)');
   }
 
-  const evidenceConflictPenaltyReason = penaltyReasons.length > 0 
+  let evidenceConflictPenaltyReason = penaltyReasons.length > 0 
     ? penaltyReasons.join('; ') 
     : 'No evidence conflict penalties applied.';
 
@@ -316,6 +318,16 @@ export function computeResearchReadinessScore(input: ScoringInput): ResearchRead
     totalScore = Math.min(18, totalScore);
     uncertaintyFlags.push('Insufficient evidence: No registered interventional trials or peer-reviewed human publications found.');
     uncertaintyFlags.push('Insufficient evidence: No registered interventional trials or peer-reviewed literature indexed.');
+  }
+
+  // Safeguard 3: Candidate with 'Unsupported' status or whose clinical trials established lack of clinical benefit (cap at 58)
+  const isUnsupported = input.status === 'Unsupported' || 
+    Boolean(input.trialOutcomeStatus && input.trialOutcomeStatus.toLowerCase().includes('lack of clinical benefit'));
+  if (isUnsupported) {
+    totalScore = Math.min(58, totalScore);
+    evidenceConflictPenalty = -20;
+    evidenceConflictPenaltyReason = 'Large randomized trials demonstrated lack of clinical benefit compared to standard of care.';
+    uncertaintyFlags.unshift('Randomized clinical trial evidence demonstrated lack of clinical benefit for this indication.');
   }
 
   totalScore = Math.min(100, Math.max(0, totalScore));

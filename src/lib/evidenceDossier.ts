@@ -1,4 +1,4 @@
-import { PUBLISHED_DRUG_REGISTRY } from './publishedDrugs';
+import { getPublishedDrugBySlug } from './publishedDrugs';
 import { aggregateDrugResearch } from './evidenceEngine';
 import { 
   RepurposingCandidate, 
@@ -56,8 +56,8 @@ export async function getEvidenceDossier(
   const normDrugSlug = slugify(drugSlug);
   const normCondSlug = slugify(conditionSlug);
 
-  // 1. Check PUBLISHED_DRUG_REGISTRY first
-  const publishedGuide = PUBLISHED_DRUG_REGISTRY[normDrugSlug];
+  // 1. Check published drug registry first
+  const publishedGuide = getPublishedDrugBySlug(normDrugSlug);
   if (publishedGuide) {
     const candidateMatch = publishedGuide.candidates.find(c => 
       matchesConditionSlug(c.condition, normCondSlug)
@@ -87,6 +87,8 @@ export async function getEvidenceDossier(
         biologicalRationale: candidateMatch.biologicalRationale,
         fdaWarnings: warnings,
         fdaContraindications: contraindications,
+        status: candidateMatch.status,
+        trialOutcomeStatus: candidateMatch.trialOutcomeStatus,
       });
 
       const contradictions = candidateMatch.contradictions || detectContradictions({
@@ -119,9 +121,10 @@ export async function getEvidenceDossier(
       const enrichedCandidate: RepurposingCandidate = {
         ...candidateMatch,
         researchState,
-        readinessScore: candidateMatch.readinessScore ?? readinessResult.totalScore,
-        readinessBreakdown: candidateMatch.readinessBreakdown ?? readinessResult.breakdown,
-        readinessTier: candidateMatch.readinessTier ?? readinessResult.evidenceTier,
+        readinessScore: readinessResult.totalScore,
+        readinessBreakdown: readinessResult.breakdown,
+        readinessTier: readinessResult.evidenceTier,
+        evidenceScore: readinessResult,
         contradictions,
         timeline,
         checklist,
