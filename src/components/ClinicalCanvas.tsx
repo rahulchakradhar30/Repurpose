@@ -32,7 +32,10 @@ import {
   FlaskConical, 
   Database,
   BookOpen,
-  ChevronUp
+  ChevronUp,
+  ChevronDown,
+  Search,
+  X
 } from 'lucide-react';
 
 interface ClinicalCanvasProps {
@@ -64,6 +67,8 @@ export function ClinicalCanvas({
 
   // Arc bottom drawer state on mobile devices
   const [isMobileDrawerOpen, setIsMobileDrawerOpen] = useState<boolean>(() => Boolean(initialCandidate));
+  // Mobile drug executive monograph expand/collapse toggle
+  const [isMobileMonographExpanded, setIsMobileMonographExpanded] = useState<boolean>(false);
 
   // Filters & Sorting for Left Rail
   const [filterMode, setFilterMode] = useState<CandidateFilter>('ALL');
@@ -377,11 +382,23 @@ export function ClinicalCanvas({
               {copiedDrugLink ? <Check className="w-3.5 h-3.5 text-teal-700" /> : <Share2 className="w-3.5 h-3.5 text-slate-500" />}
               <span>{copiedDrugLink ? 'Copied' : 'Share'}</span>
             </button>
+
+            {/* Mobile Monograph Expand/Collapse Pill */}
+            <button
+              type="button"
+              onClick={() => setIsMobileMonographExpanded((prev) => !prev)}
+              className="md:hidden flex items-center gap-1 px-2.5 py-1.5 rounded-md text-xs font-semibold bg-slate-100 hover:bg-slate-200 text-slate-700 transition-colors cursor-pointer shadow-2xs shrink-0 whitespace-nowrap"
+              aria-expanded={isMobileMonographExpanded}
+              aria-label="Toggle drug monograph and repositories"
+            >
+              <span>{isMobileMonographExpanded ? 'Compact Header' : 'Monograph & FDA'}</span>
+              <ChevronDown className={`w-3.5 h-3.5 transition-transform duration-200 ${isMobileMonographExpanded ? 'rotate-180' : ''}`} />
+            </button>
           </div>
         </div>
 
         {/* Executive Mode Navigation Bar */}
-        <div className="border-t border-slate-100 bg-slate-50/70 px-4 sm:px-5 flex items-center justify-between gap-2 overflow-x-auto no-scrollbar">
+        <div className={`border-t border-slate-100 bg-slate-50/70 px-4 sm:px-5 flex items-center justify-between gap-2 overflow-x-auto no-scrollbar ${!isMobileMonographExpanded ? 'hidden md:flex' : 'flex'}`}>
           <div className="flex items-center gap-1 py-1.5">
             <button
               onClick={() => setViewMode('workbench')}
@@ -443,7 +460,7 @@ export function ClinicalCanvas({
         </div>
 
         {/* CLICKABLE SOURCE PROVENANCE STRIP (Always at bottom of executive header) */}
-        <div className="border-t border-slate-100 bg-white px-4 sm:px-5 py-2 flex flex-wrap items-center justify-between gap-2 text-xs">
+        <div className={`border-t border-slate-100 bg-white px-4 sm:px-5 py-2 flex flex-wrap items-center justify-between gap-2 text-xs ${!isMobileMonographExpanded ? 'hidden md:flex' : 'flex'}`}>
           <div className="flex items-center gap-1.5 text-slate-500">
             <Database className="w-3.5 h-3.5 text-teal-700 shrink-0" />
             <span className="font-semibold text-slate-700 text-[11px]">Primary Source Records for {drug.genericName}:</span>
@@ -750,6 +767,28 @@ export function ClinicalCanvas({
                     <option value="name_asc">Name (A-Z)</option>
                   </select>
                 </div>
+              </div>
+
+              {/* Instant Mobile Candidate Search Bar */}
+              <div className="relative">
+                <Search className="w-3.5 h-3.5 text-slate-400 absolute left-2.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+                <input
+                  type="text"
+                  placeholder={`Search ${candidates.length} candidate hypotheses (e.g. oncology, diabetes)...`}
+                  value={searchFilter}
+                  onChange={(e) => setSearchFilter(e.target.value)}
+                  className="w-full pl-8 pr-7 py-1.5 text-xs bg-slate-100 hover:bg-slate-50 focus:bg-white border border-slate-200 rounded-lg text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-1 focus:ring-teal-700 transition-all"
+                  aria-label="Filter candidate indications"
+                />
+                {searchFilter && (
+                  <button
+                    onClick={() => setSearchFilter('')}
+                    className="absolute right-2 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 p-0.5 cursor-pointer"
+                    aria-label="Clear indication filter"
+                  >
+                    <X className="w-3.5 h-3.5" />
+                  </button>
+                )}
               </div>
 
               {/* Fast Filter Pills */}

@@ -11,7 +11,11 @@ import {
   ExternalLink, 
   Info, 
   Search, 
-  RotateCcw 
+  RotateCcw,
+  ChevronLeft,
+  ChevronRight,
+  LayoutGrid,
+  Table as TableIcon
 } from 'lucide-react';
 import { 
   getCompareItems, 
@@ -24,6 +28,8 @@ import {
 export default function ComparePage() {
   const [selectedCandidates, setSelectedCandidates] = useState<CompareItem[]>([]);
   const [isClient, setIsClient] = useState(false);
+  const [mobileActiveDrugIdx, setMobileActiveDrugIdx] = useState(0);
+  const [mobileViewMode, setMobileViewMode] = useState<'card' | 'table'>('card');
 
   useEffect(() => {
     setIsClient(true);
@@ -130,17 +136,214 @@ export default function ComparePage() {
             </div>
           </div>
         ) : (
-          <div className="space-y-2">
-            {/* Mobile swipe hint */}
-            <div className="md:hidden flex items-center justify-between text-[11px] text-slate-600 bg-slate-100/90 px-3 py-1.5 rounded-lg border border-slate-200">
-              <span className="flex items-center gap-1.5 font-medium">
-                <Scale className="w-3.5 h-3.5 text-teal-700" />
-                <span>Swipe horizontally to compare columns</span>
+          <div className="space-y-3">
+            {/* Mobile View Mode Switcher */}
+            <div className="md:hidden flex items-center justify-between gap-2 p-1.5 bg-slate-100 rounded-xl border border-slate-200 shadow-2xs">
+              <div className="flex items-center gap-1">
+                <button
+                  type="button"
+                  onClick={() => setMobileViewMode('card')}
+                  className={`px-3 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition-all cursor-pointer ${
+                    mobileViewMode === 'card'
+                      ? 'bg-white text-teal-900 shadow-xs'
+                      : 'text-slate-600 hover:text-slate-900'
+                  }`}
+                >
+                  <LayoutGrid className="w-3.5 h-3.5 text-teal-700" />
+                  <span>Drug Cards</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setMobileViewMode('table')}
+                  className={`px-3 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition-all cursor-pointer ${
+                    mobileViewMode === 'table'
+                      ? 'bg-white text-teal-900 shadow-xs'
+                      : 'text-slate-600 hover:text-slate-900'
+                  }`}
+                >
+                  <TableIcon className="w-3.5 h-3.5 text-teal-700" />
+                  <span>Full Matrix</span>
+                </button>
+              </div>
+              <span className="text-[11px] font-mono text-slate-500 font-semibold pr-2">
+                {selectedCandidates.length} Selected
               </span>
-              <span className="font-mono text-teal-800 font-bold">{selectedCandidates.length} drugs</span>
             </div>
 
-            <div className="overflow-x-auto bg-white border border-slate-200 rounded-xl shadow-xs">
+            {/* Mobile Drug Switcher Pills (Card Mode Only) */}
+            {mobileViewMode === 'card' && (
+              <div className="md:hidden flex items-center gap-1.5 overflow-x-auto no-scrollbar py-0.5">
+                {selectedCandidates.map((c, i) => (
+                  <button
+                    key={c.id || i}
+                    type="button"
+                    onClick={() => setMobileActiveDrugIdx(i)}
+                    className={`px-3 py-1.5 rounded-full text-xs font-bold transition-all cursor-pointer shrink-0 whitespace-nowrap flex items-center gap-1.5 ${
+                      Math.min(mobileActiveDrugIdx, Math.max(0, selectedCandidates.length - 1)) === i
+                        ? 'bg-teal-800 text-white shadow-xs'
+                        : 'bg-white text-slate-700 border border-slate-200 hover:bg-slate-50'
+                    }`}
+                  >
+                    <span>#{i + 1} {c.drug}</span>
+                  </button>
+                ))}
+              </div>
+            )}
+
+            {/* Mobile Stacked Drug Card (Card Mode Only) */}
+            {mobileViewMode === 'card' && selectedCandidates[Math.min(mobileActiveDrugIdx, Math.max(0, selectedCandidates.length - 1))] && (() => {
+              const safeIdx = Math.min(mobileActiveDrugIdx, Math.max(0, selectedCandidates.length - 1));
+              const activeItem = selectedCandidates[safeIdx];
+              return (
+                <div className="md:hidden bg-white border border-slate-200 rounded-2xl shadow-xs p-4 sm:p-5 space-y-4">
+                  {/* Card Header */}
+                  <div className="flex items-start justify-between gap-3 border-b border-slate-100 pb-3">
+                    <div>
+                      <span className="text-[10px] font-mono uppercase px-2 py-0.5 rounded bg-teal-50 text-teal-800 border border-teal-200 font-semibold">
+                        Drug #{safeIdx + 1} of {selectedCandidates.length}
+                      </span>
+                      <h2 className="text-xl font-extrabold text-slate-900 mt-1">{activeItem.drug}</h2>
+                      {activeItem.drugConcept?.drugClass && (
+                        <p className="text-xs text-slate-600 font-medium">{activeItem.drugConcept.drugClass}</p>
+                      )}
+                      {activeItem.candidate?.condition && (
+                        <p className="text-xs text-teal-800 font-semibold mt-0.5">
+                          Investigated: {activeItem.candidate.condition}
+                        </p>
+                      )}
+                    </div>
+                    <button
+                      onClick={() => handleRemoveCandidate(activeItem)}
+                      className="p-1.5 rounded-lg bg-rose-50 text-rose-600 hover:bg-rose-100 transition-colors cursor-pointer"
+                      title="Remove from comparison"
+                      aria-label={`Remove ${activeItem.drug}`}
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </button>
+                  </div>
+
+                  {/* Readiness Score Pill & Meter */}
+                  <div className="bg-slate-50 border border-slate-200 rounded-xl p-3.5 space-y-2">
+                    <div className="flex items-center justify-between">
+                      <span className="text-xs font-bold text-slate-800">Research Readiness Score</span>
+                      <div className="flex items-baseline gap-1">
+                        <span className="text-xl font-bold font-mono text-teal-800">
+                          {activeItem.candidate?.readinessScore ?? activeItem.candidate?.evidenceScore?.totalScore ?? 0}
+                        </span>
+                        <span className="text-xs font-mono text-slate-500">/ 100</span>
+                      </div>
+                    </div>
+                    <div className="text-[11px] text-slate-600 flex items-center justify-between">
+                      <span>Readiness Tier:</span>
+                      <span className="font-semibold text-slate-800">
+                        {activeItem.candidate?.readinessTier || activeItem.candidate?.evidenceScore?.evidenceTier || 'Active Evaluation'}
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* Approved Indications */}
+                  <div className="space-y-1.5 text-xs">
+                    <span className="font-bold text-slate-900 uppercase text-[11px] tracking-wider block">
+                      FDA Approved Indications
+                    </span>
+                    {(activeItem.drugConcept?.approvedIndications && activeItem.drugConcept.approvedIndications.length > 0) ? (
+                      <ul className="space-y-1 list-disc list-inside text-slate-700 bg-slate-50 border border-slate-200 rounded-lg p-3">
+                        {activeItem.drugConcept.approvedIndications.slice(0, 3).map((ind, ii) => (
+                          <li key={ii} className="leading-snug">{ind.replace(/^INDICATIONS AND USAGE:?\s*/i, '').trim()}</li>
+                        ))}
+                      </ul>
+                    ) : (
+                      <p className="text-slate-400 italic bg-slate-50 border border-slate-200 rounded-lg p-3">
+                        Primary indications not indexed in extract.
+                      </p>
+                    )}
+                  </div>
+
+                  {/* Mechanism of Action */}
+                  <div className="space-y-1.5 text-xs">
+                    <span className="font-bold text-slate-900 uppercase text-[11px] tracking-wider block">
+                      Mechanism of Action
+                    </span>
+                    <p className="text-slate-700 leading-relaxed bg-slate-50 border border-slate-200 rounded-lg p-3">
+                      {activeItem.drugConcept?.mechanismOfAction || activeItem.candidate?.biologicalRationale || 'Pathway mechanism under active evaluation.'}
+                    </p>
+                  </div>
+
+                  {/* Clinical Trials & Literature Summary */}
+                  <div className="grid grid-cols-2 gap-2 text-xs">
+                    <div className="bg-slate-50 border border-slate-200 rounded-lg p-3 space-y-1">
+                      <span className="text-[11px] font-semibold text-slate-500 block">Clinical Studies</span>
+                      <span className="text-base font-bold text-slate-900 font-mono">
+                        {activeItem.candidate?.clinicalTrials?.length || 0}
+                      </span>
+                      <span className="text-[10px] text-teal-800 font-semibold block">
+                        Phase: {activeItem.candidate?.highestPhase || 'Phase 1/2'}
+                      </span>
+                    </div>
+                    <div className="bg-slate-50 border border-slate-200 rounded-lg p-3 space-y-1">
+                      <span className="text-[11px] font-semibold text-slate-500 block">PubMed Papers</span>
+                      <span className="text-base font-bold text-slate-900 font-mono">
+                        {activeItem.candidate?.citations?.length || 0}
+                      </span>
+                      <span className="text-[10px] text-slate-600 block truncate">
+                        {activeItem.candidate?.citations?.[0]?.pubDate || 'Indexed'}
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* Safety & Warnings */}
+                  <div className="space-y-1.5 text-xs">
+                    <span className="font-bold text-slate-900 uppercase text-[11px] tracking-wider block">
+                      Safety &amp; Precautions
+                    </span>
+                    {activeItem.drugConcept?.warnings && activeItem.drugConcept.warnings.length > 0 ? (
+                      <div className="p-3 bg-amber-50 border border-amber-200 rounded-lg text-amber-950 text-[11px] leading-relaxed">
+                        <strong>Boxed Warning: </strong>
+                        {activeItem.drugConcept.warnings[0].slice(0, 160)}...
+                      </div>
+                    ) : (
+                      <p className="text-slate-500 italic bg-slate-50 border border-slate-200 rounded-lg p-2.5">
+                        No active boxed warnings recorded in standardized label.
+                      </p>
+                    )}
+                  </div>
+
+                  {/* Footer Controls: Prev / Next Navigation & Full Dossier */}
+                  <div className="pt-2 border-t border-slate-100 flex items-center justify-between gap-2">
+                    <button
+                      type="button"
+                      disabled={safeIdx === 0}
+                      onClick={() => setMobileActiveDrugIdx(prev => Math.max(0, prev - 1))}
+                      className="px-3 py-1.5 rounded-lg border border-slate-200 bg-slate-50 hover:bg-slate-100 disabled:opacity-40 text-xs font-semibold flex items-center gap-1 cursor-pointer"
+                    >
+                      <ChevronLeft className="w-3.5 h-3.5" />
+                      <span>Previous</span>
+                    </button>
+
+                    <Link
+                      href={`/drug/${activeItem.drugSlug}`}
+                      className="px-3 py-1.5 rounded-lg bg-teal-800 hover:bg-teal-900 text-white text-xs font-bold inline-flex items-center gap-1 shadow-xs"
+                    >
+                      <span>Full Dossier</span>
+                      <ExternalLink className="w-3 h-3" />
+                    </Link>
+
+                    <button
+                      type="button"
+                      disabled={safeIdx === selectedCandidates.length - 1}
+                      onClick={() => setMobileActiveDrugIdx(prev => Math.min(selectedCandidates.length - 1, prev + 1))}
+                      className="px-3 py-1.5 rounded-lg border border-slate-200 bg-slate-50 hover:bg-slate-100 disabled:opacity-40 text-xs font-semibold flex items-center gap-1 cursor-pointer"
+                    >
+                      <span>Next</span>
+                      <ChevronRight className="w-3.5 h-3.5" />
+                    </button>
+                  </div>
+                </div>
+              );
+            })()}
+
+            {/* Matrix Table (Visible on Desktop OR when Table Mode Selected on Mobile) */}
+            <div className={`overflow-x-auto bg-white border border-slate-200 rounded-xl shadow-xs ${mobileViewMode === 'card' ? 'hidden md:block' : 'block'}`}>
             <table className="w-full text-xs text-left border-collapse">
               <thead>
                 <tr className="border-b border-slate-200 bg-slate-50">
