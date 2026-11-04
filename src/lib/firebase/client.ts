@@ -47,18 +47,11 @@ let auth: Auth | null = null;
 let db: Firestore | null = null;
 
 /**
- * Resolves the optimal authDomain.
- * When running in the browser on drugrepurpose.vercel.app or custom domains,
- * routing through window.location.host uses Next.js /__/auth rewrites.
- * This converts all auth cookies into 100% first-party cookies, eliminating browser 3P cookie blocks.
+ * Resolves the canonical Firebase authDomain.
+ * Always targets the official Firebase Auth handler domain (repurpose-6bbab.firebaseapp.com)
+ * which is pre-authorized in Google Cloud Console and Firebase Auth settings.
  */
 export function getEffectiveAuthDomain(): string {
-  if (typeof window !== 'undefined') {
-    const host = window.location.host;
-    if (host && (host.includes('vercel.app') || host.includes('localhost') || host.includes('127.0.0.1'))) {
-      return host;
-    }
-  }
   return process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN || 'repurpose-6bbab.firebaseapp.com';
 }
 
@@ -181,11 +174,6 @@ export async function signInWithGoogle(): Promise<GoogleSignInResult> {
 
     if (typeof window !== 'undefined') {
       localStorage.setItem(LOCAL_USER_KEY, JSON.stringify(userProfile));
-      const credential = GoogleAuthProvider.credentialFromResult(cred);
-      if (credential?.accessToken) {
-        sessionStorage.setItem('repurpose_drive_access_token', credential.accessToken);
-        localStorage.setItem('repurpose_drive_access_token', credential.accessToken);
-      }
       window.dispatchEvent(new CustomEvent(AUTH_CHANGED_EVENT, { detail: userProfile }));
     }
 
@@ -228,39 +216,10 @@ export async function signInWithGoogle(): Promise<GoogleSignInResult> {
 }
 
 /**
- * Requests scoped Google Drive access (https://www.googleapis.com/auth/drive.file)
- * to save research notebook PDFs directly into the investigator's personal Google Drive.
+ * Deprecated Google Drive access stub (Google Drive direct upload removed in favor of local PDF export)
  */
 export async function requestGoogleDriveAccess(): Promise<{ success: boolean; token?: string; error?: string }> {
-  const currentAuth = getFirebaseAuth();
-  if (!currentAuth) {
-    return { success: false, error: 'Firebase is not initialized.' };
-  }
-
-  try {
-    const provider = new GoogleAuthProvider();
-    provider.addScope('https://www.googleapis.com/auth/drive.file');
-    provider.setCustomParameters({ prompt: 'consent' });
-    const cred = await signInWithPopup(currentAuth, provider);
-    const credential = GoogleAuthProvider.credentialFromResult(cred);
-    const token = credential?.accessToken;
-
-    if (token) {
-      if (typeof window !== 'undefined') {
-        sessionStorage.setItem('repurpose_drive_access_token', token);
-        localStorage.setItem('repurpose_drive_access_token', token);
-      }
-      return { success: true, token };
-    }
-    return { success: false, error: 'Could not obtain Google Drive access token.' };
-  } catch (err: unknown) {
-    const error = err as { code?: string; message?: string };
-    console.error('Drive access request error:', error);
-    return {
-      success: false,
-      error: error.message || 'Google Drive authorization request was cancelled.',
-    };
-  }
+  return { success: false, error: 'Google Drive direct upload has been replaced with local PDF download.' };
 }
 
 export async function signInWithGoogleRedirect(): Promise<{ success: boolean; error?: string }> {
@@ -274,7 +233,6 @@ export async function signInWithGoogleRedirect(): Promise<{ success: boolean; er
 
   try {
     const provider = new GoogleAuthProvider();
-    provider.addScope('https://www.googleapis.com/auth/drive.file');
     provider.setCustomParameters({ prompt: 'select_account' });
     await signInWithRedirect(currentAuth, provider);
     return { success: true };
@@ -305,11 +263,6 @@ export async function checkRedirectResult(): Promise<GoogleSignInResult | null> 
 
     if (typeof window !== 'undefined') {
       localStorage.setItem(LOCAL_USER_KEY, JSON.stringify(userProfile));
-      const credential = GoogleAuthProvider.credentialFromResult(cred);
-      if (credential?.accessToken) {
-        sessionStorage.setItem('repurpose_drive_access_token', credential.accessToken);
-        localStorage.setItem('repurpose_drive_access_token', credential.accessToken);
-      }
       window.dispatchEvent(new CustomEvent(AUTH_CHANGED_EVENT, { detail: userProfile }));
     }
 
@@ -339,8 +292,6 @@ export async function signOutUser(): Promise<void> {
   }
   if (typeof window !== 'undefined') {
     localStorage.removeItem(LOCAL_USER_KEY);
-    sessionStorage.removeItem('repurpose_drive_access_token');
-    localStorage.removeItem('repurpose_drive_access_token');
     window.dispatchEvent(new CustomEvent(AUTH_CHANGED_EVENT, { detail: null }));
   }
 }

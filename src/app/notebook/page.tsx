@@ -27,7 +27,9 @@ import {
   signInWithGoogleRedirect,
   checkRedirectResult,
   signOutUser,
-  requestGoogleDriveAccess
+  saveDrugResearch,
+  fetchUserSavedDrugs,
+  deleteSavedDrug
 } from '@/lib/firebase/client';
 import { 
   getNotebookItems, 
@@ -36,9 +38,7 @@ import {
   NotebookDossierItem 
 } from '@/lib/notebookStorage';
 import { 
-  generateNotebookPdfBlob, 
-  uploadPdfToGoogleDrive, 
-  getStoredDriveToken 
+  generateNotebookPdfBlob 
 } from '@/lib/googleDrive';
 import { PrintSummaryButton } from '@/components/PrintSummaryButton';
 
@@ -62,11 +62,8 @@ export default function NotebookPage() {
   const [isSigningIn, setIsSigningIn] = useState(false);
   const [authError, setAuthError] = useState<{ message: string; code?: string; domain?: string } | null>(null);
 
-  // Google Drive Export States
-  const [isSavingToDrive, setIsSavingToDrive] = useState(false);
-  const [driveSaveStatus, setDriveSaveStatus] = useState<string | null>(null);
-  const [driveUploadResult, setDriveUploadResult] = useState<{ webViewLink: string; filename: string } | null>(null);
-  const [driveError, setDriveError] = useState<string | null>(null);
+  // Local PDF download state
+  const [isDownloadingPdf, setIsDownloadingPdf] = useState(false);
 
   // Subscribe to auth state & check redirect sign-in outcome on mount
   useEffect(() => {
@@ -128,66 +125,24 @@ export default function NotebookPage() {
     }
   };
 
-  const handleSaveToGoogleDrive = async () => {
-    if (items.length === 0) {
-      setDriveError('Your notebook is empty. Save drug research items to your notebook before archiving to Google Drive.');
-      return;
-    }
-
-    setDriveError(null);
-    setDriveUploadResult(null);
-    setIsSavingToDrive(true);
-    setDriveSaveStatus('Verifying Google Drive access...');
-
+  const handleDownloadPdf = () => {
+    if (items.length === 0) return;
+    setIsDownloadingPdf(true);
     try {
-      let token = getStoredDriveToken();
-      if (!token) {
-        setDriveSaveStatus('Requesting Google Drive permission...');
-        const authRes = await requestGoogleDriveAccess();
-        if (!authRes.success || !authRes.token) {
-          setDriveError(authRes.error || 'Google Drive authorization was not completed.');
-          setIsSavingToDrive(false);
-          setDriveSaveStatus(null);
-          return;
-        }
-        token = authRes.token;
-      }
-
-      setDriveSaveStatus('Generating research PDF dossier...');
       const investigator = user?.displayName || user?.email || 'Researcher';
       const pdfBlob = generateNotebookPdfBlob(items, investigator);
-      const filename = `Repurpose_Research_Notebook_${new Date().toISOString().slice(0, 10)}.pdf`;
-
-      setDriveSaveStatus('Uploading directly to Google Drive...');
-      const uploadRes = await uploadPdfToGoogleDrive(token, pdfBlob, filename);
-
-      if (!uploadRes.success || !uploadRes.webViewLink) {
-        // If token was expired, retry once with fresh authorization
-        if (uploadRes.error?.includes('expired') || uploadRes.error?.includes('401')) {
-          setDriveSaveStatus('Refreshing Drive authorization...');
-          const retryAuth = await requestGoogleDriveAccess();
-          if (retryAuth.success && retryAuth.token) {
-            const retryUpload = await uploadPdfToGoogleDrive(retryAuth.token, pdfBlob, filename);
-            if (retryUpload.success && retryUpload.webViewLink) {
-              setDriveUploadResult({ webViewLink: retryUpload.webViewLink, filename });
-              setDriveSaveStatus(null);
-              setIsSavingToDrive(false);
-              return;
-            }
-          }
-        }
-        setDriveError(uploadRes.error || 'Failed to upload PDF to Google Drive.');
-      } else {
-        setDriveUploadResult({
-          webViewLink: uploadRes.webViewLink,
-          filename,
-        });
-      }
-    } catch (err: unknown) {
-      setDriveError((err as Error).message || 'An unexpected error occurred while saving to Google Drive.');
+      const url = URL.createObjectURL(pdfBlob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `Repurpose_Research_Notebook_${new Date().toISOString().slice(0, 10)}.pdf`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    } catch (err) {
+      console.error('PDF generation error:', err);
     } finally {
-      setIsSavingToDrive(false);
-      setDriveSaveStatus(null);
+      setIsDownloadingPdf(false);
     }
   };
 
@@ -308,45 +263,36 @@ export default function NotebookPage() {
               </p>
             </div>
 
-            {/* User Auth controls & Print Notebook */}
+            {/* User Auth controls & PDF Export / Print */}
             <div className="flex items-center gap-2.5 shrink-0 flex-wrap no-print">
               <PrintSummaryButton label="Print Notebook (PDF)" />
 
               <button
-                onClick={handleSaveToGoogleDrive}
-                disabled={isSavingToDrive}
-                className="px-3 py-1.5 rounded-lg border border-slate-300 bg-white hover:bg-slate-50 disabled:opacity-60 text-slate-700 text-xs font-semibold flex items-center gap-1.5 transition-colors shadow-2xs cursor-pointer"
-                title="Save this notebook as a PDF directly into your Google Drive"
+                onClick={handleDownloadPdf}
+                disabled={items.length === 0 || isDownloadingPdf}
+                className="px-3 py-1.5 rounded-lg border border-slate-300 bg-white hover:bg-slate-50 disabled:opacity-50 text-slate-700 text-xs font-semibold flex items-center gap-1.5 transition-colors shadow-2xs cursor-pointer"
+                title="Save and download this notebook as a PDF document"
               >
-                {isSavingToDrive ? (
-                  <>
-                    <Loader2 className="w-3.5 h-3.5 animate-spin text-teal-700" />
-                    <span>{driveSaveStatus || 'Archiving...'}</span>
-                  </>
-                ) : (
-                  <>
-                    <svg className="w-3.5 h-3.5 shrink-0" viewBox="0 0 24 24" aria-hidden="true">
-                      <path fill="#FFC107" d="M18.8 17.5L12 5.5l-2.4 4.2 6.8 11.8h4.4z"/>
-                      <path fill="#0066DA" d="M1.6 17.5l2.4 4.2h13.6l-2.4-4.2H1.6z"/>
-                      <path fill="#00AC47" d="M9.6 9.7L5.2 2H.8l6.8 11.8 2-4.1z"/>
-                    </svg>
-                    <span>Save PDF to Google Drive</span>
-                  </>
-                )}
+                <FileText className="w-3.5 h-3.5 text-teal-700 shrink-0" />
+                <span>Save PDF</span>
               </button>
 
               {user && !user.isAnonymous ? (
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-2 bg-slate-50 border border-slate-200 pl-3 pr-1.5 py-1 rounded-lg">
                   <div className="text-right text-xs">
-                    <div className="font-semibold text-slate-800">{user.displayName || user.email}</div>
-                    <div className="text-teal-700 font-mono text-[10px]">Cloud Synced</div>
+                    <div className="font-semibold text-slate-900 leading-tight">{user.displayName || user.email}</div>
+                    <div className="text-teal-700 font-mono text-[10px] flex items-center justify-end gap-1">
+                      <span className="w-1.5 h-1.5 rounded-full bg-teal-600 animate-pulse" />
+                      <span>30-Day Cloud Sync</span>
+                    </div>
                   </div>
                   <button
                     onClick={() => signOutUser()}
-                    className="p-2 rounded-lg border border-slate-300 bg-white hover:bg-slate-50 text-slate-700 text-xs transition-colors shadow-xs cursor-pointer"
-                    title="Sign out"
+                    className="p-1.5 rounded-md border border-slate-200 bg-white hover:bg-slate-100 text-slate-600 hover:text-slate-900 text-xs transition-colors shadow-2xs cursor-pointer ml-1"
+                    title="Sign out of Google"
+                    aria-label="Sign out"
                   >
-                    <LogOut className="w-4 h-4" />
+                    <LogOut className="w-3.5 h-3.5" />
                   </button>
                 </div>
               ) : (
@@ -354,8 +300,8 @@ export default function NotebookPage() {
                   <button
                     onClick={handleGoogleSignIn}
                     disabled={isSigningIn}
-                    className="px-3 py-1.5 rounded-lg border border-teal-300 bg-teal-50 hover:bg-teal-100 disabled:opacity-60 text-teal-800 text-xs font-semibold flex items-center gap-1.5 transition-colors shadow-xs cursor-pointer"
-                    title="Sign in with your Google account"
+                    className="px-3.5 py-1.5 rounded-lg border border-teal-300 bg-teal-50 hover:bg-teal-100 disabled:opacity-60 text-teal-900 text-xs font-semibold flex items-center gap-2 transition-colors shadow-xs cursor-pointer"
+                    title="Sign in with your Google account to sync hypotheses for 30 days"
                   >
                     {isSigningIn ? (
                       <>
@@ -379,65 +325,6 @@ export default function NotebookPage() {
             </div>
           </div>
         </div>
-
-        {/* Google Drive Upload Success Notification */}
-        {driveUploadResult && (
-          <div className="p-4 rounded-xl bg-teal-50 border border-teal-300 text-teal-950 text-xs space-y-2 no-print animate-in fade-in duration-200">
-            <div className="flex items-start justify-between gap-3">
-              <div className="flex items-start gap-2.5">
-                <CheckCircle2 className="w-4 h-4 text-teal-700 shrink-0 mt-0.5" />
-                <div className="space-y-1">
-                  <div className="font-bold text-slate-900">
-                    Notebook PDF Successfully Saved to Google Drive
-                  </div>
-                  <p className="text-slate-700 leading-relaxed">
-                    File <strong className="font-mono text-slate-900">{driveUploadResult.filename}</strong> has been uploaded directly to your Google Drive. Even after the website workspace cleans up in 30 days, this PDF document will remain permanently saved under your personal Google account.
-                  </p>
-                  <div className="pt-1.5">
-                    <a
-                      href={driveUploadResult.webViewLink}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-teal-800 hover:bg-teal-900 text-white font-semibold text-xs transition-colors shadow-2xs cursor-pointer"
-                    >
-                      <span>Open in Google Drive</span>
-                      <ExternalLink className="w-3 h-3" />
-                    </a>
-                  </div>
-                </div>
-              </div>
-              <button
-                onClick={() => setDriveUploadResult(null)}
-                className="text-slate-400 hover:text-slate-600 text-base font-bold px-1.5 py-0.5 rounded cursor-pointer"
-                aria-label="Dismiss notification"
-              >
-                ×
-              </button>
-            </div>
-          </div>
-        )}
-
-        {/* Google Drive Error Notification */}
-        {driveError && (
-          <div className="p-4 rounded-xl bg-amber-50 border border-amber-300 text-amber-950 text-xs space-y-1.5 no-print animate-in fade-in duration-150">
-            <div className="flex items-start justify-between gap-3">
-              <div className="flex items-start gap-2.5">
-                <AlertTriangle className="w-4 h-4 text-amber-600 shrink-0 mt-0.5" />
-                <div>
-                  <div className="font-bold text-slate-900">Google Drive Export Notice</div>
-                  <p className="text-slate-700 leading-relaxed">{driveError}</p>
-                </div>
-              </div>
-              <button
-                onClick={() => setDriveError(null)}
-                className="text-slate-400 hover:text-slate-600 text-base font-bold px-1.5 py-0.5 rounded cursor-pointer"
-                aria-label="Dismiss notification"
-              >
-                ×
-              </button>
-            </div>
-          </div>
-        )}
 
         {/* Diagnostic Alert for Authentication Errors */}
         {authError && (
