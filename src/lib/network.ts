@@ -23,6 +23,8 @@ export const ALLOWED_BIOMEDICAL_HOSTS = new Set([
   'identitytoolkit.googleapis.com',
   'securetoken.googleapis.com',
   'firestore.googleapis.com',
+  'api.platform.opentargets.org',
+  'platform.opentargets.org',
 ]);
 
 // Sliding window in-memory rate limiter with periodic cleanup

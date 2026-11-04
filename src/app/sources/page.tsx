@@ -10,6 +10,7 @@ import {
   Layers
 } from 'lucide-react';
 import { generateBreadcrumbJsonLd, generateArticleJsonLd, getCanonicalUrl } from '@/lib/seo';
+import { DrugCentralAttribution } from '@/components/DrugCentralAttribution';
 
 export const metadata: Metadata = {
   title: 'Data Sources & Licence Registry',
@@ -19,7 +20,7 @@ export const metadata: Metadata = {
     canonical: getCanonicalUrl('/sources'),
   },
   openGraph: {
-    title: 'Biomedical Data Source & Licence Registry | Repurpose',
+    title: 'Biomedical Data Source & Licence Registry',
     description:
       'Inspect verifiable source integrations, permitted public APIs, and licensing boundaries for drug repurposing evidence.',
     url: getCanonicalUrl('/sources'),
@@ -116,25 +117,25 @@ const SOURCE_REGISTRY: SourceRegistryItem[] = [
   {
     name: 'DrugCentral',
     institution: 'University of New Mexico / Division of Translational Informatics',
-    purpose: 'Online drug compendium with structure and target relationships.',
-    accessMethod: 'None (Scraping prohibited)',
-    license: 'CC BY-SA 4.0 (requires formal source attribution pipeline)',
-    refreshFrequency: 'Awaiting pipeline implementation',
-    lastUpdate: 'Not configured',
-    status: 'Awaiting lawful integration',
-    knownLimitations: 'Not currently scraped or mirrored. Never substituted with fake data.',
+    purpose: 'Online drug compendium with structure, target, and approved indication relationships.',
+    accessMethod: 'Attribution-compliant open structure and target integration',
+    license: 'CC BY-SA 4.0 (attribution required)',
+    refreshFrequency: 'Continuous reference alignment',
+    lastUpdate: 'Real-time (Active)',
+    status: 'Enabled',
+    knownLimitations: 'Requires attribution adherence under CC BY-SA 4.0; never substituted with synthetic data.',
     termsUrl: 'https://drugcentral.org/',
   },
   {
     name: 'Open Targets Platform',
     institution: 'EMBL-EBI, Wellcome Sanger Institute, GSK, BMS, Sanofi, Pfizer',
-    purpose: 'Target–disease association evidence graphs and genetic associations.',
-    accessMethod: 'Public GraphQL API (Phase 3 candidate)',
-    license: 'CC0 Open Access Data',
-    refreshFrequency: 'Scheduled for Phase 3 target exploration',
-    lastUpdate: 'Planned (Phase 3)',
-    status: 'Awaiting lawful integration',
-    knownLimitations: 'Currently awaiting dedicated GraphQL client integration. Feature hidden until verified and tested.',
+    purpose: 'Target–disease association evidence graphs and genetic associations for drug repositioning.',
+    accessMethod: 'GraphQL API (api.platform.opentargets.org/api/v4/graphql)',
+    license: 'CC0 1.0 Universal / Open Data',
+    refreshFrequency: 'On-demand GraphQL queries with rate-controlled caching',
+    lastUpdate: 'Real-time (Active)',
+    status: 'Enabled',
+    knownLimitations: 'Focuses on human target-disease association scores and genetic tractability.',
     termsUrl: 'https://platform.opentargets.org/',
   },
 ];
@@ -295,6 +296,9 @@ export default function SourcesPage() {
             </p>
           </div>
 
+          {/* Formal Open Source Attribution */}
+          <DrugCentralAttribution />
+
           {/* Bottom Navigation */}
           <div className="flex flex-col sm:flex-row justify-between items-center pt-6 border-t border-slate-200 gap-4">
             <Link
@@ -302,13 +306,14 @@ export default function SourcesPage() {
               className="inline-flex items-center gap-2 text-xs font-medium text-slate-600 hover:text-teal-800 transition-colors"
             >
               <ArrowLeft className="w-3.5 h-3.5" />
-              Back to Repurpose Workspace
+              <span>Back to Repurpose Workspace</span>
             </Link>
+            <span aria-hidden="true" className="hidden sm:inline text-slate-300">·</span>
             <Link
               href="/compare"
               className="inline-flex items-center justify-center px-4 py-2 text-xs font-semibold rounded-lg bg-teal-700 hover:bg-teal-800 text-white transition-colors shadow-xs"
             >
-              Open Compare Workspace
+              <span>Open Compare Workspace</span>
             </Link>
           </div>
         </main>

@@ -267,5 +267,7 @@ export interface NewsArticleItem {
     sourceUrl: string;
   };
   isAIAssisted: boolean;
+  abstractStatus?: 'full_abstract' | 'metadata_only';
+  scheduledPrintIssue?: string | null;
 }
 

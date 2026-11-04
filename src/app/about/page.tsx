@@ -4,7 +4,7 @@ import { ShieldAlert, Mail, Lock, Code2, HeartHandshake, ArrowRight, ArrowLeft }
 import { generateBreadcrumbJsonLd, getCanonicalUrl, SITE_CONFIG } from '@/lib/seo';
 
 export const metadata: Metadata = {
-  title: 'About Repurpose | Mission, Privacy & Creator Attribution',
+  title: 'About Repurpose · Mission, Privacy & Creator Attribution',
   description:
     'Repurpose is an open-source, evidence-grounded research tool built to help pharmacy students and biomedical investigators explore drug repositioning candidates.',
   alternates: {
@@ -160,7 +160,7 @@ export default function AboutPage() {
               </p>
               <div className="flex items-center gap-2 text-sm text-teal-800 pt-0.5">
                 <Mail className="w-4 h-4 text-teal-700" />
-                <span className="text-slate-600 text-xs sm:text-sm">Contact:</span>
+                <span className="text-slate-600 text-xs sm:text-sm">Contact:</span>{" "}
                 <a
                   href="mailto:hello@rahulchakradhar.dev"
                   className="font-medium text-teal-800 hover:text-teal-900 hover:underline font-mono text-xs sm:text-sm"

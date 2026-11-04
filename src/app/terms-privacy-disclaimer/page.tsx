@@ -9,19 +9,20 @@ import {
   FileText, 
   Mail, 
   Code2, 
-  ArrowLeft 
+  ArrowLeft,
+  HardDrive
 } from 'lucide-react';
-import { generateBreadcrumbJsonLd, generateArticleJsonLd, getCanonicalUrl } from '@/lib/seo';
+import { generateBreadcrumbJsonLd, generateArticleJsonLd, getCanonicalUrl, NEXT_PUBLIC_GITHUB_REPO_URL } from '@/lib/seo';
 
 export const metadata: Metadata = {
-  title: 'Terms, Privacy & Research Disclaimer | Repurpose',
+  title: 'Terms, Privacy & Research Disclaimer',
   description:
     'Official terms of use, privacy policy, source accuracy disclosures, limitation of liability, and research disclaimer for the Repurpose platform.',
   alternates: {
     canonical: getCanonicalUrl('/terms-privacy-disclaimer'),
   },
   openGraph: {
-    title: 'Terms, Privacy & Research Disclaimer | Repurpose',
+    title: 'Terms, Privacy & Research Disclaimer',
     description:
       'Official terms, privacy disclosures, limitation of liability, and research disclaimers for the open-source Repurpose platform.',
     url: getCanonicalUrl('/terms-privacy-disclaimer'),
@@ -37,7 +38,7 @@ export default function TermsPrivacyDisclaimerPage() {
   ]);
 
   const articleJsonLd = generateArticleJsonLd({
-    headline: 'Terms, Privacy & Research Disclaimer | Repurpose',
+    headline: 'Terms, Privacy & Research Disclaimer',
     description:
       'Official terms of use, privacy policy, medical disclaimer, and open-source licensing terms for the Repurpose research platform.',
     path: '/terms-privacy-disclaimer',
@@ -197,7 +198,23 @@ export default function TermsPrivacyDisclaimerPage() {
             </p>
           </section>
 
-          {/* Section 7: Contact and open source */}
+          {/* Section 7: Client-Side Storage & Edge Logging Disclosure */}
+          <section className="p-6 rounded-xl bg-white border border-slate-200 shadow-xs space-y-3">
+            <h2 className="text-lg font-bold text-slate-900 tracking-tight flex items-center gap-2">
+              <HardDrive className="w-5 h-5 text-teal-700" />
+              Client-Side Storage &amp; Edge Logging Disclosure
+            </h2>
+            <div className="space-y-3 text-xs sm:text-sm text-slate-700 leading-relaxed">
+              <p>
+                <strong>Local Browser Storage:</strong> Repurpose uses client-side web storage (<code className="text-teal-900 bg-slate-100 px-1 py-0.5 rounded font-mono text-xs">localStorage</code> and IndexedDB) strictly within your personal browser environment to preserve your saved drug dossiers, customized verification checklists, and Research Notebook annotations. These records remain entirely on your local device and are subject to an automated 30-day local retention policy unless you choose to export them to Google Drive or print them as a PDF. No private clinical notes or research dossiers are transmitted to or stored on our servers.
+              </p>
+              <p>
+                <strong>Edge Infrastructure &amp; Technical Request Logs:</strong> Standard web requests to our platform are processed by Vercel Edge Network infrastructure. Vercel collects ephemeral, standard HTTP serverless access logs (such as truncated IP address, user-agent string, timestamp, and requested URL path) strictly for operational routing, DDoS protection, edge caching, and security rate-limiting. These logs are automatically cycled and are never correlated with personal medical identities.
+              </p>
+            </div>
+          </section>
+
+          {/* Section 8: Contact and open source */}
           <section className="p-6 rounded-xl bg-white border border-slate-200 shadow-xs space-y-4">
             <h2 className="text-lg font-bold text-slate-900 tracking-tight flex items-center gap-2">
               <Mail className="w-5 h-5 text-teal-700" />
@@ -205,7 +222,7 @@ export default function TermsPrivacyDisclaimerPage() {
             </h2>
             <div className="space-y-3 text-xs sm:text-sm text-slate-700 leading-relaxed">
               <div className="flex items-center gap-2">
-                <span className="text-slate-600">For questions, corrections, or concerns, contact:</span>
+                <span className="text-slate-600">For questions, corrections, or concerns, contact:</span>{" "}
                 <a
                   href="mailto:hello@rahulchakradhar.dev"
                   className="font-medium text-teal-800 hover:text-teal-950 hover:underline font-mono"
@@ -220,7 +237,7 @@ export default function TermsPrivacyDisclaimerPage() {
                 <div className="flex items-center gap-2 pt-1">
                   <Code2 className="w-4 h-4 text-blue-600 shrink-0" />
                   <a
-                    href="https://github.com/rahulchakradhar30/Repurpose"
+                    href={NEXT_PUBLIC_GITHUB_REPO_URL}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="font-medium text-blue-600 hover:text-blue-800 hover:underline transition-colors"

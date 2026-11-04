@@ -54,6 +54,9 @@ export const SITE_CONFIG = {
   },
 };
 
+export const NEXT_PUBLIC_GITHUB_REPO_URL =
+  process.env.NEXT_PUBLIC_GITHUB_REPO_URL || 'https://github.com/rahulchakradhar30/Repurpose';
+
 export const MEDICAL_DISCLAIMER_TEXT =
   'For education and research only. This tool does not provide medical advice, diagnosis, or treatment recommendations. Always verify findings with original peer-reviewed literature and consult qualified healthcare professionals.';
 

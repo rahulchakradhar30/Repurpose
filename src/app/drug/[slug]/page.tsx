@@ -26,6 +26,7 @@ import { CopyPageLinkButton } from '@/components/CopyPageLinkButton';
 import { CompareDrugButton } from '@/components/CompareDrugButton';
 import { SaveToNotebookButton } from '@/components/SaveToNotebookButton';
 import { PrintSummaryButton } from '@/components/PrintSummaryButton';
+import { DrugCentralAttribution } from '@/components/DrugCentralAttribution';
 
 interface PageProps {
   params: Promise<{ slug: string }>;
@@ -42,7 +43,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 
   if (!guide || !isDrugPublishable(guide)) {
     return {
-      title: 'Drug Dossier Not Found | Repurpose',
+      title: 'Drug Dossier Not Found',
       description: 'The requested drug record is not published or verified for public indexing.',
       robots: {
         index: false,
@@ -453,6 +454,9 @@ export default async function DrugPage({ params }: PageProps) {
           </div>
         </section>
 
+        {/* Formal Open Source Attribution */}
+        <DrugCentralAttribution />
+
         {/* Methodology & Educational Context Cross-Links */}
         <div className="p-6 rounded-xl bg-white border border-slate-200 shadow-xs flex flex-col sm:flex-row items-center justify-between gap-4">
           <div>
@@ -464,13 +468,14 @@ export default async function DrugPage({ params }: PageProps) {
               href="/methodology"
               className="px-4 py-2 rounded-lg bg-slate-100 border border-slate-300 text-xs sm:text-sm font-medium text-slate-800 hover:bg-slate-200 transition-colors shadow-2xs"
             >
-              Methodology
+              <span>Methodology</span>
             </Link>
+            <span aria-hidden="true" className="text-slate-300">·</span>
             <Link
               href="/what-is-drug-repurposing"
               className="px-4 py-2 rounded-lg bg-teal-700 text-xs sm:text-sm font-medium text-white hover:bg-teal-800 transition-colors shadow-xs"
             >
-              Educational Guide
+              <span>Educational Guide</span>
             </Link>
           </div>
         </div>

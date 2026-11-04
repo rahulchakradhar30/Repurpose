@@ -8,10 +8,10 @@ import {
   ArrowLeft,
   BookOpen
 } from 'lucide-react';
-import { generateBreadcrumbJsonLd, generateArticleJsonLd, getCanonicalUrl, SITE_NAME } from '@/lib/seo';
+import { generateBreadcrumbJsonLd, generateArticleJsonLd, getCanonicalUrl, SITE_NAME, NEXT_PUBLIC_GITHUB_REPO_URL } from '@/lib/seo';
 
 export const metadata: Metadata = {
-  title: 'Open-Source MIT License | Repurpose',
+  title: 'Open-Source MIT License',
   description:
     'Repurpose is open-source software released under the MIT License. View source code usage permissions, copyright terms, and liability limits.',
   keywords: [
@@ -25,7 +25,7 @@ export const metadata: Metadata = {
     canonical: getCanonicalUrl('/license'),
   },
   openGraph: {
-    title: 'Open-Source MIT License | Repurpose',
+    title: 'Open-Source MIT License',
     description:
       'Repurpose open-source software licensing terms, MIT License permissions, and source code copyright notice.',
     url: getCanonicalUrl('/license'),
@@ -35,7 +35,7 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: 'summary',
-    title: 'Open-Source MIT License | Repurpose',
+    title: 'Open-Source MIT License',
     description:
       'Repurpose open-source software licensing terms, MIT License permissions, and source code copyright notice.',
   },
@@ -135,7 +135,7 @@ export default function LicensePage() {
             {/* Outlined GitHub License Button */}
             <div className="pt-3 border-t border-slate-100 flex flex-wrap items-center gap-3">
               <a
-                href="https://github.com/rahulchakradhar30/Repurpose/blob/main/LICENSE"
+                href={`${NEXT_PUBLIC_GITHUB_REPO_URL}/blob/main/LICENSE`}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="inline-flex items-center gap-2 px-4 py-2 rounded-lg border border-slate-300 bg-white text-slate-800 hover:bg-slate-50 hover:border-slate-400 text-xs sm:text-sm font-semibold transition-colors focus-visible:ring-2 focus-visible:ring-teal-500 cursor-pointer"
@@ -147,14 +147,16 @@ export default function LicensePage() {
           </section>
 
           {/* Navigation Links */}
-          <div className="pt-6 border-t border-slate-200 flex items-center justify-between">
+          <div className="pt-6 border-t border-slate-200 flex flex-col sm:flex-row items-center justify-between gap-3">
             <Link
               href="/about"
               className="inline-flex items-center gap-1.5 text-xs font-semibold text-slate-600 hover:text-teal-800 transition-colors"
             >
               <ArrowLeft className="w-4 h-4" />
-              Back to About &amp; Privacy
+              <span>Back to About &amp; Privacy</span>
             </Link>
+
+            <span aria-hidden="true" className="hidden sm:inline text-slate-300">·</span>
 
             <Link
               href="/terms-privacy-disclaimer"

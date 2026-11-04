@@ -21,7 +21,7 @@ export const metadata: Metadata = {
     canonical: getCanonicalUrl('/privacy'),
   },
   openGraph: {
-    title: 'Privacy Policy & Data Retention | Repurpose',
+    title: 'Privacy Policy & Data Retention',
     description:
       'Learn how Repurpose safeguards investigator confidentiality, enforces a 30-day auto-purge for saved dossiers, and strictly prohibits patient-identifiable data.',
     url: getCanonicalUrl('/privacy'),
