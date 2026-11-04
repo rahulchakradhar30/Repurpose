@@ -20,6 +20,7 @@ import {
 import { EvidenceDossierData } from '@/lib/evidenceDossier';
 import { RepurposeCompass } from '@/components/RepurposeCompass';
 import { PrintSummaryButton } from '@/components/PrintSummaryButton';
+import { PdfExportModal } from '@/components/PdfExportModal';
 
 interface EvidenceDossierClientProps {
   dossier: EvidenceDossierData;
@@ -29,6 +30,7 @@ export function EvidenceDossierClient({ dossier }: EvidenceDossierClientProps) {
   const { drug, approvedIndications, candidate, drugSlug, conditionSlug, lastVerifiedDate, sourceList } = dossier;
   const [copied, setCopied] = useState(false);
   const [isSaved, setIsSaved] = useState(false);
+  const [isExportModalOpen, setIsExportModalOpen] = useState(false);
 
   // Check local saved items on mount
   React.useEffect(() => {
@@ -113,7 +115,7 @@ export function EvidenceDossierClient({ dossier }: EvidenceDossierClientProps) {
               <span>{isSaved ? 'Saved in Notebook' : 'Save Dossier'}</span>
             </button>
 
-            <PrintSummaryButton label="Print Summary" />
+            <PrintSummaryButton label="Export PDF" onClick={() => setIsExportModalOpen(true)} />
 
             <button
               onClick={handleCopyLink}
@@ -333,7 +335,7 @@ export function EvidenceDossierClient({ dossier }: EvidenceDossierClientProps) {
 
             {/* Citation Action Button */}
             <div className="flex items-center gap-2">
-              <PrintSummaryButton label="Print Citations (PDF)" />
+              <PrintSummaryButton label="Export Dossier (PDF)" onClick={() => setIsExportModalOpen(true)} />
             </div>
           </div>
 
@@ -445,6 +447,14 @@ export function EvidenceDossierClient({ dossier }: EvidenceDossierClientProps) {
           </div>
         </div>
       </main>
+
+      {/* Customizable PDF Export & Chrome Save Modal */}
+      <PdfExportModal
+        isOpen={isExportModalOpen}
+        onClose={() => setIsExportModalOpen(false)}
+        drug={drug}
+        candidate={candidate}
+      />
     </div>
   );
 }

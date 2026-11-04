@@ -69,11 +69,23 @@ export function generateNotebookPdfBlob(
     y -= 12;
   }
 
-  // Header
-  addText('REPURPOSE RESEARCH NOTEBOOK', '/F2', 18, 22);
-  addText('Scientific Dossier & Hypothesis Archive', '/F2', 12, 16);
-  addText(`Investigator: ${investigatorName}  |  Archived: ${currentDate} ${currentTime}`, '/F1', 9, 14);
-  addText('Storage: Preserved permanently in Google Drive (Independent of 30-day website workspace cleanup)', '/F1', 9, 16);
+  // Repurpose Favicon Vector Icon + Branding Header
+  lines.push('0.06 0.09 0.16 rg 50 732 18 18 re f');
+  lines.push('0.06 0.46 0.43 rg 57 734 4 14 re f');
+  lines.push('0.06 0.46 0.43 rg 52 739 14 4 re f');
+  lines.push('0.97 0.98 0.99 rg 58 740 2 2 re f');
+  lines.push('0.06 0.09 0.16 rg');
+  lines.push('BT /F2 13 Tf 74 736 Td (REPURPOSE) Tj ET');
+  lines.push('BT /F1 8 Tf 160 738 Td (|  Research Notebook Archive) Tj ET');
+  lines.push(`BT /F1 8 Tf 400 738 Td (Date: ${currentDate}) Tj ET`);
+  lines.push('0.75 w 0.8 0.85 0.9 RG 50 724 m 562 724 l S');
+  y = 705;
+
+  // Header Title
+  addText('REPURPOSE RESEARCH NOTEBOOK', '/F2', 16, 20);
+  addText('Scientific Dossier & Hypothesis Archive', '/F2', 11, 15);
+  addText(`Investigator: ${investigatorName}  |  Archived: ${currentDate} ${currentTime}`, '/F1', 8.5, 14);
+  addText('Storage: Preserved locally (Independent of 30-day website workspace cleanup)', '/F1', 8.5, 16);
   addRule();
 
   if (!items || items.length === 0) {

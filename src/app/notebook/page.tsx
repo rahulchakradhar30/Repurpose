@@ -40,7 +40,9 @@ import {
 import { 
   generateNotebookPdfBlob 
 } from '@/lib/googleDrive';
+import { DrugConcept } from '@/types';
 import { PrintSummaryButton } from '@/components/PrintSummaryButton';
+import { PdfExportModal } from '@/components/PdfExportModal';
 
 const DEFAULT_CHECKLIST_TEMPLATE = [
   { id: 'trials', label: 'Review full NCT clinical trial records & design parameters' },
@@ -62,8 +64,9 @@ export default function NotebookPage() {
   const [isSigningIn, setIsSigningIn] = useState(false);
   const [authError, setAuthError] = useState<{ message: string; code?: string; domain?: string } | null>(null);
 
-  // Local PDF download state
+  // Local PDF download & custom export modal state
   const [isDownloadingPdf, setIsDownloadingPdf] = useState(false);
+  const [isExportModalOpen, setIsExportModalOpen] = useState(false);
 
   // Subscribe to auth state & check redirect sign-in outcome on mount
   useEffect(() => {
@@ -171,6 +174,21 @@ export default function NotebookPage() {
 
   const activeItem = items.find(i => i.id === activeItemId) || items[0] || null;
 
+  const activeDrugConcept: DrugConcept | null = activeItem ? {
+    genericName: activeItem.drug,
+    brandNames: [],
+    drugClass: 'Small molecule therapeutic candidate',
+    rxNormId: '',
+    mechanismOfAction: 'Investigational hypothesis recorded in Research Notebook.',
+    approvedIndications: [],
+    warnings: [],
+    contraindications: [],
+    lastVerifiedDate: new Date().toISOString().slice(0, 10),
+    sources: [
+      { name: 'RxNorm', status: 'ok', url: 'https://drugrepurpose.vercel.app/notebook', timestamp: new Date().toISOString() }
+    ],
+  } : null;
+
   const handleUpdateNotes = (notes: string) => {
     if (!activeItem) return;
     const updated = items.map(i => i.id === activeItem.id ? { ...i, notes } : i);
@@ -265,13 +283,28 @@ export default function NotebookPage() {
 
             {/* User Auth controls & PDF Export / Print */}
             <div className="flex items-center gap-2.5 shrink-0 flex-wrap no-print">
-              <PrintSummaryButton label="Print Notebook (PDF)" />
+              <PrintSummaryButton 
+                label="Print / Export PDF" 
+                onClick={() => {
+                  if (activeItem) {
+                    setIsExportModalOpen(true);
+                  } else if (typeof window !== 'undefined') {
+                    window.print();
+                  }
+                }}
+              />
 
               <button
-                onClick={handleDownloadPdf}
+                onClick={() => {
+                  if (activeItem) {
+                    setIsExportModalOpen(true);
+                  } else {
+                    handleDownloadPdf();
+                  }
+                }}
                 disabled={items.length === 0 || isDownloadingPdf}
                 className="px-3 py-1.5 rounded-lg border border-slate-300 bg-white hover:bg-slate-50 disabled:opacity-50 text-slate-700 text-xs font-semibold flex items-center gap-1.5 transition-colors shadow-2xs cursor-pointer"
-                title="Save and download this notebook as a PDF document"
+                title="Customize and download dossier as a PDF document"
               >
                 <FileText className="w-3.5 h-3.5 text-teal-700 shrink-0" />
                 <span>Save PDF</span>
@@ -640,6 +673,17 @@ export default function NotebookPage() {
           </div>
         )}
       </main>
+
+      {/* Customizable PDF Export & Chrome Print Modal */}
+      {activeDrugConcept && activeItem && (
+        <PdfExportModal
+          isOpen={isExportModalOpen}
+          onClose={() => setIsExportModalOpen(false)}
+          drug={activeDrugConcept}
+          notebookItem={activeItem}
+          userName={user?.displayName || user?.email || 'Investigator'}
+        />
+      )}
     </div>
   );
 }

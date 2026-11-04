@@ -22,10 +22,7 @@ import {
   generateBreadcrumbJsonLd,
   generateDrugPageJsonLd,
 } from '@/lib/seo';
-import { CopyPageLinkButton } from '@/components/CopyPageLinkButton';
-import { CompareDrugButton } from '@/components/CompareDrugButton';
-import { SaveToNotebookButton } from '@/components/SaveToNotebookButton';
-import { PrintSummaryButton } from '@/components/PrintSummaryButton';
+import { DrugPageActions } from '@/components/DrugPageActions';
 import { DrugCentralAttribution } from '@/components/DrugCentralAttribution';
 
 interface PageProps {
@@ -120,12 +117,7 @@ export default async function DrugPage({ params }: PageProps) {
             <span>/</span>
             <span className="text-slate-800 font-semibold truncate">{drug.genericName}</span>
           </nav>
-          <div className="flex items-center gap-2 flex-wrap">
-            <CompareDrugButton drug={drug} candidates={guide.candidates} />
-            <SaveToNotebookButton drug={drug} candidate={guide.candidates[0]} showViewLink={true} />
-            <PrintSummaryButton label="Print Summary" />
-            <CopyPageLinkButton label="Copy dossier link" />
-          </div>
+          <DrugPageActions drug={drug} candidates={guide.candidates} />
         </div>
 
         {/* Drug Header Dossier Card */}

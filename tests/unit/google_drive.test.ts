@@ -66,7 +66,8 @@ describe('Google Drive PDF Generation & Token Storage', () => {
     expect(text).toContain('Investigator: Dr. Smith');
     expect(text).toContain('METFORMIN');
     expect(text).toContain('AGE-RELATED FUNCTIONAL DECLINE');
-    expect(text).toContain('Preserved permanently in Google Drive');
+    expect(text).toContain('REPURPOSE');
+    expect(text).toContain('Preserved locally');
     expect(text).toContain('trailer');
     expect(text).toContain('%%EOF');
   });

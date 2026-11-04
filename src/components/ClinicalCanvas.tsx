@@ -13,6 +13,7 @@ import { RepurposeCompass } from './RepurposeCompass';
 import { SaveToNotebookButton } from './SaveToNotebookButton';
 import { CompareDrugButton } from './CompareDrugButton';
 import { PrintSummaryButton } from './PrintSummaryButton';
+import { PdfExportModal } from './PdfExportModal';
 import { 
   ExternalLink, 
   Share2, 
@@ -75,6 +76,7 @@ export function ClinicalCanvas({
 
   // Link copy feedback states
   const [copiedDrugLink, setCopiedDrugLink] = useState(false);
+  const [isExportModalOpen, setIsExportModalOpen] = useState(false);
 
   // Synchronize when candidates prop changes
   useEffect(() => {
@@ -347,7 +349,7 @@ export function ClinicalCanvas({
             )}
             <CompareDrugButton drug={drug} candidates={candidates} />
             <SaveToNotebookButton drug={drug} candidate={selectedCandidate || candidates[0]} showViewLink={true} />
-            <PrintSummaryButton label="Print" />
+            <PrintSummaryButton label="Export PDF" onClick={() => setIsExportModalOpen(true)} />
 
             <button
               onClick={handleCopyDrugLink}
@@ -1442,6 +1444,14 @@ export function ClinicalCanvas({
           </main>
         </div>
       )}
+
+      {/* Customizable PDF Export & Chrome Save Modal */}
+      <PdfExportModal
+        isOpen={isExportModalOpen}
+        onClose={() => setIsExportModalOpen(false)}
+        drug={drug}
+        candidate={selectedCandidate}
+      />
     </div>
   );
 }

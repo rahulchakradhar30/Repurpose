@@ -7,14 +7,20 @@ interface PrintSummaryButtonProps {
   label?: string;
   className?: string;
   variant?: 'outline' | 'ghost' | 'teal';
+  onClick?: () => void;
 }
 
 export function PrintSummaryButton({
   label = 'Print Summary',
   className = '',
   variant = 'outline',
+  onClick,
 }: PrintSummaryButtonProps) {
   const handlePrint = () => {
+    if (onClick) {
+      onClick();
+      return;
+    }
     if (typeof window !== 'undefined') {
       window.print();
     }

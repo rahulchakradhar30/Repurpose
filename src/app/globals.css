@@ -113,13 +113,33 @@ p {
   min-width: 44px;
 }
 
-/* Clean print styling for research citations */
+/* Clean print styling for research dossiers and PDF generation */
 @media print {
+  @page {
+    size: auto;
+    margin: 12mm 15mm 15mm 15mm;
+  }
   header, nav, footer, .no-print {
     display: none !important;
   }
   body {
-    background: white;
-    color: black;
+    background: white !important;
+    color: #0f172a !important;
+    font-size: 10.5pt !important;
+  }
+  /* Repeat thead (with Repurpose logo and branding) on EVERY printed page */
+  thead {
+    display: table-header-group !important;
+  }
+  tfoot {
+    display: table-footer-group !important;
+  }
+  tr, .page-break-inside-avoid {
+    break-inside: avoid !important;
+    page-break-inside: avoid !important;
+  }
+  h1, h2, h3, .page-break-after-avoid {
+    break-after: avoid !important;
+    page-break-after: avoid !important;
   }
 }
